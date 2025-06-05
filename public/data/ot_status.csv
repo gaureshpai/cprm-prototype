@@ -1,0 +1,7 @@
+ot_id,patient_name,procedure,status,progress,start_time,estimated_end,surgeon
+OT1,John Doe,Appendectomy,In Progress,65,09:30,11:45,Dr. Smith
+OT2,Jane Smith,Knee Replacement,In Progress,30,10:15,13:30,Dr. Johnson
+OT3,Robert Brown,Gallbladder Removal,Pre-Op,0,13:00,15:00,Dr. Williams
+OT4,Emily Davis,Hernia Repair,Post-Op,100,08:00,10:15,Dr. Lee
+OT5,Michael Wilson,Cardiac Bypass,In Progress,45,11:00,16:30,Dr. Chen
+OT6,Sarah Miller,Cataract Surgery,Scheduled,0,14:30,15:30,Dr. Patel

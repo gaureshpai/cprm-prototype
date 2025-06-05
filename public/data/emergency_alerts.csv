@@ -1,0 +1,3 @@
+alert_id,code_type,department,timestamp,status
+E001,Code Blue,OT,2025-06-01 09:45 AM,Active
+E002,Code Red,Pharmacy,2025-06-01 10:10 AM,Cleared

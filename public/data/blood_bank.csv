@@ -1,0 +1,9 @@
+blood_id,blood_type,units_available,critical_level,status
+B001,A+,25,10,Sufficient
+B002,A-,5,5,Critical
+B003,B+,18,10,Sufficient
+B004,B-,2,5,Critical
+B005,AB+,10,5,Sufficient
+B006,AB-,1,3,Critical
+B007,O+,30,10,Sufficient
+B008,O-,4,5,Critical

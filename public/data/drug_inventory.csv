@@ -1,0 +1,5 @@
+drug_id,drug_name,stock_qty,reorder_level,status
+DR001,Paracetamol 500mg,120,100,Available
+DR002,Amoxicillin 250mg,30,50,Low Stock
+DR003,Insulin Injection,0,20,Out of Stock
+DR004,ORS Sachet,300,150,Available

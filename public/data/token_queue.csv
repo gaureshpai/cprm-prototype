@@ -1,0 +1,5 @@
+token_id,dept_id,patient_name,status
+101,D001,A. Kumar,Waiting
+102,D001,B. Reddy,Called
+205,D002,C. Fernandes,Waiting
+310,D004,D. Shetty,In Progress
