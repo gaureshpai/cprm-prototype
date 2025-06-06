@@ -11,7 +11,6 @@ export async function fetchCSVData(url: string) {
     const response = await fetch(url)
     const csvText = await response.text()
 
-    // Parse CSV manually to handle the data
     const lines = csvText.split("\n")
     const headers = lines[0].split(",").map((h) => h.trim())
 
@@ -32,14 +31,13 @@ export async function fetchCSVData(url: string) {
   }
 }
 
-// Privacy-compliant data transformation
 export function anonymizePatientData(data: any[]) {
   return data.map((item) => ({
     ...item,
     patient_name: item.patient_name
       ? `${item.patient_name.charAt(0)}. ${item.patient_name.split(" ").pop()}`
       : "Anonymous",
-    // Keep only initials for privacy
+    
     display_name: item.patient_name
       ? item.patient_name
           .split(" ")

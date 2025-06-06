@@ -48,7 +48,6 @@ export default function DisplayManagement() {
   const [isPending, startTransition] = useTransition()
   const { toast } = useToast()
 
-  // Form states
   const [editForm, setEditForm] = useState({
     location: "",
     content: "",
@@ -61,12 +60,11 @@ export default function DisplayManagement() {
     status: "offline",
   })
 
-  // Real-time data fetching every 5 seconds
   useEffect(() => {
     fetchDisplays()
     const interval = setInterval(() => {
-      fetchDisplays(false) // Don't show loading on auto-refresh
-    }, 5000) // 5 seconds
+      fetchDisplays(false)
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [])
@@ -261,7 +259,6 @@ export default function DisplayManagement() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Display Management</h1>
@@ -356,8 +353,6 @@ export default function DisplayManagement() {
           </Dialog>
         </div>
       </div>
-
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
@@ -404,8 +399,6 @@ export default function DisplayManagement() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Displays Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {displays.map((display) => (
           <Card key={display.id} className="hover:shadow-lg transition-shadow">
@@ -453,8 +446,6 @@ export default function DisplayManagement() {
           </Card>
         ))}
       </div>
-
-      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

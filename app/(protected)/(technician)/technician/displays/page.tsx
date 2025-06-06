@@ -131,8 +131,6 @@ export default function DisplaysPage() {
           <Badge className="bg-green-500 text-sm">Online: {displays.filter((d) => d.status === "Online").length}</Badge>
         </div>
       </div>
-
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -157,8 +155,6 @@ export default function DisplaysPage() {
           </SelectContent>
         </Select>
       </div>
-
-      {/* Display Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDisplays.map((display) => (
           <Card key={display.id} className="hover:shadow-lg transition-shadow">

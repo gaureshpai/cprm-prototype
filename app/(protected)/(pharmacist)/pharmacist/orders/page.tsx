@@ -298,8 +298,6 @@ export default function OrdersPage() {
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Tabs */}
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
         <Button
           variant={activeTab === "prescriptions" ? "default" : "ghost"}
@@ -316,8 +314,6 @@ export default function OrdersPage() {
           Purchase Orders ({purchaseOrders.length})
         </Button>
       </div>
-
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -351,8 +347,6 @@ export default function OrdersPage() {
           </SelectContent>
         </Select>
       </div>
-
-      {/* Content */}
       {activeTab === "prescriptions" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredPrescriptions.map((prescription) => (
@@ -459,8 +453,6 @@ export default function OrdersPage() {
           ))}
         </div>
       )}
-
-      {/* Empty State */}
       {((activeTab === "prescriptions" && filteredPrescriptions.length === 0) ||
         (activeTab === "purchase" && filteredPurchaseOrders.length === 0)) && (
         <div className="text-center py-12">

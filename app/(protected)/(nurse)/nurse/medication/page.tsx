@@ -41,7 +41,7 @@ export default function MedicationPage() {
 
   useEffect(() => {
     fetchMedications()
-    const interval = setInterval(fetchMedications, 60000) // Refresh every minute
+    const interval = setInterval(fetchMedications, 60000) 
     return () => clearInterval(interval)
   }, [])
 
@@ -75,8 +75,7 @@ export default function MedicationPage() {
     if (statusFilter !== "all") {
       filtered = filtered.filter((med) => med.status === statusFilter)
     }
-
-    // Sort by time and priority (due medications first)
+    
     filtered.sort((a, b) => {
       if (a.status === "due" && b.status !== "due") return -1
       if (a.status !== "due" && b.status === "due") return 1
@@ -97,7 +96,7 @@ export default function MedicationPage() {
         body: JSON.stringify({
           notes: administrationNotes,
           administeredAt: new Date().toISOString(),
-          administeredBy: "Current Nurse", // This would come from auth context
+          administeredBy: "Current Nurse", 
         }),
       })
 
@@ -204,8 +203,6 @@ export default function MedicationPage() {
           )}
         </div>
       </div>
-
-      {/* Overdue Alert */}
       {overdueMedications.length > 0 && (
         <Alert className="border-orange-200 bg-orange-50">
           <AlertTriangle className="h-4 w-4 text-orange-600" />
@@ -215,8 +212,6 @@ export default function MedicationPage() {
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -240,8 +235,6 @@ export default function MedicationPage() {
           <option value="skipped">Skipped</option>
         </select>
       </div>
-
-      {/* Medications Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredMedications.map((medication) => (
           <Card
@@ -329,8 +322,6 @@ export default function MedicationPage() {
           <p className="text-gray-600">No medications match your current filters.</p>
         </div>
       )}
-
-      {/* Administer Medication Dialog */}
       <Dialog open={isAdministerDialogOpen} onOpenChange={setIsAdministerDialogOpen}>
         <DialogContent>
           <DialogHeader>

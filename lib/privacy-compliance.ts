@@ -36,15 +36,13 @@ export function applyPrivacyFilter(data: any[], level: keyof typeof PRIVACY_LEVE
   return data.map((item) => {
     const filtered = { ...item }
 
-    if (!settings.showFullNames && item.patient_name) {
-      // Show only initials for privacy
+    if (!settings.showFullNames && item.patient_name) {   
       const names = item.patient_name.split(" ")
       filtered.patient_name =
         names.length > 1 ? `${names[0].charAt(0)}. ${names[names.length - 1]}` : `${names[0].charAt(0)}.`
     }
 
-    if (!settings.showPatientDetails) {
-      // Remove sensitive details
+    if (!settings.showPatientDetails) {    
       delete filtered.phone
       delete filtered.address
       delete filtered.medical_history
@@ -54,11 +52,8 @@ export function applyPrivacyFilter(data: any[], level: keyof typeof PRIVACY_LEVE
   })
 }
 
-export function logDataAccess(userId: string, dataType: string, action: string) {
-  // Log all data access for compliance
-  console.log(`[PRIVACY LOG] User: ${userId}, Data: ${dataType}, Action: ${action}, Time: ${new Date().toISOString()}`)
-
-  // In production, this would write to a secure audit log
+export function logDataAccess(userId: string, dataType: string, action: string) { 
+  console.log(`[PRIVACY LOG] User: ${userId}, Data: ${dataType}, Action: ${action}, Time: ${new Date().toISOString()}`) 
   return {
     userId,
     dataType,

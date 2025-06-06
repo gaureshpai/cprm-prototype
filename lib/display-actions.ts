@@ -37,7 +37,6 @@ export interface ActionResponse<T> {
     error?: string
 }
 
-// Get all displays
 export async function getAllDisplaysAction(): Promise<ActionResponse<DisplayData[]>> {
     try {
         const displays = await prisma.display.findMany({
@@ -56,7 +55,6 @@ export async function getAllDisplaysAction(): Promise<ActionResponse<DisplayData
     }
 }
 
-// Get display by ID
 export async function getDisplayByIdAction(id: string): Promise<ActionResponse<DisplayData>> {
     try {
         const display = await prisma.display.findUnique({
@@ -77,7 +75,6 @@ export async function getDisplayByIdAction(id: string): Promise<ActionResponse<D
     }
 }
 
-// Create display
 export async function createDisplayAction(formData: FormData): Promise<ActionResponse<DisplayData>> {
     try {
         const location = formData.get("location") as string
@@ -95,7 +92,6 @@ export async function createDisplayAction(formData: FormData): Promise<ActionRes
                 status,
                 uptime: "0m",
                 lastUpdate: new Date(),
-                // Remove isActive since it doesn't exist in schema
             },
         })
 
@@ -111,7 +107,6 @@ export async function createDisplayAction(formData: FormData): Promise<ActionRes
     }
 }
 
-// Update display
 export async function updateDisplayAction(id: string, formData: FormData): Promise<ActionResponse<DisplayData>> {
     try {
         const location = formData.get("location") as string
@@ -125,7 +120,6 @@ export async function updateDisplayAction(id: string, formData: FormData): Promi
                 content,
                 status,
                 lastUpdate: new Date(),
-                // Remove isActive since it doesn't exist in schema
             },
         })
 
@@ -142,7 +136,6 @@ export async function updateDisplayAction(id: string, formData: FormData): Promi
     }
 }
 
-// Delete display
 export async function deleteDisplayAction(id: string): Promise<ActionResponse<boolean>> {
     try {
         await prisma.display.delete({
@@ -161,7 +154,6 @@ export async function deleteDisplayAction(id: string): Promise<ActionResponse<bo
     }
 }
 
-// Restart display
 export async function restartDisplayAction(id: string): Promise<ActionResponse<DisplayData>> {
     try {
         const display = await prisma.display.update({
@@ -186,83 +178,77 @@ export async function restartDisplayAction(id: string): Promise<ActionResponse<D
     }
 }
 
-// Get display data for public display
 export async function getDisplayDataAction(displayId: string) {
     try {
-        // Get token queue data using actual field names
         const tokenQueue = await prisma.tokenQueue.findMany({
             where: {
                 status: { in: ["waiting", "in_progress"] },
             },
             orderBy: [
-                { timestamp: "asc" }, // Use timestamp instead of createdAt
+                { timestamp: "asc" }, 
             ],
             take: 10,
         })
-
-        // Get departments using actual field names
+        
         const departments = await prisma.department.findMany({
             orderBy: {
-                department_name: "asc", // Use snake_case field name
+                department_name: "asc", 
             },
         })
-
-        // Get active emergency alerts using actual field names
+        
         const emergencyAlerts = await prisma.emergencyAlert.findMany({
             where: {
                 status: "active",
             },
             orderBy: {
-                timestamp: "desc", // Use timestamp instead of id
+                timestamp: "desc", 
             },
         })
-
-        // Get critical drug inventory using actual field names
+        
         const drugInventory = await prisma.drugInventory.findMany({
             where: {
                 status: "critical",
             },
             orderBy: {
-                drug_name: "asc", // Use snake_case field name
+                drug_name: "asc", 
             },
             take: 20,
         })
-
-        // Map the data using actual field names from your database
+        
         return {
             tokenQueue: tokenQueue.map((token) => ({
                 token_id: token.id,
-                patient_name: token.patient_name, // Use actual field name
-                display_name: null, // Field doesn't exist, set to null
+                patient_name: token.patient_name, 
+                display_name: null, 
                 status: token.status,
-                department: token.dept_id, // Use actual field name
-                priority: 0, // Field doesn't exist, set default
-                estimated_time: `${token.estimated_wait} min`, // Convert number to string
+                department: token.dept_id, 
+                priority: 0, 
+                estimated_time: `${token.estimated_wait} min`, 
             })),
             departments: departments.map((dept) => ({
                 dept_id: dept.id,
-                department_name: dept.department_name, // Use actual field name
+                department_name: dept.department_name, 
                 location: dept.location,
-                current_tokens: dept.current_tokens, // Use actual field name
+                current_tokens: dept.current_tokens, 
             })),
             emergencyAlerts: emergencyAlerts.map((alert) => ({
                 id: alert.id,
-                codeType: alert.code_type, // Use actual field name
-                location: alert.department, // Use department as location
-                message: `Emergency ${alert.code_type} in ${alert.department}`, // Create message from available fields
-                priority: alert.severity === "high" ? 5 : 3, // Convert severity to priority
+                codeType: alert.code_type, 
+                location: alert.department, 
+                message: `Emergency ${alert.code_type} in ${alert.department}`, 
+                priority: alert.severity === "high" ? 5 : 3, 
             })),
             drugInventory: drugInventory.map((drug) => ({
                 drug_id: drug.id,
-                drug_name: drug.drug_name, // Use actual field name
-                current_stock: drug.stock_qty, // Use actual field name
-                min_stock: drug.reorder_level, // Use actual field name
+                drug_name: drug.drug_name, 
+                current_stock: drug.stock_qty, 
+                min_stock: drug.reorder_level, 
                 status: drug.status,
             })),
         }
     } catch (error) {
         console.error("Error fetching display data:", error)
-        // Return empty data on error
+        
         return {
             tokenQueue: [],
             departments: [],
@@ -272,7 +258,6 @@ export async function getDisplayDataAction(displayId: string) {
     }
 }
 
-// Seed displays
 export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
     try {
         const locations = [
@@ -306,8 +291,7 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
         ]
 
         const contentTypes = ["Token Queue", "Department Status", "Emergency Alerts", "Drug Inventory", "Mixed Dashboard"]
-
-        // Check if displays already exist
+        
         const existingDisplays = await prisma.display.count()
         if (existingDisplays > 0) {
             return { success: false, error: "Displays already exist" }
@@ -326,7 +310,6 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
                 status: Math.random() > 0.3 ? "online" : Math.random() > 0.5 ? "offline" : "warning",
                 uptime: `${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m`,
                 lastUpdate: new Date(Date.now() - Math.random() * 3600000),
-                // Remove isActive and config since they don't exist in schema
             })
         }
 
@@ -346,9 +329,7 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
     }
 }
 
-// Helper function to format display data
 function formatDisplay(display: any): DisplayData {
-    // Handle both snake_case and camelCase field names
     return {
         id: display.id,
         location: display.location,
@@ -356,12 +337,11 @@ function formatDisplay(display: any): DisplayData {
         content: display.content,
         uptime: display.uptime,
         lastUpdate: display.lastUpdate.toISOString(),
-        isActive: display.isActive ?? true, // Provide default if field doesn't exist
-        config: display.config ?? {}, // Provide default if field doesn't exist
+        isActive: display.isActive ?? true, 
+        config: display.config ?? {}, 
     }
 }
 
-// Calculate uptime
 export async function calculateUptime(lastUpdate: Date): Promise<string> {
     const now = new Date()
     const diff = now.getTime() - lastUpdate.getTime()

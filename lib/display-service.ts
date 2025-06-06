@@ -19,7 +19,6 @@ export interface ServiceResponse<T> {
     error?: string
 }
 
-// Remove isActive and config from all display mapping functions
 function formatDisplay(display: any): DisplayData {
     return {
         id: display.id,
@@ -28,12 +27,11 @@ function formatDisplay(display: any): DisplayData {
         content: display.content,
         uptime: display.uptime,
         lastUpdate: display.lastUpdate.toISOString(),
-        isActive: true, // Always return true since field doesn't exist
-        config: {}, // Always return empty object since field doesn't exist
+        isActive: true, 
+        config: {}, 
     }
 }
 
-// Update getAllDisplays function
 async function getAllDisplays(): Promise<ServiceResponse<DisplayData[]>> {
     try {
         const displays = await prisma.display.findMany()
@@ -67,7 +65,6 @@ async function getDisplayById(id: string): Promise<ServiceResponse<DisplayData>>
     }
 }
 
-// Update createDisplay function to not include isActive and config
 async function createDisplay(data: {
     location: string
     content: string
@@ -82,7 +79,6 @@ async function createDisplay(data: {
                 status: data.status,
                 uptime: "0m",
                 lastUpdate: new Date(),
-                // Remove isActive and config since they don't exist in schema
             },
         })
 
@@ -93,7 +89,6 @@ async function createDisplay(data: {
     }
 }
 
-// Update updateDisplay function to not include isActive and config
 async function updateDisplay(
     id: string,
     data: {
@@ -112,7 +107,6 @@ async function updateDisplay(
                 content: data.content,
                 status: data.status,
                 lastUpdate: new Date(),
-                // Remove isActive and config since they don't exist in schema
             },
         })
 
@@ -157,7 +151,6 @@ async function getDisplayData(displayId: string) {
     return { message: `Data for display ${displayId}` }
 }
 
-// Update seedDisplays function to not include isActive and config
 async function seedDisplays(): Promise<ServiceResponse<boolean>> {
     try {
         const locations = [
@@ -191,8 +184,7 @@ async function seedDisplays(): Promise<ServiceResponse<boolean>> {
         ]
 
         const contentTypes = ["Token Queue", "Department Status", "Emergency Alerts", "Drug Inventory", "Mixed Dashboard"]
-
-        // Check if displays already exist
+        
         const existingDisplays = await prisma.display.count()
         if (existingDisplays > 0) {
             return { success: false, error: "Displays already exist" }
@@ -211,7 +203,6 @@ async function seedDisplays(): Promise<ServiceResponse<boolean>> {
                 status: Math.random() > 0.3 ? "online" : Math.random() > 0.5 ? "offline" : "warning",
                 uptime: `${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m`,
                 lastUpdate: new Date(Date.now() - Math.random() * 3600000),
-                // Remove isActive and config since they don't exist in schema
             })
         }
 

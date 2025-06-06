@@ -25,11 +25,11 @@ interface DisplayData {
     tokenQueue: Array<{
         token_id: string
         patient_name: string
-        display_name?: string | null // Allow null values
+        display_name?: string | null 
         status: string
         department: string
         priority: number
-        estimated_time?: string | null // Allow null values
+        estimated_time?: string | null 
     }>
     departments: Array<{
         dept_id: string
@@ -66,12 +66,11 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
     const [isPending, startTransition] = useTransition()
 
-    // Real-time data fetching every 5 seconds
     useEffect(() => {
         fetchDisplayData()
         const dataInterval = setInterval(() => {
-            fetchDisplayData(false) // Don't show loading on auto-refresh
-        }, 5000) // 5 seconds
+            fetchDisplayData(false) 
+        }, 5000) 
 
         const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000)
 
@@ -90,12 +89,11 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 setData(displayData)
                 setLastUpdate(new Date())
 
-                // Check for emergency alerts
                 const activeEmergencyAlert = displayData.emergencyAlerts.find((alert) => alert.priority >= 4)
 
                 if (activeEmergencyAlert) {
                     setEmergencyAlert(activeEmergencyAlert)
-                    setTimeout(() => setEmergencyAlert(null), 2 * 60 * 1000) // 2 minutes
+                    setTimeout(() => setEmergencyAlert(null), 2 * 60 * 1000) 
                 }
             })
         } catch (error) {
@@ -120,7 +118,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6">
-            {/* Emergency Alert Overlay */}
             {emergencyAlert && (
                 <div className="fixed inset-0 bg-red-600 bg-opacity-95 z-50 flex items-center justify-center">
                     <div className="text-center text-white">
@@ -135,8 +132,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </div>
                 </div>
             )}
-
-            {/* Header */}
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <div>
@@ -161,7 +156,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Token Queue */}
                 {(contentType === "Token Queue" || contentType === "Mixed Dashboard") && data.tokenQueue.length > 0 && (
                     <Card className="shadow-lg">
                         <CardHeader className="bg-blue-600 text-white">
@@ -205,8 +199,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         </CardContent>
                     </Card>
                 )}
-
-                {/* Department Status */}
                 {(contentType === "Department Status" || contentType === "Mixed Dashboard") && data.departments.length > 0 && (
                     <Card className="shadow-lg">
                         <CardHeader className="bg-green-600 text-white">
@@ -233,8 +225,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         </CardContent>
                     </Card>
                 )}
-
-                {/* Drug Inventory */}
                 {(contentType === "Drug Inventory" || contentType === "Mixed Dashboard") && data.drugInventory.length > 0 && (
                     <Card className="shadow-lg lg:col-span-2">
                         <CardHeader className="bg-red-600 text-white">
@@ -263,8 +253,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         </CardContent>
                     </Card>
                 )}
-
-                {/* Hospital Information */}
                 <Card className="shadow-lg lg:col-span-2">
                     <CardHeader className="bg-gray-600 text-white">
                         <CardTitle className="flex items-center space-x-2 text-2xl">
@@ -293,8 +281,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Footer */}
             <div className="mt-8 text-center text-gray-500">
                 <p>© 2025 Wenlock Hospital • UDAL Fellowship Challenge</p>
                 <p className="text-sm mt-1">Real-time updates every 5 seconds • Patient privacy protected</p>

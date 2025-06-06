@@ -71,11 +71,9 @@ export class EmergencyBroadcastSystem {
     }
 
     this.alerts.push(fullAlert)
-
-    // Notify all subscribers (displays)
+    
     this.subscribers.forEach((callback) => callback(fullAlert))
-
-    // Auto-acknowledge after 5 minutes for non-critical alerts
+    
     if (fullAlert.severity !== "critical") {
       setTimeout(
         () => {

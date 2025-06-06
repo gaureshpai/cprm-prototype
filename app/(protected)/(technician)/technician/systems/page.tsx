@@ -37,7 +37,7 @@ export default function SystemsPage() {
 
   useEffect(() => {
     fetchSystemData()
-    const interval = setInterval(fetchSystemData, 30000) // Refresh every 30 seconds
+    const interval = setInterval(fetchSystemData, 30000) 
     return () => clearInterval(interval)
   }, [])
 
@@ -127,8 +127,6 @@ export default function SystemsPage() {
           Refresh
         </Button>
       </div>
-
-      {/* System Stats */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
@@ -178,8 +176,6 @@ export default function SystemsPage() {
           </Card>
         </div>
       )}
-
-      {/* System Alerts */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">

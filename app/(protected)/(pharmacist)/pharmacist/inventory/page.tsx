@@ -118,7 +118,6 @@ export default function InventoryPage() {
   const handleReorder = async (drugId: string) => {
     try {
       await fetch(`/api/inventory/${drugId}/reorder`, { method: "POST" })
-      // Show success message or redirect to purchase orders
     } catch (error) {
       console.error("Error creating reorder:", error)
     }
@@ -237,8 +236,6 @@ export default function InventoryPage() {
           </Dialog>
         </div>
       </div>
-
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -275,8 +272,6 @@ export default function InventoryPage() {
           </SelectContent>
         </Select>
       </div>
-
-      {/* Low Stock Alert */}
       {inventory.filter((item) => getStockStatus(item.stock_qty, item.reorder_level) === "critical").length > 0 && (
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -287,8 +282,6 @@ export default function InventoryPage() {
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Inventory Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredInventory.map((item) => {
           const stockStatus = getStockStatus(item.stock_qty, item.reorder_level)

@@ -3,7 +3,6 @@
 import prisma  from "./prisma"
 import type { Role } from "@prisma/client"
 
-// User CRUD Operations
 export const userOperations = {
   async create(data: {
     username: string
@@ -46,7 +45,6 @@ export const userOperations = {
   },
 }
 
-// Drug Inventory CRUD Operations
 export const drugInventoryOperations = {
   async create(data: {
     drug_name: string
@@ -98,7 +96,6 @@ export const drugInventoryOperations = {
   },
 }
 
-// Patient CRUD Operations
 export const patientOperations = {
   async create(data: {
     name: string
@@ -165,7 +162,6 @@ export const patientOperations = {
   },
 }
 
-// Prescription CRUD Operations
 export const prescriptionOperations = {
   async create(data: {
     patientId: string
@@ -232,7 +228,6 @@ export const prescriptionOperations = {
   },
 }
 
-// Emergency Alert Operations
 export const emergencyAlertOperations = {
   async create(data: {
     code_type: string
@@ -264,7 +259,6 @@ export const emergencyAlertOperations = {
   },
 }
 
-// Display Operations
 export const displayOperations = {
   async create(data: {
     location: string
@@ -302,10 +296,9 @@ export const displayOperations = {
   },
 }
 
-// Authentication
 export const authOperations = {
   async authenticate(username: string, password: string) {
-    // Demo credentials check
+    
     const demoCredentials = {
       ADM001: { password: "admin123", role: "ADMIN" as Role },
       DOC001: { password: "doctor123", role: "DOCTOR" as Role },
@@ -316,7 +309,7 @@ export const authOperations = {
 
     const demo = demoCredentials[username as keyof typeof demoCredentials]
     if (demo && demo.password === password) {
-      // Find or create user
+      
       let user = await prisma.user.findUnique({
         where: { username },
       })

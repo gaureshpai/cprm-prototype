@@ -52,7 +52,6 @@ const UserCRUDPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load users on component mount
   useEffect(() => {
     loadUsers();
   }, []);
@@ -63,14 +62,12 @@ const UserCRUDPage = () => {
       const fetchedUsers = await userOperations.findAll();
       setUsers(fetchedUsers);
     } catch (error) {
-      console.error('Error loading users:', error);
-      // You might want to show a toast notification here
+      console.error('Error loading users:', error);  
     } finally {
       setLoading(false);
     }
   };
-
-  // Filter users based on search term
+ 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,14 +100,12 @@ const UserCRUDPage = () => {
         role: formData.role as Role,
         department: formData.department || undefined,
       });
-
-      // Refresh the users list
+ 
       await loadUsers();
       setIsCreateDialogOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Error creating user:', error);
-      // You might want to show a toast notification here
+      console.error('Error creating user:', error);     
     } finally {
       setIsSubmitting(false);
     }
@@ -138,15 +133,13 @@ const UserCRUDPage = () => {
         email: formData.email || undefined,
         department: formData.department || undefined
       });
-
-      // Refresh the users list
+     
       await loadUsers();
       setIsEditDialogOpen(false);
       setEditingUser(null);
       resetForm();
     } catch (error) {
-      console.error('Error updating user:', error);
-      // You might want to show a toast notification here
+      console.error('Error updating user:', error);     
     } finally {
       setIsSubmitting(false);
     }
@@ -154,12 +147,10 @@ const UserCRUDPage = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      await userOperations.delete(userId);
-      // Refresh the users list
+      await userOperations.delete(userId);      
       await loadUsers();
     } catch (error) {
-      console.error('Error deleting user:', error);
-      // You might want to show a toast notification here
+      console.error('Error deleting user:', error);     
     }
   };
 
@@ -301,8 +292,6 @@ const UserCRUDPage = () => {
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -337,8 +326,6 @@ const UserCRUDPage = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Search and Filter */}
       <Card>
         <CardHeader>
           <CardTitle>Users</CardTitle>
@@ -354,8 +341,6 @@ const UserCRUDPage = () => {
               className="max-w-sm"
             />
           </div>
-
-          {/* Users Table */}
           <div className="rounded-md border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -428,8 +413,6 @@ const UserCRUDPage = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Edit User Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

@@ -231,8 +231,6 @@ export default function WardPage() {
           <Badge className="bg-red-500 text-sm">High Priority Tasks: {highPriorityTasks.length}</Badge>
         </div>
       </div>
-
-      {/* High Priority Tasks Alert */}
       {highPriorityTasks.length > 0 && (
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -242,8 +240,6 @@ export default function WardPage() {
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Patients Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {patients.map((patient) => (
           <Card key={patient.id} className="hover:shadow-lg transition-shadow">
@@ -262,7 +258,6 @@ export default function WardPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Vitals */}
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center space-x-2">
                   <Thermometer className="h-4 w-4 text-red-500" />
@@ -312,8 +307,6 @@ export default function WardPage() {
           </Card>
         ))}
       </div>
-
-      {/* Tasks Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -353,8 +346,6 @@ export default function WardPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Update Vitals Dialog */}
       <Dialog open={isVitalsDialogOpen} onOpenChange={setIsVitalsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -420,8 +411,6 @@ export default function WardPage() {
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* Add Task Dialog */}
       <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
         <DialogContent>
           <DialogHeader>

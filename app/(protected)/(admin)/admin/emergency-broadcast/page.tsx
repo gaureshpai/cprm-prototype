@@ -29,7 +29,6 @@ export default function EmergencyBroadcastPage() {
   const emergencySystem = EmergencyBroadcastSystem.getInstance()
 
   useEffect(() => {
-    // Subscribe to emergency alerts
     const handleAlert = (alert: EmergencyAlert) => {
       setAlerts((prev) => [alert, ...prev.filter((a) => a.id !== alert.id)])
     }
@@ -122,8 +121,6 @@ export default function EmergencyBroadcastPage() {
           </Button>
         </div>
       </div>
-
-      {/* Active Alerts Summary */}
       {activeAlerts.length > 0 && (
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -133,8 +130,6 @@ export default function EmergencyBroadcastPage() {
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Create Alert Form */}
       {isCreateDialogOpen && (
         <Card className="border-2 border-red-200">
           <CardHeader className="bg-red-50">
@@ -240,8 +235,6 @@ export default function EmergencyBroadcastPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Emergency Code Reference */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -264,8 +257,6 @@ export default function EmergencyBroadcastPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Alert History */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
