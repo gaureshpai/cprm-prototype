@@ -150,20 +150,20 @@ export interface State {
 }
 
 export interface AuthGuardProps {
-  children: React.ReactNode
-  allowedRoles?: string[]
+    children: React.ReactNode
+    allowedRoles?: string[]
 }
 
 export interface EmergencyAlert1 {
-  id: number
-  type: "Code Blue" | "Code Red" | "Code Pink" | "Code Yellow"
-  location: string
-  time: string
-  severity: "critical" | "high" | "medium"
-  description?: string
+    id: number
+    type: "Code Blue" | "Code Red" | "Code Pink" | "Code Yellow"
+    location: string
+    time: string
+    severity: "critical" | "high" | "medium"
+    description?: string
 }
 
 export interface EmergencyAlertProps1 {
-  alerts: EmergencyAlert1[]
-  onDismiss: (id: number) => void
+    alerts: EmergencyAlert1[]
+    onDismiss: (id: number) => void
 }

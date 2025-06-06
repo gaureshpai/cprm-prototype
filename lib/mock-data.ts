@@ -509,12 +509,12 @@ export const mockTechnicianData = {
 }
 
 export const CSV_URLS = {
-    drugInventory: '/data/drug_inventory.csv',
-    tokenQueue: '/data/token_queue.csv',
-    departments: '/data/departments.csv',
-    bloodBank: '/data/blood_bank.csv',
-    emergencyAlerts: '/data/emergency_alerts.csv',
-    otStatus: '/data/ot_status.csv'
+  drugInventory: '/data/drug_inventory.csv',
+  tokenQueue: '/data/token_queue.csv',
+  departments: '/data/departments.csv',
+  bloodBank: '/data/blood_bank.csv',
+  emergencyAlerts: '/data/emergency_alerts.csv',
+  otStatus: '/data/ot_status.csv'
 }
 
 export const commonMedications = [
@@ -586,10 +586,10 @@ export const mockNotifications: Notification[] = [
 ]
 
 export const DEFAULT_DATA: HospitalData = {
-    drugInventory: [],
-    tokenQueue: [],
-    departments: [],
-    bloodBank: [],
-    emergencyAlerts: [],
-    otStatus: []
+  drugInventory: [],
+  tokenQueue: [],
+  departments: [],
+  bloodBank: [],
+  emergencyAlerts: [],
+  otStatus: []
 }

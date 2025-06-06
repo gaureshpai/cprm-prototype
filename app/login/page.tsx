@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Heart, AlertCircle } from "lucide-react"
+import { Eye, EyeOff, AlertCircle } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { demoCredentials } from "@/lib/mock-data"
@@ -64,7 +64,7 @@ export default function LoginPage() {
         email: `${formData.username.toLowerCase()}@wenlock.hospital`,
         role: formData.role as "admin" | "doctor" | "nurse" | "technician" | "pharmacist" | "patient",
         permissions: formData.permissions || ["all"],
-      }      
+      }
 
       login(user)
 

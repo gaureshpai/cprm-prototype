@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user || !user.permissions) return false
     if (user.permissions.includes("all")) return true
     return user.permissions.includes(permission)
-  }  
+  }
 
   const value = {
     user,

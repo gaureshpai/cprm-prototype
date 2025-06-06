@@ -76,12 +76,12 @@ export class SyncSimulation {
     if (Math.random() < 0.05 && this.bloodBank.length > 0) {
       this.simulateBloodBankChange()
     }
-    
+
     if (Math.random() < 0.02) {
       this.simulateEmergencyAlert()
     }
   }
-  
+
   private simulateTokenQueueChange() {
     const updatedQueue = [...this.tokenQueue]
 
@@ -92,7 +92,7 @@ export class SyncSimulation {
         status: "In Progress",
       }
     }
-    
+
     const inProgressIndex = updatedQueue.findIndex((t) => t.status.toLowerCase() === "in progress")
     if (inProgressIndex !== -1) {
       updatedQueue[inProgressIndex] = {
@@ -104,16 +104,16 @@ export class SyncSimulation {
     this.tokenQueue = updatedQueue
     this.notify("tokenQueue", updatedQueue)
   }
-  
+
   private simulateDrugInventoryChange() {
     const updatedInventory = [...this.drugInventory]
-    
+
     const index = Math.floor(Math.random() * updatedInventory.length)
     const drug = updatedInventory[index]
-    
+
     const decrease = Math.floor(Math.random() * 10) + 1
     const newStock = Math.max(0, Number.parseInt(drug.stock_qty) - decrease)
-    
+
     let newStatus = drug.status
     if (newStock <= Number.parseInt(drug.reorder_level) * 0.5) {
       newStatus = "Critical"
@@ -132,13 +132,13 @@ export class SyncSimulation {
     this.drugInventory = updatedInventory
     this.notify("drugInventory", updatedInventory)
   }
-  
+
   private simulateBloodBankChange() {
     const updatedBloodBank = [...this.bloodBank]
     const index = Math.floor(Math.random() * updatedBloodBank.length)
-    const blood = updatedBloodBank[index]  
+    const blood = updatedBloodBank[index]
     const newUnits = Math.max(0, Number.parseInt(blood.units_available) - 1)
-    
+
     let newStatus = blood.status
     if (newUnits <= Number.parseInt(blood.critical_level) * 0.5) {
       newStatus = "Critical"
@@ -157,7 +157,7 @@ export class SyncSimulation {
     this.bloodBank = updatedBloodBank
     this.notify("bloodBank", updatedBloodBank)
   }
-  
+
   private simulateEmergencyAlert() {
     const codeTypes = ["Code Blue", "Code Red", "Code Pink", "Code Yellow"]
     const departments = ["Emergency", "ICU", "OT1", "OT2", "Pharmacy", "Cardiology"]
@@ -173,7 +173,7 @@ export class SyncSimulation {
     const updatedAlerts = [...this.emergencyAlerts, newAlert]
     this.emergencyAlerts = updatedAlerts
     this.notify("emergencyAlerts", updatedAlerts)
-    
+
     setTimeout(() => {
       const clearedAlerts = this.emergencyAlerts.map((alert) =>
         alert.alert_id === newAlert.alert_id ? { ...alert, status: "Cleared" } : alert,
@@ -182,7 +182,7 @@ export class SyncSimulation {
       this.notify("emergencyAlerts", clearedAlerts)
     }, 120000)
   }
-  
+
   public triggerEmergencyAlert(codeType: string, department: string) {
     const newAlert: EmergencyAlert = {
       alert_id: `E${Date.now()}`,
@@ -204,7 +204,7 @@ export class SyncSimulation {
     this.emergencyAlerts = updatedAlerts
     this.notify("emergencyAlerts", updatedAlerts)
   }
-  
+
   public getCurrentData() {
     return {
       drugInventory: this.drugInventory,
