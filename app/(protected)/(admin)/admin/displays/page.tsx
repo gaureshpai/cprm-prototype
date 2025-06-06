@@ -20,21 +20,12 @@ import {
   type DisplayData,
 } from "@/lib/display-actions"
 import { AuthGuard } from "@/components/auth-guard"
+import { Navbar } from "@/components/navbar"
 
 const CONTENT_TYPES = [
   { value: "Token Queue", label: "Token Queue", icon: Users, description: "Patient queue and waiting times" },
-  {
-    value: "Department Status",
-    label: "Department Status",
-    icon: Activity,
-    description: "Department occupancy and status",
-  },
-  {
-    value: "Emergency Alerts",
-    label: "Emergency Alerts",
-    icon: AlertTriangle,
-    description: "Critical alerts and codes",
-  },
+  { value: "Department Status", label: "Department Status", icon: Activity, description: "Department occupancy and status" },
+  { value: "Emergency Alerts", label: "Emergency Alerts", icon: AlertTriangle, description: "Critical alerts and codes" },
   { value: "Drug Inventory", label: "Drug Inventory", icon: Pill, description: "Medication stock levels" },
   { value: "Mixed Dashboard", label: "Mixed Dashboard", icon: Monitor, description: "Combined information display" },
 ]
@@ -182,26 +173,6 @@ export default function DisplayManagement() {
     })
   }
 
-  const handleRestartDisplay = async (displayId: string) => {
-    startTransition(async () => {
-      const result = await restartDisplayAction(displayId)
-
-      if (result.success && result.data) {
-        setDisplays(displays.map((d) => (d.id === displayId ? result.data! : d)))
-        toast({
-          title: "Success",
-          description: "Display restarted successfully",
-        })
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to restart display",
-          variant: "destructive",
-        })
-      }
-    })
-  }
-
   const handleDeleteDisplay = async (displayId: string) => {
     if (!confirm("Are you sure you want to delete this display?")) return
 
@@ -260,6 +231,7 @@ export default function DisplayManagement() {
 
   return (
     <AuthGuard allowedRoles={["admin"]} className="p-6 space-y-6">
+      <Navbar />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Display Management</h1>
@@ -321,23 +293,6 @@ export default function DisplayManagement() {
                           {type.label}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="create-status">Initial Status</Label>
-                  <Select
-                    name="status"
-                    value={createForm.status}
-                    onValueChange={(value) => setCreateForm({ ...createForm, status: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="online">Online</SelectItem>
-                      <SelectItem value="offline">Offline</SelectItem>
-                      <SelectItem value="warning">Warning</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -430,9 +385,6 @@ export default function DisplayManagement() {
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => handleRestartDisplay(display.id)} disabled={isPending}>
-                  <Power className="h-4 w-4" />
-                </Button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -481,19 +433,6 @@ export default function DisplayManagement() {
                       </div>
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="edit-status">Status</Label>
-              <Select name="status" value={editForm.status} onValueChange={(value) => setEditForm({ ...editForm, status: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="online">Online</SelectItem>
-                  <SelectItem value="offline">Offline</SelectItem>
-                  <SelectItem value="warning">Warning</SelectItem>
                 </SelectContent>
               </Select>
             </div>
