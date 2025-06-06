@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { Server, Wifi, Database, Activity, AlertTriangle, CheckCircle, XCircle, Clock } from "lucide-react"
+import { AuthGuard } from "@/components/auth-guard"
 
 interface SystemAlert {
   id: string
@@ -113,7 +114,7 @@ export default function SystemsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["technician"]}>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">System Monitoring</h1>
@@ -232,6 +233,6 @@ export default function SystemsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AuthGuard>
   )
 }

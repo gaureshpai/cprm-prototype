@@ -19,6 +19,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Package, Search, Filter, Plus, AlertTriangle, ShoppingCart, Edit } from "lucide-react"
+import { AuthGuard } from "@/components/auth-guard"
 
 interface DrugInventory {
   id: string
@@ -159,7 +160,7 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["pharmacist"]}>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Drug Inventory</h1>
@@ -346,6 +347,6 @@ export default function InventoryPage() {
           <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
         </div>
       )}
-    </div>
+    </AuthGuard>
   )
 }

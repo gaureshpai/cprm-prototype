@@ -18,6 +18,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShoppingCart, Plus, Package, Truck, CheckCircle, Clock, Search, Filter } from "lucide-react"
+import { AuthGuard } from "@/components/auth-guard"
 
 interface PurchaseOrder {
   id: string
@@ -204,7 +205,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["pharmacist"]}>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Orders Management</h1>
@@ -476,6 +477,6 @@ export default function OrdersPage() {
           </p>
         </div>
       )}
-    </div>
+    </AuthGuard>
   )
 }

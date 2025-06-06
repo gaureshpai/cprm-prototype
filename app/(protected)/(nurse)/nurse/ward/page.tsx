@@ -23,6 +23,7 @@ import {
   CheckCircle,
   Clock,
 } from "lucide-react"
+import { AuthGuard } from "@/components/auth-guard"
 
 interface Patient {
   id: string
@@ -215,7 +216,7 @@ export default function WardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["nurse"]}>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Ward Management</h1>
@@ -480,6 +481,6 @@ export default function WardPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </AuthGuard>
   )
 }

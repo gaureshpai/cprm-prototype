@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Monitor, Power, RotateCcw, Search, Filter } from "lucide-react"
+import { AuthGuard } from "@/components/auth-guard"
 
 interface Display {
   id: string
@@ -115,7 +116,7 @@ export default function DisplaysPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["technician"]}>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Display Management</h1>
@@ -208,6 +209,6 @@ export default function DisplaysPage() {
           <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
         </div>
       )}
-    </div>
+    </AuthGuard>
   )
 }

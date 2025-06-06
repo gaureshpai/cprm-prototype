@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Pill, Clock, CheckCircle, AlertTriangle, Search, FileText } from "lucide-react"
+import { AuthGuard } from "@/components/auth-guard"
 
 interface Medication {
   id: string
@@ -185,7 +186,7 @@ export default function MedicationPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["nurse"]}>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Medication Administration</h1>
@@ -380,6 +381,6 @@ export default function MedicationPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </AuthGuard>
   )
 }

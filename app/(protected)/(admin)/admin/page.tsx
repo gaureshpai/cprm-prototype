@@ -9,9 +9,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Settings, Monitor, Users, AlertTriangle, Plus, Edit, Trash2, LogOut } from "lucide-react"
+import { Settings, Monitor, Users, AlertTriangle, Plus, Edit, Trash2, LogOut, User } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
+import { Navbar } from "@/components/navbar"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function AdminPanel() {
   const [displays, setDisplays] = useState([
@@ -41,32 +45,8 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Settings className="h-8 w-8 text-blue-600" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">UDAL Admin Panel</h1>
-                <p className="text-sm text-gray-500">Centralized Display Management</p>
-              </div>
-            </div>
-
-            <div>
-              <Badge variant="outline" className="bg-green-50 text-green-700">
-                System Online
-              </Badge>
-              <Button variant="ghost" className="h-8 w-8 mr-2" onClick={async () => {
-                await logout()
-                router.push("/login")
-              }}>
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <AuthGuard allowedRoles={["admin"]}>
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs defaultValue="displays" className="space-y-6">
@@ -349,6 +329,6 @@ export default function AdminPanel() {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+    </AuthGuard>
   )
 }

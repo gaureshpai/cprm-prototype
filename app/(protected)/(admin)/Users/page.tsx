@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Edit2, Trash2, Users, Search, Loader2 } from 'lucide-react';
 import { userOperations } from '@/lib/db-functions';
 import type { Role } from '@prisma/client';
+import { AuthGuard } from '@/components/auth-guard';
 
 interface User {
   id: string;
@@ -259,7 +260,7 @@ const UserCRUDPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <AuthGuard allowedRoles={["admin"]}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -454,7 +455,7 @@ const UserCRUDPage = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </AuthGuard>
   );
 };
 

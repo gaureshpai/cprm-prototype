@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertTriangle, AirplayIcon as Broadcast, CheckCircle, Clock, X } from "lucide-react"
 import { EmergencyBroadcastSystem, EMERGENCY_CODES, type EmergencyAlert } from "@/lib/emergency-alerts"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function EmergencyBroadcastPage() {
   const [alerts, setAlerts] = useState<EmergencyAlert[]>([])
@@ -103,7 +104,7 @@ export default function EmergencyBroadcastPage() {
   const activeAlerts = alerts.filter((alert) => alert.status === "active")
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["admin"]}>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Emergency Broadcast System</h1>
@@ -316,6 +317,6 @@ export default function EmergencyBroadcastPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AuthGuard>
   )
 }
