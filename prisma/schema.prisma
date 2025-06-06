@@ -1,15 +1,231 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String?  @unique
+  name         String
+  role         Role
+  department   String?
+  permissions  String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  prescriptions Prescription[]
+  appointments  Appointment[]
+  
+  @@map("users")
+}
+
+model DrugInventory {
+  id            String   @id @default(cuid())
+  drug_name     String
+  stock_qty     Int
+  reorder_level Int
+  status        String
+  category      String?
+  last_updated  DateTime @default(now())
+  
+  // Relations
+  prescriptionItems PrescriptionItem[]
+  purchaseOrderItems PurchaseOrderItem[]
+  
+  @@map("drug_inventory")
+}
+
+model TokenQueue {
+  id             String   @id @default(cuid())
+  dept_id        String
+  patient_name   String
+  status         String
+  timestamp      DateTime @default(now())
+  estimated_wait Int
+  
+  // Relations
+  department Department @relation(fields: [dept_id], references: [id])
+  
+  @@map("token_queue")
+}
+
+model Department {
+  id              String   @id @default(cuid())
+  department_name String
+  location        String
+  current_tokens  Int      @default(0)
+  avg_wait_time   Int      @default(0)
+  
+  // Relations
+  tokens TokenQueue[]
+  
+  @@map("departments")
+}
+
+model BloodBank {
+  id              String   @id @default(cuid())
+  blood_type      String
+  units_available Int
+  critical_level  Int
+  status          String
+  expiry_date     DateTime
+  
+  @@map("blood_bank")
+}
+
+model EmergencyAlert {
+  id         String   @id @default(cuid())
+  code_type  String
+  department String
+  timestamp  DateTime @default(now())
+  status     String
+  severity   String?
+  
+  @@map("emergency_alerts")
+}
+
+model OTStatus {
+  id            String   @id @default(cuid())
+  patient_name  String
+  procedure     String
+  status        String
+  progress      Int      @default(0)
+  start_time    DateTime
+  estimated_end DateTime
+  surgeon       String
+  
+  @@map("ot_status")
+}
+
+model Patient {
+  id          String   @id @default(cuid())
+  name        String
+  age         Int
+  gender      String
+  phone       String?
+  address     String?
+  condition   String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  appointments  Appointment[]
+  prescriptions Prescription[]
+  
+  @@map("patients")
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  patientId String
+  doctorId  String
+  date      DateTime
+  time      String
+  status    String   @default("Scheduled")
+  type      String
+  notes     String?
+  createdAt DateTime @default(now())
+  
+  // Relations
+  patient Patient @relation(fields: [patientId], references: [id])
+  doctor  User    @relation(fields: [doctorId], references: [id])
+  
+  @@map("appointments")
+}
+
+model Prescription {
+  id        String   @id @default(cuid())
+  patientId String
+  doctorId  String
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
+  notes     String?
+  
+  // Relations
+  patient Patient @relation(fields: [patientId], references: [id])
+  doctor  User    @relation(fields: [doctorId], references: [id])
+  items   PrescriptionItem[]
+  
+  @@map("prescriptions")
+}
+
+model PrescriptionItem {
+  id             String @id @default(cuid())
+  prescriptionId String
+  drugId         String
+  dosage         String
+  frequency      String
+  duration       String
+  instructions   String?
+  
+  // Relations
+  prescription Prescription  @relation(fields: [prescriptionId], references: [id])
+  drug         DrugInventory @relation(fields: [drugId], references: [id])
+  
+  @@map("prescription_items")
+}
+
+model PurchaseOrder {
+  id        String   @id @default(cuid())
+  supplier  String
+  status    String   @default("Ordered")
+  orderDate DateTime @default(now())
+  totalCost Decimal? @db.Decimal(10, 2)
+  
+  // Relations
+  items PurchaseOrderItem[]
+  
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String @id @default(cuid())
+  purchaseOrderId String
+  drugId          String
+  quantity        Int
+  unitCost        Decimal? @db.Decimal(10, 2)
+  
+  // Relations
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  drug          DrugInventory @relation(fields: [drugId], references: [id])
+  
+  @@map("purchase_order_items")
+}
+
+model Display {
+  id          String   @id @default(cuid())
+  location    String
+  status      String   @default("Online")
+  content     String
+  uptime      String   @default("100%")
+  lastUpdate  DateTime @default(now())
+  
+  @@map("displays")
+}
+
+model SystemAlert {
+  id       String   @id @default(cuid())
+  type     String
+  message  String
+  severity String
+  time     DateTime @default(now())
+  resolved Boolean  @default(false)
+  
+  @@map("system_alerts")
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  NURSE
+  TECHNICIAN
+  PHARMACIST
+  PATIENT
 }
