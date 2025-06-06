@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Users, Activity, AlertTriangle, Heart, Pill } from "lucide-react"
+import { getDisplayDataAction } from "@/lib/display-actions"
 
 interface PublicDisplayProps {
     displayId: string
@@ -15,7 +16,7 @@ interface PublicDisplayProps {
         content: string
         uptime: string
         lastUpdate: string
-        isActive?: boolean
+        isActive: boolean
         config?: any
     }
 }
@@ -24,11 +25,11 @@ interface DisplayData {
     tokenQueue: Array<{
         token_id: string
         patient_name: string
-        display_name?: string
+        display_name?: string | null // Allow null values
         status: string
         department: string
         priority: number
-        estimated_time?: string
+        estimated_time?: string | null // Allow null values
     }>
     departments: Array<{
         dept_id: string
@@ -62,128 +63,45 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     const [currentTime, setCurrentTime] = useState(new Date())
     const [emergencyAlert, setEmergencyAlert] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+    const [isPending, startTransition] = useTransition()
 
+    // Real-time data fetching every 5 seconds
     useEffect(() => {
         fetchDisplayData()
-        const interval = setInterval(fetchDisplayData, 30000) // Refresh every 30 seconds
+        const dataInterval = setInterval(() => {
+            fetchDisplayData(false) // Don't show loading on auto-refresh
+        }, 5000) // 5 seconds
+
         const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000)
 
         return () => {
-            clearInterval(interval)
+            clearInterval(dataInterval)
             clearInterval(timeInterval)
         }
     }, [displayId])
 
-    const fetchDisplayData = async () => {
+    const fetchDisplayData = async (showLoading = true) => {
         try {
-            setIsLoading(true)
-            const mockData = generateMockDisplayData(displayId, displayData?.content || "Token Queue")
-            setData(mockData.data)
+            if (showLoading) setIsLoading(true)
 
-            // Check for emergency alerts
-            const activeEmergencyAlert = mockData.data.emergencyAlerts.find((alert) => alert.priority >= 4)
+            startTransition(async () => {
+                const displayData = await getDisplayDataAction(displayId)
+                setData(displayData)
+                setLastUpdate(new Date())
 
-            if (activeEmergencyAlert) {
-                setEmergencyAlert(activeEmergencyAlert)
-                setTimeout(() => setEmergencyAlert(null), 2 * 60 * 1000)
-            }
+                // Check for emergency alerts
+                const activeEmergencyAlert = displayData.emergencyAlerts.find((alert) => alert.priority >= 4)
+
+                if (activeEmergencyAlert) {
+                    setEmergencyAlert(activeEmergencyAlert)
+                    setTimeout(() => setEmergencyAlert(null), 2 * 60 * 1000) // 2 minutes
+                }
+            })
         } catch (error) {
             console.error("Error fetching display data:", error)
         } finally {
-            setIsLoading(false)
-        }
-    }
-
-    const generateMockDisplayData = (id: string, contentType: string) => {
-        const mockTokenQueue = [
-            {
-                token_id: "T001",
-                patient_name: "John Doe",
-                display_name: "J.D.",
-                status: "In Progress",
-                department: "Cardiology",
-                priority: 1,
-                estimated_time: "5 mins",
-            },
-            {
-                token_id: "T002",
-                patient_name: "Jane Smith",
-                display_name: "J.S.",
-                status: "Waiting",
-                department: "General",
-                priority: 0,
-                estimated_time: "15 mins",
-            },
-            {
-                token_id: "T003",
-                patient_name: "Mike Johnson",
-                display_name: "M.J.",
-                status: "Waiting",
-                department: "Orthopedics",
-                priority: 0,
-                estimated_time: "25 mins",
-            },
-        ]
-
-        const mockDepartments = [
-            {
-                dept_id: "D001",
-                department_name: "Cardiology",
-                location: "Wing A - Floor 2",
-                current_tokens: 3,
-            },
-            {
-                dept_id: "D002",
-                department_name: "General Medicine",
-                location: "Wing B - Floor 1",
-                current_tokens: 8,
-            },
-            {
-                dept_id: "D003",
-                department_name: "Orthopedics",
-                location: "Wing C - Floor 1",
-                current_tokens: 5,
-            },
-        ]
-
-        const mockEmergencyAlerts =
-            Math.random() > 0.9
-                ? [
-                    {
-                        id: "EA001",
-                        codeType: "CODE BLUE",
-                        location: "ICU Ward 3",
-                        message: "Cardiac arrest in progress",
-                        priority: 5,
-                    },
-                ]
-                : []
-
-        const mockDrugInventory = [
-            {
-                drug_id: "DR001",
-                drug_name: "Paracetamol 500mg",
-                current_stock: 2,
-                min_stock: 50,
-                status: "critical",
-            },
-            {
-                drug_id: "DR002",
-                drug_name: "Insulin Injection",
-                current_stock: 5,
-                min_stock: 20,
-                status: "critical",
-            },
-        ]
-
-        return {
-            data: {
-                tokenQueue: contentType === "Token Queue" || contentType === "Mixed Dashboard" ? mockTokenQueue : [],
-                departments: contentType === "Department Status" || contentType === "Mixed Dashboard" ? mockDepartments : [],
-                emergencyAlerts:
-                    contentType === "Emergency Alerts" || contentType === "Mixed Dashboard" ? mockEmergencyAlerts : [],
-                drugInventory: contentType === "Drug Inventory" || contentType === "Mixed Dashboard" ? mockDrugInventory : [],
-            },
+            if (showLoading) setIsLoading(false)
         }
     }
 
@@ -226,6 +144,10 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         <p className="text-xl text-gray-600">{displayData?.location || `Display ${displayId}`}</p>
                         <p className="text-sm text-gray-500">
                             Display ID: {displayId} | Content: {contentType}
+                            {isPending && <span className="ml-2 text-blue-600">• Updating...</span>}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                            Last updated: {lastUpdate.toLocaleTimeString()} • Auto-refresh every 5 seconds
                         </p>
                     </div>
                     <div className="text-right">
@@ -263,14 +185,14 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                         </div>
                                         <div className="text-right">
                                             <Badge
-                                                className={`text-lg px-3 py-1 ${token.status === "In Progress"
+                                                className={`text-lg px-3 py-1 ${token.status === "in_progress"
                                                         ? "bg-blue-500"
-                                                        : token.status === "Waiting"
+                                                        : token.status === "waiting"
                                                             ? "bg-yellow-500"
                                                             : "bg-gray-500"
                                                     }`}
                                             >
-                                                {token.status}
+                                                {token.status === "in_progress" ? "In Progress" : "Waiting"}
                                             </Badge>
                                             {token.estimated_time && (
                                                 <div className="text-sm text-gray-500 mt-1">ETA: {token.estimated_time}</div>
@@ -375,7 +297,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             {/* Footer */}
             <div className="mt-8 text-center text-gray-500">
                 <p>© 2025 Wenlock Hospital • UDAL Fellowship Challenge</p>
-                <p className="text-sm mt-1">Real-time updates every 30 seconds • Patient privacy protected</p>
+                <p className="text-sm mt-1">Real-time updates every 5 seconds • Patient privacy protected</p>
                 <p className="text-xs mt-1">
                     Uptime: {displayData?.uptime || "N/A"} | Last Update:{" "}
                     {displayData?.lastUpdate ? new Date(displayData.lastUpdate).toLocaleString() : "N/A"}
