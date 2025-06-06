@@ -55,7 +55,7 @@ export default function ProfileSettings() {
     }
 
     return (
-        <AuthGuard allowedRoles={["admin","doctor","nurse","technician","patient"]}>
+        <AuthGuard allowedRoles={["admin", "doctor", "nurse", "technician", "patient"]} className="container mx-auto p-6 space-y-6">
             <div className="max-w-4xl mx-auto p-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <div>

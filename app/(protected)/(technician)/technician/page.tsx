@@ -23,7 +23,7 @@ export default function TechnicianDashboard() {
   }
 
   return (
-    <AuthGuard allowedRoles={["technician"]}>
+    <AuthGuard allowedRoles={["technician"]} className="container mx-auto p-6 space-y-6">
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 

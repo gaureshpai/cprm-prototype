@@ -16,7 +16,7 @@ export default function NurseDashboard() {
   const [currentDate] = useState(new Date())
 
   return (
-    <AuthGuard allowedRoles={["nurse"]}>
+    <AuthGuard allowedRoles={["nurse"]} className="container mx-auto p-6 space-y-6">
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 

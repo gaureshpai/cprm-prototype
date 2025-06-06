@@ -13,6 +13,7 @@ import { Plus, Edit2, Trash2, Users, Search, Loader2 } from 'lucide-react';
 import { userOperations } from '@/lib/db-functions';
 import type { Role } from '@prisma/client';
 import { AuthGuard } from '@/components/auth-guard';
+import { Navbar } from '@/components/navbar';
 
 interface User {
   id: string;
@@ -260,8 +261,8 @@ const UserCRUDPage = () => {
   }
 
   return (
-    <AuthGuard allowedRoles={["admin"]}>
-      {/* Header */}
+    <AuthGuard allowedRoles={["admin"]} className="container mx-auto p-6 space-y-6">
+      <Navbar />
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Users className="h-6 w-6" />

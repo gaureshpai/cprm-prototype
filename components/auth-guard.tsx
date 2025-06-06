@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { AuthGuardProps } from "@/lib/interfaces"
 
-export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
+export function AuthGuard({ children, allowedRoles, className }: AuthGuardProps) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
 
@@ -36,5 +36,10 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
     return null
   }
 
-  return <>{children}</>
+  return (
+    <div className={className}>
+      {children}
+    </div>
+  )
+
 }

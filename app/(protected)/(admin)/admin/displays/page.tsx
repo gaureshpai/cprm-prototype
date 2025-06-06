@@ -117,8 +117,8 @@ export default function DisplaysPage() {
   }
 
   return (
-    <AuthGuard allowedRoles={["technician"]} className="container mx-auto p-6 space-y-6">
-      <Navbar/>
+    <AuthGuard allowedRoles={["admin"]} className="container mx-auto p-6 space-y-6">
+      <Navbar />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Display Management</h1>

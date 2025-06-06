@@ -152,6 +152,7 @@ export interface State {
 export interface AuthGuardProps {
     children: React.ReactNode
     allowedRoles?: string[]
+    className?: string
 }
 
 export interface EmergencyAlert1 {

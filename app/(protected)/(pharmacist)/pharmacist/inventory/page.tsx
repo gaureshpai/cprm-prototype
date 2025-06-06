@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Package, Search, Filter, Plus, AlertTriangle, ShoppingCart, Edit } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
+import { Navbar } from "@/components/navbar"
 
 interface DrugInventory {
   id: string
@@ -160,7 +161,8 @@ export default function InventoryPage() {
   }
 
   return (
-    <AuthGuard allowedRoles={["pharmacist"]}>
+    <AuthGuard allowedRoles={["pharmacist"]} className="container mx-auto p-6 space-y-6">
+      <Navbar />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Drug Inventory</h1>

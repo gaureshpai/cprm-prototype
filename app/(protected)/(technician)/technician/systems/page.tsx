@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { Server, Wifi, Database, Activity, AlertTriangle, CheckCircle, XCircle, Clock } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
+import { Navbar } from "@/components/navbar"
 
 interface SystemAlert {
   id: string
@@ -114,7 +115,8 @@ export default function SystemsPage() {
   }
 
   return (
-    <AuthGuard allowedRoles={["technician"]}>
+    <AuthGuard allowedRoles={["technician"]} className="container mx-auto p-6 space-y-6">
+      <Navbar />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">System Monitoring</h1>

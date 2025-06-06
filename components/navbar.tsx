@@ -29,8 +29,8 @@ export function Navbar() {
     const roleSpecificLinks: Record<string, { name: string; href: string; icon: JSX.Element }[]> = {
       admin: [
         { name: "Displays", href: "/admin/displays", icon: <Settings className="h-4 w-4 mr-2" /> },
-        { name: "Users", href: "/admin/users", icon: <User className="h-4 w-4 mr-2" /> },
-        { name: "Emergency", href: "/admin/emergency", icon: <AlertTriangle className="h-4 w-4 mr-2" /> },
+        { name: "Users", href: "/admin/Users", icon: <User className="h-4 w-4 mr-2" /> },
+        { name: "Emergency", href: "/admin/emergency-broadcast", icon: <AlertTriangle className="h-4 w-4 mr-2" /> },
       ],
       doctor: [
         { name: "Patients", href: "/doctor/patients", icon: <User className="h-4 w-4 mr-2" /> },
