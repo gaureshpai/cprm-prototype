@@ -19,6 +19,7 @@ import {
   seedDisplaysAction,
   type DisplayData,
 } from "@/lib/display-actions"
+import { AuthGuard } from "@/components/auth-guard"
 
 const CONTENT_TYPES = [
   { value: "Token Queue", label: "Token Queue", icon: Users, description: "Patient queue and waiting times" },
@@ -258,7 +259,7 @@ export default function DisplayManagement() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["admin"]} className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Display Management</h1>
@@ -507,6 +508,6 @@ export default function DisplayManagement() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </AuthGuard>
   )
 }
