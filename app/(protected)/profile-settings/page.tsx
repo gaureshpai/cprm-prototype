@@ -15,6 +15,7 @@ import { User, Bell, Shield, Palette, Save, Camera } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { AuthGuard } from "@/components/auth-guard"
+import { Navbar } from "@/components/navbar"
 
 export default function ProfileSettings() {
     const { user } = useAuth()
@@ -56,7 +57,8 @@ export default function ProfileSettings() {
 
     return (
         <AuthGuard allowedRoles={["admin", "doctor", "nurse", "technician", "patient"]} className="container mx-auto p-6 space-y-6">
-            <div className="max-w-4xl mx-auto p-6 space-y-6">
+            <Navbar />
+            <div className="max-w-4xl mx-auto px-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Profile & Settings</h1>
