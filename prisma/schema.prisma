@@ -7,75 +7,130 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//
+// ENUMS
+//
+
+enum Role {
+  ADMIN
+  DOCTOR
+  NURSE
+  TECHNICIAN
+  PHARMACIST
+  PATIENT
+}
+
+enum DrugStatus {
+  AVAILABLE
+  LOW_STOCK
+  OUT_OF_STOCK
+}
+
+enum AppointmentType {
+  CONSULTATION
+  FOLLOW_UP
+  EMERGENCY
+}
+
+enum OrderStatus {
+  ORDERED
+  RECEIVED
+  CANCELLED
+}
+
+enum BloodType {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+}
+
+enum BloodStatus {
+  SUFFICIENT
+  LOW
+  CRITICAL
+}
+
+//
+// MODELS
+//
+
 model User {
   id           String   @id @default(cuid())
-  username     String   @unique
-  email        String?  @unique
+  username     String   @unique @db.VarChar(50)
+  email        String?  @unique @db.VarChar(100)
   name         String
   role         Role
   department   String?
-  permissions  String[]
+  permissions  Json
+  status       String   @default("ACTIVE")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   // Relations
   prescriptions Prescription[]
   appointments  Appointment[]
-  
+
   @@map("users")
 }
 
 model DrugInventory {
-  id            String   @id @default(cuid())
-  drug_name     String
+  id            String      @id @default(cuid())
+  name          String
   stock_qty     Int
   reorder_level Int
-  status        String
+  status        DrugStatus
   category      String?
-  last_updated  DateTime @default(now())
-  
+  last_updated  DateTime    @default(now())
+
   // Relations
-  prescriptionItems PrescriptionItem[]
-  purchaseOrderItems PurchaseOrderItem[]
-  
+  prescriptionItems   PrescriptionItem[]
+  purchaseOrderItems  PurchaseOrderItem[]
+
   @@map("drug_inventory")
 }
 
 model TokenQueue {
-  id             String   @id @default(cuid())
-  dept_id        String
+  id             String     @id @default(cuid())
+  departmentId   String
   patient_name   String
   status         String
-  timestamp      DateTime @default(now())
+  timestamp      DateTime   @default(now())
   estimated_wait Int
-  
+
   // Relations
-  department Department @relation(fields: [dept_id], references: [id])
-  
+  department Department @relation(fields: [departmentId], references: [id])
+
   @@map("token_queue")
+  @@index([status])
+  @@index([timestamp])
 }
 
 model Department {
-  id              String   @id @default(cuid())
+  id              String       @id @default(cuid())
   department_name String
   location        String
-  current_tokens  Int      @default(0)
-  avg_wait_time   Int      @default(0)
-  
+  current_tokens  Int          @default(0)
+  avg_wait_time   Int          @default(0)
+
   // Relations
   tokens TokenQueue[]
-  
+
   @@map("departments")
 }
 
 model BloodBank {
-  id              String   @id @default(cuid())
-  blood_type      String
+  id              String       @id @default(cuid())
+  blood_type      BloodType
   units_available Int
   critical_level  Int
-  status          String
+  status          BloodStatus
   expiry_date     DateTime
-  
+
   @@map("blood_bank")
 }
 
@@ -86,7 +141,7 @@ model EmergencyAlert {
   timestamp  DateTime @default(now())
   status     String
   severity   String?
-  
+
   @@map("emergency_alerts")
 }
 
@@ -99,7 +154,7 @@ model OTStatus {
   start_time    DateTime
   estimated_end DateTime
   surgeon       String
-  
+
   @@map("ot_status")
 }
 
@@ -114,30 +169,31 @@ model Patient {
   status      String   @default("Active")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
   appointments  Appointment[]
   prescriptions Prescription[]
-  
+
   @@map("patients")
 }
 
 model Appointment {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   patientId String
   doctorId  String
   date      DateTime
   time      String
-  status    String   @default("Scheduled")
-  type      String
+  status    String           @default("Scheduled")
+  type      AppointmentType
   notes     String?
-  createdAt DateTime @default(now())
-  
+  createdAt DateTime         @default(now())
+
   // Relations
   patient Patient @relation(fields: [patientId], references: [id])
   doctor  User    @relation(fields: [doctorId], references: [id])
-  
+
   @@map("appointments")
+  @@index([doctorId, date])
 }
 
 model Prescription {
@@ -147,55 +203,57 @@ model Prescription {
   status    String   @default("Pending")
   createdAt DateTime @default(now())
   notes     String?
-  
+
   // Relations
-  patient Patient @relation(fields: [patientId], references: [id])
-  doctor  User    @relation(fields: [doctorId], references: [id])
+  patient Patient        @relation(fields: [patientId], references: [id])
+  doctor  User           @relation(fields: [doctorId], references: [id])
   items   PrescriptionItem[]
-  
+
   @@map("prescriptions")
 }
 
 model PrescriptionItem {
-  id             String @id @default(cuid())
+  id             String         @id @default(cuid())
   prescriptionId String
   drugId         String
   dosage         String
   frequency      String
   duration       String
   instructions   String?
-  
+
   // Relations
   prescription Prescription  @relation(fields: [prescriptionId], references: [id])
   drug         DrugInventory @relation(fields: [drugId], references: [id])
-  
+
   @@map("prescription_items")
+  @@index([prescriptionId])
+  @@index([drugId])
 }
 
 model PurchaseOrder {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   supplier  String
-  status    String   @default("Ordered")
-  orderDate DateTime @default(now())
-  totalCost Decimal? @db.Decimal(10, 2)
-  
+  status    OrderStatus    @default(ORDERED)
+  orderDate DateTime       @default(now())
+  totalCost Decimal?       @db.Decimal(10, 2)
+
   // Relations
   items PurchaseOrderItem[]
-  
+
   @@map("purchase_orders")
 }
 
 model PurchaseOrderItem {
-  id              String @id @default(cuid())
+  id              String   @id @default(cuid())
   purchaseOrderId String
   drugId          String
   quantity        Int
   unitCost        Decimal? @db.Decimal(10, 2)
-  
+
   // Relations
   purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
   drug          DrugInventory @relation(fields: [drugId], references: [id])
-  
+
   @@map("purchase_order_items")
 }
 
@@ -204,9 +262,9 @@ model Display {
   location    String
   status      String   @default("Online")
   content     String
-  uptime      String   @default("100%")
+  uptime      Float    @default(100.0)
   lastUpdate  DateTime @default(now())
-  
+
   @@map("displays")
 }
 
@@ -217,15 +275,7 @@ model SystemAlert {
   severity String
   time     DateTime @default(now())
   resolved Boolean  @default(false)
-  
-  @@map("system_alerts")
-}
 
-enum Role {
-  ADMIN
-  DOCTOR
-  NURSE
-  TECHNICIAN
-  PHARMACIST
-  PATIENT
+  @@map("system_alerts")
+  @@index([resolved])
 }

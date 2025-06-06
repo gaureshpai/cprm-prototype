@@ -338,3 +338,31 @@ export const authOperations = {
     return null
   },
 }
+
+export const appointmentOperations = {
+  async create(data: {
+    patientId: string
+    doctorId: string
+    date: Date
+    time: string
+    type: string
+    notes?: string
+  }) {
+    return await prisma.appointment.create({ data })
+  },
+
+  async findAll() {
+    return await prisma.appointment.findMany({
+      include: { patient: true, doctor: true },
+      orderBy: { date: 'desc' },
+    })
+  },
+
+  async update(id: string, data: Partial<{ status: string; notes: string }>) {
+    return await prisma.appointment.update({ where: { id }, data })
+  },
+
+  async delete(id: string) {
+    return await prisma.appointment.delete({ where: { id } })
+  }
+}
