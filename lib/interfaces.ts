@@ -100,12 +100,6 @@ export interface PatientFlowStep {
     estimatedTime?: string
     actualTime?: string
 }
-export interface ProtectedRouteProps {
-    children: React.ReactNode
-    requiredPermissions?: string[]
-    allowedRoles?: string[]
-    fallback?: React.ReactNode
-}
 
 export interface PatientFlowProps {
     patientName: string
@@ -124,11 +118,6 @@ export interface StaffMember {
     location: string
     contact?: string
     image?: string
-}
-
-export interface StaffDirectoryProps {
-    staff: StaffMember[]
-    department?: string
 }
 
 export interface User {
