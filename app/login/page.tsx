@@ -117,7 +117,7 @@ export default function LoginPage() {
               <div className="space-y-2 w-100">
                 <Label htmlFor="role">Role</Label>
                 <Select value={formData.role} onValueChange={handleRoleChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent>
