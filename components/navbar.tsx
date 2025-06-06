@@ -75,7 +75,6 @@ export function Navbar() {
                 />
               </div>
               <div className="flex items-center">
-                <Heart className="h-6 w-6 text-blue-500 mr-1" />
                 <div>
                   <h1 className="text-lg font-bold text-gray-900">UDAL</h1>
                   <p className="text-xs text-gray-500">Wenlock Hospital</p>
@@ -114,6 +113,12 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile-settings" className="flex items-center w-full">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Profile & Settings</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Logout</span>
@@ -145,6 +150,14 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
+            <Link
+              href="/profile-settings"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 flex items-center"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Profile & Settings
+            </Link>
             <button
               className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 flex items-center"
               onClick={() => {
