@@ -1,5 +1,5 @@
-import ErrorBoundary from "./ErrorBoundary"
-import DisplayScreen from "./Display"
+import ErrorBoundary from "@/components/display/ErrorBoundary"
+import DisplayScreen from "@/components/display/Display"
 import { AlertTriangle } from "lucide-react"
 
 export default function Page() {

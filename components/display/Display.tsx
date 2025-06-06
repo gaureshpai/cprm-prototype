@@ -8,61 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Heart, Clock, Users, AlertTriangle, Monitor, Pill, Activity, MapPin, Bell, Shield, Sliders } from "lucide-react"
 import Papa from 'papaparse'
-
-type DrugInventory = {
-    drug_id: string
-    drug_name: string
-    stock_qty: string
-    reorder_level: string
-    status: string
-    last_updated: string
-}
-
-type TokenQueue = {
-    token_id: string
-    dept_id: string
-    patient_name: string
-    status: string
-    timestamp: string
-    estimated_wait: number
-}
-
-type Department = {
-    dept_id: string
-    department_name: string
-    location: string
-    current_tokens: number
-    avg_wait_time: number
-}
-
-type BloodBank = {
-    blood_id: string
-    blood_type: string
-    units_available: string
-    critical_level: string
-    status: string
-    expiry_date: string
-}
-
-type EmergencyAlert = {
-    alert_id: string
-    code_type: string
-    department: string
-    timestamp: string
-    status: string
-    severity: string
-}
-
-type OTStatus = {
-    ot_id: string
-    patient_name: string
-    procedure: string
-    status: string
-    progress: number
-    start_time: string
-    estimated_end: string
-    surgeon: string
-}
+import type { DrugInventory, TokenQueue, Department, OTStatus, BloodBank, EmergencyAlert } from '@/lib/data-utils'
 
 type HospitalData = {
     drugInventory: DrugInventory[]
