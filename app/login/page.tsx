@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -14,14 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Heart, AlertCircle } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
-
-const demoCredentials = {
-  admin: { username: "ADM001", password: "admin123" },
-  doctor: { username: "DOC001", password: "doctor123" },
-  nurse: { username: "NUR001", password: "nurse123" },
-  technician: { username: "TEC001", password: "tech123" },
-  pharmacist: { username: "PHR001", password: "pharma123" },
-}
+import { demoCredentials } from "@/lib/mock-data"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -32,6 +24,7 @@ export default function LoginPage() {
     username: "",
     password: "",
     role: "",
+    permissions: [] as string[],
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -69,8 +62,9 @@ export default function LoginPage() {
         id: formData.username,
         name: `${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)} User`,
         email: `${formData.username.toLowerCase()}@wenlock.hospital`,
-        role: formData.role,
-      }
+        role: formData.role as "admin" | "doctor" | "nurse" | "technician" | "pharmacist" | "patient",
+        permissions: formData.permissions || ["all"],
+      }      
 
       login(user)
 
@@ -132,6 +126,7 @@ export default function LoginPage() {
                     <SelectItem value="nurse">Nurse</SelectItem>
                     <SelectItem value="technician">Technician</SelectItem>
                     <SelectItem value="pharmacist">Pharmacist</SelectItem>
+                    <SelectItem value="patient">Patient</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

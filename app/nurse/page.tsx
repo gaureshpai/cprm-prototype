@@ -9,106 +9,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Activity, Thermometer, Heart, Clipboard, AlertTriangle, CheckCircle, Pill } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
-
-const mockData = {
-  patients: [
-    {
-      id: "P001",
-      name: "Rajesh Kumar",
-      age: 45,
-      bed: "W3-12",
-      condition: "Stable",
-      vitals: { temp: "98.6°F", bp: "120/80", pulse: "72 bpm", spo2: "98%" },
-    },
-    {
-      id: "P002",
-      name: "Priya Sharma",
-      age: 32,
-      bed: "W3-14",
-      condition: "Improving",
-      vitals: { temp: "99.1°F", bp: "118/76", pulse: "80 bpm", spo2: "97%" },
-    },
-    {
-      id: "P003",
-      name: "Mohammed Ali",
-      age: 28,
-      bed: "W3-16",
-      condition: "Critical",
-      vitals: { temp: "101.2°F", bp: "140/90", pulse: "92 bpm", spo2: "94%" },
-    },
-    {
-      id: "P004",
-      name: "Lakshmi Devi",
-      age: 56,
-      bed: "W3-18",
-      condition: "Stable",
-      vitals: { temp: "98.2°F", bp: "130/85", pulse: "68 bpm", spo2: "99%" },
-    },
-  ],
-  medications: [
-    {
-      id: 1,
-      patient: "Rajesh Kumar",
-      medication: "Atenolol 50mg",
-      time: "10:00 AM",
-      status: "Administered",
-      notes: "Given with water",
-    },
-    {
-      id: 2,
-      patient: "Priya Sharma",
-      medication: "Paracetamol 500mg",
-      time: "10:30 AM",
-      status: "Due",
-      notes: "Check temperature before administering",
-    },
-    {
-      id: 3,
-      patient: "Mohammed Ali",
-      medication: "Ceftriaxone 1g IV",
-      time: "11:00 AM",
-      status: "Due",
-      notes: "Doctor to be present",
-    },
-    {
-      id: 4,
-      patient: "Lakshmi Devi",
-      medication: "Insulin 10 units",
-      time: "11:30 AM",
-      status: "Due",
-      notes: "Check blood sugar first",
-    },
-  ],
-  tasks: [
-    { id: 1, task: "Change IV for Mohammed Ali", priority: "high", time: "10:45 AM", completed: false },
-    { id: 2, task: "Record vitals for all patients", priority: "medium", time: "11:00 AM", completed: false },
-    { id: 3, task: "Assist Dr. Kumar with rounds", priority: "medium", time: "11:30 AM", completed: false },
-    { id: 4, task: "Prepare discharge papers for Bed W3-10", priority: "low", time: "12:00 PM", completed: false },
-    { id: 5, task: "Restock ward supplies", priority: "low", time: "02:00 PM", completed: false },
-  ],
-}
+import { mockNurseData as mockData } from "@/lib/mock-data"
+import { getConditionColor } from "@/lib/functions"
 
 export default function NurseDashboard() {
   const [currentDate] = useState(new Date())
-
-  const getConditionColor = (condition: string) => {
-    switch (condition.toLowerCase()) {
-      case "critical":
-        return "text-red-600 bg-red-50 border-red-200"
-      case "improving":
-        return "text-green-600 bg-green-50 border-green-200"
-      case "stable":
-        return "text-blue-600 bg-blue-50 border-blue-200"
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200"
-    }
-  }
 
   return (
     <AuthGuard allowedRoles={["nurse"]}>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        
+
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center mb-6">
             <div>
@@ -190,9 +101,8 @@ export default function NurseDashboard() {
                     {mockData.patients.map((patient) => (
                       <div
                         key={patient.id}
-                        className={`border rounded-lg ${
-                          patient.condition === "Critical" ? "border-red-200" : "border-gray-200"
-                        }`}
+                        className={`border rounded-lg ${patient.condition === "Critical" ? "border-red-200" : "border-gray-200"
+                          }`}
                       >
                         <div className="p-4 flex items-center justify-between">
                           <div className="flex items-center space-x-4">
@@ -255,9 +165,8 @@ export default function NurseDashboard() {
                     {mockData.medications.map((med) => (
                       <div
                         key={med.id}
-                        className={`flex items-center justify-between p-4 border rounded-lg ${
-                          med.status === "Due" ? "bg-yellow-50 border-yellow-200" : "bg-green-50 border-green-200"
-                        }`}
+                        className={`flex items-center justify-between p-4 border rounded-lg ${med.status === "Due" ? "bg-yellow-50 border-yellow-200" : "bg-green-50 border-green-200"
+                          }`}
                       >
                         <div className="flex items-center space-x-4">
                           <div className="text-center w-16">
@@ -300,13 +209,12 @@ export default function NurseDashboard() {
                     {mockData.tasks.map((task) => (
                       <div
                         key={task.id}
-                        className={`flex items-center justify-between p-4 border rounded-lg ${
-                          task.priority === "high"
+                        className={`flex items-center justify-between p-4 border rounded-lg ${task.priority === "high"
                             ? "bg-red-50 border-red-200"
                             : task.priority === "medium"
                               ? "bg-yellow-50 border-yellow-200"
                               : "bg-gray-50 border-gray-200"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center space-x-4">
                           <div className="text-center w-16">

@@ -7,13 +7,7 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, AlertTriangle } from "lucide-react"
-
-interface ProtectedRouteProps {
-  children: React.ReactNode
-  requiredPermissions?: string[]
-  allowedRoles?: string[]
-  fallback?: React.ReactNode
-}
+import { ProtectedRouteProps } from "@/lib/interfaces"
 
 export function ProtectedRoute({
   children,
@@ -73,8 +67,9 @@ export function ProtectedRoute({
   }
 
   if (requiredPermissions.length > 0) {
-    const hasRequiredPermissions = requiredPermissions.some(
-      (permission) => user!.permissions.includes(permission) || user!.permissions.includes("all"),
+    const hasRequiredPermissions = user?.permissions?.some(
+      (permission) =>
+        requiredPermissions.includes(permission) || permission === "all"
     )
 
     if (!hasRequiredPermissions) {
@@ -89,8 +84,12 @@ export function ProtectedRoute({
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-center space-y-4">
-                <p className="text-gray-600">You don't have the required permissions to access this page.</p>
-                <p className="text-sm text-gray-500">Required permissions: {requiredPermissions.join(", ")}</p>
+                <p className="text-gray-600">
+                  You don't have the required permissions to access this page.
+                </p>
+                <p className="text-sm text-gray-500">
+                  Required permissions: {requiredPermissions.join(", ")}
+                </p>
               </CardContent>
             </Card>
           </div>

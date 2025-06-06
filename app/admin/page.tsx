@@ -9,10 +9,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Settings, Monitor, Users, AlertTriangle, Plus, Edit, Trash2, RefreshCw, LogOut } from "lucide-react"
+import { Settings, Monitor, Users, AlertTriangle, Plus, Edit, Trash2, LogOut } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
-
 
 export default function AdminPanel() {
   const [displays, setDisplays] = useState([
@@ -21,16 +20,13 @@ export default function AdminPanel() {
     { id: 3, location: "Cardiology Wing", status: "offline", content: "Department Info" },
     { id: 4, location: "Pharmacy", status: "online", content: "Drug Inventory" },
   ])
-
   const { user, logout } = useAuth()
   const router = useRouter()
-
   const [emergencyAlert, setEmergencyAlert] = useState({
     type: "",
     location: "",
     description: "",
   })
-
   const [newAnnouncement, setNewAnnouncement] = useState("")
 
   const handleEmergencyAlert = () => {
@@ -68,7 +64,6 @@ export default function AdminPanel() {
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
-
           </div>
         </div>
       </header>

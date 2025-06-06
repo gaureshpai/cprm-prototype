@@ -4,23 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Stethoscope, Heart, Brain, Bone, Eye, Baby, Phone, MapPin } from "lucide-react"
-
-interface StaffMember {
-  id: string
-  name: string
-  designation: string
-  department: string
-  specialization?: string
-  availability: "available" | "busy" | "off-duty"
-  location: string
-  contact?: string
-  image?: string
-}
-
-interface StaffDirectoryProps {
-  staff: StaffMember[]
-  department?: string
-}
+import { StaffDirectoryProps } from "@/lib/interfaces"
+import { getAvailabilityColor } from "@/lib/functions"
 
 export function StaffDirectory({ staff, department }: StaffDirectoryProps) {
   const getDepartmentIcon = (dept: string) => {
@@ -37,19 +22,6 @@ export function StaffDirectory({ staff, department }: StaffDirectoryProps) {
         return <Baby className="h-4 w-4 text-pink-500" />
       default:
         return <Stethoscope className="h-4 w-4 text-gray-500" />
-    }
-  }
-
-  const getAvailabilityColor = (availability: string) => {
-    switch (availability) {
-      case "available":
-        return "bg-green-500"
-      case "busy":
-        return "bg-yellow-500"
-      case "off-duty":
-        return "bg-gray-500"
-      default:
-        return "bg-gray-500"
     }
   }
 

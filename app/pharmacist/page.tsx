@@ -10,122 +10,12 @@ import { Input } from "@/components/ui/input"
 import { Pill, Search, AlertTriangle, Package, FileText, ShoppingCart, CheckCircle, XCircle } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
-
-const mockData = {
-  inventory: [
-    { id: 1, name: "Paracetamol 500mg", stock: 2500, minStock: 500, status: "available", category: "Analgesic" },
-    { id: 2, name: "Amoxicillin 250mg", stock: 150, minStock: 200, status: "low", category: "Antibiotic" },
-    { id: 3, name: "Insulin Injection", stock: 45, minStock: 100, status: "critical", category: "Hormone" },
-    { id: 4, name: "Aspirin 75mg", stock: 1800, minStock: 300, status: "available", category: "Antiplatelet" },
-    { id: 5, name: "Atenolol 50mg", stock: 320, minStock: 200, status: "available", category: "Beta Blocker" },
-    { id: 6, name: "Diazepam 5mg", stock: 120, minStock: 150, status: "low", category: "Sedative" },
-  ],
-  prescriptions: [
-    {
-      id: "RX001",
-      patient: "Rajesh Kumar",
-      doctor: "Dr. Sharath Kumar",
-      items: [
-        { name: "Paracetamol 500mg", dosage: "1-0-1", days: 5 },
-        { name: "Amoxicillin 250mg", dosage: "1-1-1", days: 7 },
-      ],
-      status: "pending",
-      time: "10:15 AM",
-    },
-    {
-      id: "RX002",
-      patient: "Priya Sharma",
-      doctor: "Dr. Priya Nair",
-      items: [
-        { name: "Aspirin 75mg", dosage: "0-1-0", days: 30 },
-        { name: "Atenolol 50mg", dosage: "1-0-0", days: 30 },
-      ],
-      status: "processing",
-      time: "09:45 AM",
-    },
-    {
-      id: "RX003",
-      patient: "Mohammed Ali",
-      doctor: "Dr. Rajesh Menon",
-      items: [{ name: "Diazepam 5mg", dosage: "0-0-1", days: 10 }],
-      status: "completed",
-      time: "09:30 AM",
-    },
-  ],
-  orders: [
-    {
-      id: "PO001",
-      supplier: "MedSupply Ltd",
-      items: [
-        { name: "Amoxicillin 250mg", quantity: 500 },
-        { name: "Insulin Injection", quantity: 200 },
-      ],
-      status: "ordered",
-      date: "2025-06-03",
-    },
-    {
-      id: "PO002",
-      supplier: "PharmaCare Inc",
-      items: [{ name: "Diazepam 5mg", quantity: 300 }],
-      status: "shipped",
-      date: "2025-06-01",
-    },
-    {
-      id: "PO003",
-      supplier: "MediTech Solutions",
-      items: [
-        { name: "Paracetamol 500mg", quantity: 1000 },
-        { name: "Aspirin 75mg", quantity: 500 },
-      ],
-      status: "delivered",
-      date: "2025-05-28",
-    },
-  ],
-}
+import { mockPharmacistData as mockData } from "@/lib/mock-data"
+import { getOrderStatusColor, getPrescriptionStatusColor, getStatusColor } from "@/lib/functions"
 
 export default function PharmacistDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [currentDate] = useState(new Date())
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "critical":
-        return "text-red-600 bg-red-50 border-red-200"
-      case "low":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200"
-      case "available":
-        return "text-green-600 bg-green-50 border-green-200"
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200"
-    }
-  }
-
-  const getPrescriptionStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pending":
-        return "bg-yellow-500"
-      case "processing":
-        return "bg-blue-500"
-      case "completed":
-        return "bg-green-500"
-      default:
-        return "bg-gray-500"
-    }
-  }
-
-  const getOrderStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "ordered":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "shipped":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "delivered":
-        return "bg-green-100 text-green-800 border-green-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
-
   const filteredInventory = mockData.inventory.filter(
     (item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -249,13 +139,12 @@ export default function PharmacistDashboard() {
                             </div>
                             <Progress
                               value={Math.min(stockPercentage, 100)}
-                              className={`h-2 ${
-                                drug.status === "critical"
+                              className={`h-2 ${drug.status === "critical"
                                   ? "bg-red-100"
                                   : drug.status === "low"
                                     ? "bg-yellow-100"
                                     : "bg-green-100"
-                              }`}
+                                }`}
                             />
                           </div>
                           {(drug.status === "critical" || drug.status === "low") && (
@@ -288,13 +177,12 @@ export default function PharmacistDashboard() {
                     {mockData.prescriptions.map((prescription) => (
                       <div
                         key={prescription.id}
-                        className={`border rounded-lg p-4 ${
-                          prescription.status === "pending"
+                        className={`border rounded-lg p-4 ${prescription.status === "pending"
                             ? "bg-yellow-50 border-yellow-200"
                             : prescription.status === "processing"
                               ? "bg-blue-50 border-blue-200"
                               : "bg-green-50 border-green-200"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div>

@@ -9,27 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Calendar, Clock, FileText, Users, AlertTriangle } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
-
-const mockData = {
-  appointments: [
-    { id: 1, patient: "Rajesh Kumar", time: "09:30 AM", status: "Completed", type: "Follow-up" },
-    { id: 2, patient: "Priya Sharma", time: "10:15 AM", status: "In Progress", type: "Consultation" },
-    { id: 3, patient: "Mohammed Ali", time: "11:00 AM", status: "Waiting", type: "New Patient" },
-    { id: 4, patient: "Lakshmi Devi", time: "11:45 AM", status: "Scheduled", type: "Follow-up" },
-    { id: 5, patient: "Suresh Babu", time: "02:30 PM", status: "Scheduled", type: "Surgery Prep" },
-  ],
-  patients: [
-    { id: "P001", name: "Rajesh Kumar", age: 45, gender: "Male", condition: "Hypertension", lastVisit: "2 days ago" },
-    { id: "P002", name: "Priya Sharma", age: 32, gender: "Female", condition: "Pregnancy", lastVisit: "1 week ago" },
-    { id: "P003", name: "Mohammed Ali", age: 28, gender: "Male", condition: "Fracture", lastVisit: "New Patient" },
-    { id: "P004", name: "Lakshmi Devi", age: 56, gender: "Female", condition: "Diabetes", lastVisit: "3 days ago" },
-  ],
-  alerts: [
-    { id: 1, message: "Lab results ready for Rajesh Kumar", time: "5 min ago", type: "info" },
-    { id: 2, message: "Medication approval needed for Priya Sharma", time: "15 min ago", type: "warning" },
-    { id: 3, message: "OT 2 scheduled for 2:30 PM", time: "30 min ago", type: "info" },
-  ],
-}
+import { mockDoctorData as mockData } from "@/lib/mock-data"
 
 export default function DoctorDashboard() {
   const [currentDate] = useState(new Date())

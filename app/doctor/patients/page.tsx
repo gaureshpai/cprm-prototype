@@ -18,141 +18,18 @@ import {
 import { Search, User, Calendar, FileText, Heart, Activity, Thermometer, Phone, MapPin, Clock } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
-
-const mockPatients = [
-  {
-    id: "P001",
-    name: "Rajesh Kumar",
-    age: 45,
-    gender: "Male",
-    phone: "+91 98765 43210",
-    address: "123 MG Road, Mangalore",
-    condition: "Hypertension",
-    status: "Stable",
-    lastVisit: "2025-06-03",
-    nextAppointment: "2025-06-10",
-    vitals: {
-      bp: "140/90",
-      pulse: "78 bpm",
-      temp: "98.6°F",
-      weight: "75 kg",
-      height: "170 cm",
-    },
-    medications: ["Amlodipine 5mg", "Metoprolol 25mg"],
-    allergies: ["Penicillin"],
-    medicalHistory: [
-      { date: "2025-06-03", diagnosis: "Hypertension follow-up", treatment: "Medication adjustment" },
-      { date: "2025-05-20", diagnosis: "Routine check-up", treatment: "Blood pressure monitoring" },
-      { date: "2025-04-15", diagnosis: "Initial hypertension diagnosis", treatment: "Lifestyle counseling" },
-    ],
-  },
-  {
-    id: "P002",
-    name: "Priya Sharma",
-    age: 32,
-    gender: "Female",
-    phone: "+91 87654 32109",
-    address: "456 Car Street, Mangalore",
-    condition: "Pregnancy - 28 weeks",
-    status: "Normal",
-    lastVisit: "2025-06-01",
-    nextAppointment: "2025-06-08",
-    vitals: {
-      bp: "110/70",
-      pulse: "85 bpm",
-      temp: "98.4°F",
-      weight: "68 kg",
-      height: "162 cm",
-    },
-    medications: ["Folic Acid", "Iron supplements"],
-    allergies: ["None known"],
-    medicalHistory: [
-      { date: "2025-06-01", diagnosis: "Prenatal check-up", treatment: "Routine monitoring" },
-      { date: "2025-05-15", diagnosis: "Prenatal check-up", treatment: "Ultrasound normal" },
-      { date: "2025-04-30", diagnosis: "Prenatal check-up", treatment: "Blood tests normal" },
-    ],
-  },
-  {
-    id: "P003",
-    name: "Mohammed Ali",
-    age: 28,
-    gender: "Male",
-    phone: "+91 76543 21098",
-    address: "789 Lighthouse Hill, Mangalore",
-    condition: "Fractured Radius",
-    status: "Recovering",
-    lastVisit: "2025-06-02",
-    nextAppointment: "2025-06-09",
-    vitals: {
-      bp: "120/80",
-      pulse: "72 bpm",
-      temp: "98.2°F",
-      weight: "70 kg",
-      height: "175 cm",
-    },
-    medications: ["Ibuprofen 400mg", "Calcium supplements"],
-    allergies: ["Aspirin"],
-    medicalHistory: [
-      { date: "2025-06-02", diagnosis: "Fracture follow-up", treatment: "X-ray shows healing" },
-      { date: "2025-05-25", diagnosis: "Cast application", treatment: "Plaster cast applied" },
-      { date: "2025-05-20", diagnosis: "Radius fracture", treatment: "Emergency treatment" },
-    ],
-  },
-  {
-    id: "P004",
-    name: "Lakshmi Devi",
-    age: 56,
-    gender: "Female",
-    phone: "+91 65432 10987",
-    address: "321 Kadri Hills, Mangalore",
-    condition: "Type 2 Diabetes",
-    status: "Controlled",
-    lastVisit: "2025-05-30",
-    nextAppointment: "2025-06-13",
-    vitals: {
-      bp: "130/85",
-      pulse: "68 bpm",
-      temp: "98.0°F",
-      weight: "65 kg",
-      height: "158 cm",
-    },
-    medications: ["Metformin 500mg", "Glimepiride 2mg"],
-    allergies: ["Sulfa drugs"],
-    medicalHistory: [
-      { date: "2025-05-30", diagnosis: "Diabetes management", treatment: "HbA1c: 7.2%" },
-      { date: "2025-05-15", diagnosis: "Routine follow-up", treatment: "Blood sugar monitoring" },
-      { date: "2025-04-30", diagnosis: "Medication adjustment", treatment: "Dosage increased" },
-    ],
-  },
-]
+import { mockPatients } from "@/lib/mock-data"
+import { getStatusColor } from "@/lib/functions"
 
 export default function DoctorPatientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedPatient, setSelectedPatient] = useState<(typeof mockPatients)[0] | null>(null)
-
   const filteredPatients = mockPatients.filter(
     (patient) =>
       patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       patient.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       patient.condition.toLowerCase().includes(searchTerm.toLowerCase()),
   )
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "critical":
-        return "bg-red-100 text-red-800 border-red-200"
-      case "stable":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "recovering":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "normal":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "controlled":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
 
   return (
     <AuthGuard allowedRoles={["doctor"]}>

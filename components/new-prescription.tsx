@@ -18,43 +18,10 @@ import {
 } from "@/components/ui/dialog"
 import { Plus, Trash2, Search, FileText, User, Pill } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { mockPatients, commonMedications } from "@/lib/mock-data"
+import { Medication, Patient } from "@/lib/interfaces"
 
-interface Medication {
-  id: string
-  name: string
-  dosage: string
-  frequency: string
-  duration: string
-  instructions: string
-}
-
-interface Patient {
-  id: string
-  name: string
-  age: number
-  gender: string
-  condition: string
-}
-
-const mockPatients: Patient[] = [
-  { id: "P001", name: "Rajesh Kumar", age: 45, gender: "Male", condition: "Hypertension" },
-  { id: "P002", name: "Priya Sharma", age: 32, gender: "Female", condition: "Pregnancy" },
-  { id: "P003", name: "Mohammed Ali", age: 28, gender: "Male", condition: "Fracture" },
-  { id: "P004", name: "Lakshmi Devi", age: 56, gender: "Female", condition: "Diabetes" },
-]
-
-const commonMedications = [
-  "Paracetamol 500mg",
-  "Amoxicillin 250mg",
-  "Aspirin 75mg",
-  "Atenolol 50mg",
-  "Metformin 500mg",
-  "Amlodipine 5mg",
-  "Omeprazole 20mg",
-  "Ibuprofen 400mg",
-]
-
-export function NewPrescription() {
+export default function NewPrescription() {
   const { toast } = useToast()
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [patientSearch, setPatientSearch] = useState("")

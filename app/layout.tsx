@@ -9,8 +9,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "CPRM - Centralized Patient & Resource Management System",
-  description: "Hospital management system for Wenlock Hospital - UDAL Fellowship Project",
-    generator: 'v0.dev'
+  description: "Hospital management system for Wenlock Hospital - UDAL Fellowship Project"
 }
 
 export default function RootLayout({

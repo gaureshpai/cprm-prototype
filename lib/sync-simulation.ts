@@ -1,4 +1,4 @@
-import type { DrugInventory, TokenQueue, BloodBank, EmergencyAlert } from "./data-utils"
+import type { DrugInventory, TokenQueue, BloodBank, EmergencyAlert } from "./interfaces"
 
 export class SyncSimulation {
   private subscribers: Map<string, Function[]> = new Map()

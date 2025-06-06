@@ -2,20 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-
-interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-}
-
-interface AuthContextType {
-  user: User | null
-  login: (user: User) => void
-  logout: () => void
-  isLoading: boolean
-}
+import { AuthContextType, User } from "@/lib/interfaces"
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 

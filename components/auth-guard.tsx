@@ -1,15 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-
-interface AuthGuardProps {
-  children: React.ReactNode
-  allowedRoles?: string[]
-}
+import { AuthGuardProps } from "@/lib/interfaces"
 
 export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
   const { user, isLoading } = useAuth()

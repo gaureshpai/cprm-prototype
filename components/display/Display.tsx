@@ -6,85 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { Heart, Clock, Users, AlertTriangle, Monitor, Pill, Activity, MapPin, Bell, Shield, Sliders } from "lucide-react"
-import Papa from 'papaparse'
-import type { DrugInventory, TokenQueue, Department, OTStatus, BloodBank, EmergencyAlert } from '@/lib/data-utils'
-
-type HospitalData = {
-    drugInventory: DrugInventory[]
-    tokenQueue: TokenQueue[]
-    departments: Department[]
-    bloodBank: BloodBank[]
-    emergencyAlerts: EmergencyAlert[]
-    otStatus: OTStatus[]
-}
-
-const CSV_URLS = {
-    drugInventory: '/data/drug_inventory.csv',
-    tokenQueue: '/data/token_queue.csv',
-    departments: '/data/departments.csv',
-    bloodBank: '/data/blood_bank.csv',
-    emergencyAlerts: '/data/emergency_alerts.csv',
-    otStatus: '/data/ot_status.csv'
-}
-
-const DEFAULT_DATA: HospitalData = {
-    drugInventory: [],
-    tokenQueue: [],
-    departments: [],
-    bloodBank: [],
-    emergencyAlerts: [],
-    otStatus: []
-}
-
-async function fetchCSVData<T>(url: string): Promise<T[]> {
-    try {
-        const response = await fetch(url)
-        const text = await response.text()
-        const result = Papa.parse<T>(text, {
-            header: true,
-            skipEmptyLines: true
-        })
-        return result.data
-    } catch (error) {
-        console.error(`Error fetching CSV from ${url}:`, error)
-        return []
-    }
-}
-
-async function fetchAllData(): Promise<HospitalData> {
-    const [
-        drugInventory,
-        tokenQueue,
-        departments,
-        bloodBank,
-        emergencyAlerts,
-        otStatus
-    ] = await Promise.all([
-        fetchCSVData<DrugInventory>(CSV_URLS.drugInventory),
-        fetchCSVData<TokenQueue>(CSV_URLS.tokenQueue),
-        fetchCSVData<Department>(CSV_URLS.departments),
-        fetchCSVData<BloodBank>(CSV_URLS.bloodBank),
-        fetchCSVData<EmergencyAlert>(CSV_URLS.emergencyAlerts),
-        fetchCSVData<OTStatus>(CSV_URLS.otStatus)
-    ])
-
-    tokenQueue.forEach(t => t.estimated_wait = Number(t.estimated_wait) || 0)
-    departments.forEach(d => {
-        d.current_tokens = Number(d.current_tokens) || 0
-        d.avg_wait_time = Number(d.avg_wait_time) || 0
-    })
-    otStatus.forEach(ot => ot.progress = Number(ot.progress) || 0)
-
-    return {
-        drugInventory,
-        tokenQueue,
-        departments,
-        bloodBank,
-        emergencyAlerts,
-        otStatus
-    }
-}
+import { Heart, Users, AlertTriangle, Monitor, Pill, Activity, MapPin, Bell, Shield, Sliders } from "lucide-react"
+import type { HospitalData } from '@/lib/interfaces'
+import { DEFAULT_DATA } from "@/lib/mock-data"
+import { fetchAllData } from "@/lib/functions"
 
 export default function EnhancedDisplaySystem() {
     const [currentTime, setCurrentTime] = useState(new Date())

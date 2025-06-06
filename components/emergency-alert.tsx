@@ -5,22 +5,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, X, MapPin, Clock } from "lucide-react"
+import { EmergencyAlertProps1 } from "@/lib/interfaces"
 
-interface EmergencyAlert {
-  id: number
-  type: "Code Blue" | "Code Red" | "Code Pink" | "Code Yellow"
-  location: string
-  time: string
-  severity: "critical" | "high" | "medium"
-  description?: string
-}
-
-interface EmergencyAlertProps {
-  alerts: EmergencyAlert[]
-  onDismiss: (id: number) => void
-}
-
-export function EmergencyAlert({ alerts, onDismiss }: EmergencyAlertProps) {
+export function EmergencyAlert({ alerts, onDismiss }: EmergencyAlertProps1) {
   const [visibleAlerts, setVisibleAlerts] = useState(alerts)
 
   useEffect(() => {

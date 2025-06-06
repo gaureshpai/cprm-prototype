@@ -10,30 +10,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
-import { useToast } from "@/hooks/use-toast"
 import type { JSX } from "react"
 import { NotificationsPanel } from "@/components/notifications-panel"
-import { useRouter } from "next/navigation"
-import { log } from "console"
 
 export function Navbar() {
   const { user, logout } = useAuth()
-  const { toast } = useToast()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const router = useRouter()
-
-  const handleGoBack = () => {
-    if (user) {
-      router.push(`/${user.role}`)
-    } else {
-      router.push("/login")
-    }
-  }
 
   const getNavLinks = () => {
     const commonLinks = [
@@ -103,9 +89,8 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-2 text-sm font-medium rounded-md flex items-center ${
-                  pathname === link.href ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`px-3 py-2 text-sm font-medium rounded-md flex items-center ${pathname === link.href ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 {link.icon}
                 {link.name}
@@ -152,9 +137,8 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
-                  pathname === link.href ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${pathname === link.href ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                  }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.icon}

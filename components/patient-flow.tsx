@@ -6,22 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ArrowRight, UserCheck, Stethoscope, TestTube, Pill, FileText, Clock } from "lucide-react"
-
-interface PatientFlowStep {
-  id: string
-  name: string
-  icon: React.ReactNode
-  status: "completed" | "current" | "pending"
-  estimatedTime?: string
-  actualTime?: string
-}
-
-interface PatientFlowProps {
-  patientName: string
-  tokenId: string
-  currentStep: number
-  steps: PatientFlowStep[]
-}
+import type { PatientFlowProps } from "@/lib/interfaces"
+import { getStepColor } from "@/lib/functions"
 
 export function PatientFlow({ patientName, tokenId, currentStep, steps }: PatientFlowProps) {
   const getStepIcon = (stepName: string) => {
@@ -38,19 +24,6 @@ export function PatientFlow({ patientName, tokenId, currentStep, steps }: Patien
         return <FileText className="h-4 w-4" />
       default:
         return <Clock className="h-4 w-4" />
-    }
-  }
-
-  const getStepColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-500 text-white"
-      case "current":
-        return "bg-blue-500 text-white animate-pulse"
-      case "pending":
-        return "bg-gray-200 text-gray-600"
-      default:
-        return "bg-gray-200 text-gray-600"
     }
   }
 

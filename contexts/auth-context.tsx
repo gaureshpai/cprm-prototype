@@ -2,25 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-
-interface User {
-  id: string
-  name: string
-  role: "admin" | "doctor" | "nurse" | "staff" | "patient"
-  username: string
-  permissions: string[]
-  department?: string
-  specialization?: string
-}
-
-interface AuthContextType {
-  user: User | null
-  login: (userData: User) => void
-  logout: () => void
-  hasPermission: (permission: string) => boolean
-  isAuthenticated: boolean
-  isLoading: boolean
-}
+import { AuthContextType, User } from "@/lib/interfaces"
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -54,10 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const hasPermission = (permission: string) => {
-    if (!user) return false
+    if (!user || !user.permissions) return false
     if (user.permissions.includes("all")) return true
     return user.permissions.includes(permission)
-  }
+  }  
 
   const value = {
     user,

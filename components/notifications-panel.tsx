@@ -8,73 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Bell, AlertTriangle, Info, CheckCircle, Clock, X } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-
-interface Notification {
-  id: string
-  type: "emergency" | "info" | "warning" | "success"
-  title: string
-  message: string
-  time: string
-  read: boolean
-  priority: "high" | "medium" | "low"
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "emergency",
-    title: "Emergency Alert",
-    message: "Code Blue - ICU Ward 3, Bed 12. Immediate assistance required.",
-    time: "2 min ago",
-    read: false,
-    priority: "high",
-  },
-  {
-    id: "2",
-    type: "warning",
-    title: "Medication Alert",
-    message: "Low stock alert: Insulin injection - Only 45 units remaining",
-    time: "15 min ago",
-    read: false,
-    priority: "medium",
-  },
-  {
-    id: "3",
-    type: "info",
-    title: "Schedule Update",
-    message: "Your 2:00 PM appointment with Priya Sharma has been confirmed",
-    time: "30 min ago",
-    read: true,
-    priority: "low",
-  },
-  {
-    id: "4",
-    type: "success",
-    title: "Lab Results",
-    message: "Lab results for Rajesh Kumar are now available for review",
-    time: "1 hour ago",
-    read: false,
-    priority: "medium",
-  },
-  {
-    id: "5",
-    type: "info",
-    title: "System Maintenance",
-    message: "Scheduled maintenance tonight from 11 PM to 2 AM",
-    time: "2 hours ago",
-    read: true,
-    priority: "low",
-  },
-  {
-    id: "6",
-    type: "warning",
-    title: "Display Offline",
-    message: "Display #3 in Cardiology Wing is offline - Technical team notified",
-    time: "3 hours ago",
-    read: true,
-    priority: "medium",
-  },
-]
+import { mockNotifications } from "@/lib/mock-data"
+import { getNotificationColor } from "@/lib/functions"
 
 export function NotificationsPanel() {
   const { user } = useAuth()
@@ -93,21 +28,6 @@ export function NotificationsPanel() {
         return <CheckCircle className="h-4 w-4 text-green-500" />
       default:
         return <Info className="h-4 w-4 text-blue-500" />
-    }
-  }
-
-  const getNotificationColor = (type: string, read: boolean) => {
-    const baseClasses = read ? "bg-gray-50" : "bg-white border-l-4"
-
-    switch (type) {
-      case "emergency":
-        return `${baseClasses} ${!read ? "border-l-red-500" : ""}`
-      case "warning":
-        return `${baseClasses} ${!read ? "border-l-yellow-500" : ""}`
-      case "success":
-        return `${baseClasses} ${!read ? "border-l-green-500" : ""}`
-      default:
-        return `${baseClasses} ${!read ? "border-l-blue-500" : ""}`
     }
   }
 

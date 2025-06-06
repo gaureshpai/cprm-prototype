@@ -9,117 +9,11 @@ import { Progress } from "@/components/ui/progress"
 import { Monitor, Wifi, AlertTriangle, CheckCircle, RefreshCw, Settings, Activity, Zap } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
-
-const mockData = {
-  displays: [
-    {
-      id: 1,
-      location: "Main Lobby",
-      status: "online",
-      uptime: "99.8%",
-      lastUpdate: "2 min ago",
-      content: "Queue Display",
-    },
-    {
-      id: 2,
-      location: "OT Complex",
-      status: "online",
-      uptime: "98.5%",
-      lastUpdate: "1 min ago",
-      content: "Surgery Status",
-    },
-    {
-      id: 3,
-      location: "Cardiology Wing",
-      status: "offline",
-      uptime: "95.2%",
-      lastUpdate: "15 min ago",
-      content: "Department Info",
-    },
-    {
-      id: 4,
-      location: "Pharmacy",
-      status: "online",
-      uptime: "99.1%",
-      lastUpdate: "3 min ago",
-      content: "Drug Inventory",
-    },
-    {
-      id: 5,
-      location: "Emergency Ward",
-      status: "warning",
-      uptime: "97.8%",
-      lastUpdate: "8 min ago",
-      content: "Emergency Alerts",
-    },
-    { id: 6, location: "ICU", status: "online", uptime: "99.9%", lastUpdate: "1 min ago", content: "Patient Status" },
-    {
-      id: 7,
-      location: "Pediatrics",
-      status: "online",
-      uptime: "98.9%",
-      lastUpdate: "4 min ago",
-      content: "Department Info",
-    },
-    {
-      id: 8,
-      location: "Maternity Ward",
-      status: "maintenance",
-      uptime: "96.5%",
-      lastUpdate: "30 min ago",
-      content: "Ward Info",
-    },
-  ],
-  systemAlerts: [
-    { id: 1, type: "Network", message: "Display #3 connection timeout", severity: "high", time: "15 min ago" },
-    { id: 2, type: "Hardware", message: "Display #8 scheduled maintenance", severity: "medium", time: "30 min ago" },
-    { id: 3, type: "Content", message: "Emergency alert broadcast successful", severity: "info", time: "45 min ago" },
-    { id: 4, type: "Performance", message: "Network latency spike detected", severity: "low", time: "1 hour ago" },
-  ],
-  networkStats: {
-    totalDisplays: 73,
-    onlineDisplays: 68,
-    offlineDisplays: 2,
-    maintenanceDisplays: 3,
-    networkUptime: "99.2%",
-    avgResponseTime: "1.2s",
-    dataTransferred: "2.4 GB",
-    errorRate: "0.8%",
-  },
-}
+import { mockTechnicianData as mockData } from "@/lib/mock-data"
+import { getAlertSeverityColor, getStatusColor } from "@/lib/functions"
 
 export default function TechnicianDashboard() {
   const [currentDate] = useState(new Date())
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "online":
-        return "text-green-600 bg-green-50 border-green-200"
-      case "offline":
-        return "text-red-600 bg-red-50 border-red-200"
-      case "warning":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200"
-      case "maintenance":
-        return "text-blue-600 bg-blue-50 border-blue-200"
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200"
-    }
-  }
-
-  const getAlertSeverityColor = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case "high":
-        return "text-red-600 bg-red-50 border-red-200"
-      case "medium":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200"
-      case "low":
-        return "text-blue-600 bg-blue-50 border-blue-200"
-      case "info":
-        return "text-green-600 bg-green-50 border-green-200"
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200"
-    }
-  }
 
   const getUptimeColor = (uptime: string) => {
     const percentage = Number.parseFloat(uptime.replace("%", ""))
@@ -284,15 +178,14 @@ export default function TechnicianDashboard() {
                               </Badge>
                               <Badge
                                 variant="outline"
-                                className={`text-xs ${
-                                  alert.severity === "high"
+                                className={`text-xs ${alert.severity === "high"
                                     ? "border-red-500 text-red-700"
                                     : alert.severity === "medium"
                                       ? "border-yellow-500 text-yellow-700"
                                       : alert.severity === "low"
                                         ? "border-blue-500 text-blue-700"
                                         : "border-green-500 text-green-700"
-                                }`}
+                                  }`}
                               >
                                 {alert.severity}
                               </Badge>
