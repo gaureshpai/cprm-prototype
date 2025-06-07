@@ -1,192 +1,394 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Edit2, Trash2, Users, Search, Loader2 } from 'lucide-react';
-import { userOperations } from '@/lib/db-functions';
-import type { Role } from '@prisma/client';
-import { AuthGuard } from '@/components/auth-guard';
-import { Navbar } from '@/components/navbar';
+import type React from "react"
 
-interface User {
-  id: string;
-  username: string;
-  name: string;
-  email?: string | null;
-  role: Role;
-  department?: string | null;
-  createdAt?: Date;
-}
+import { useState, useEffect, useTransition } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Plus, Edit2, Trash2, Users, Search, Loader2, UserCheck, UserX, RefreshCw } from "lucide-react"
+import {
+  getAllUsersAction,
+  createUserAction,
+  updateUserAction,
+  deleteUserAction,
+  toggleUserStatusAction,
+  getUserStatsAction,
+  type UserWithStats,
+} from "@/lib/user-actions"
+import type { Role } from "@prisma/client"
+import { AuthGuard } from "@/components/auth-guard"
+import { Navbar } from "@/components/navbar"
+import { useToast } from "@/hooks/use-toast"
 
 interface UserFormData {
-  username: string;
-  name: string;
-  email: string;
-  role: Role | '';
-  department: string;
+  username: string
+  name: string
+  email: string
+  role: Role | ""
+  department: string
 }
 
-const roles: Role[] = ['ADMIN', 'DOCTOR', 'NURSE', 'TECHNICIAN', 'PHARMACIST'];
-const departments = ['Administration', 'Cardiology', 'Emergency', 'Pharmacy', 'Laboratory', 'Radiology'];
+const roles: Role[] = ["ADMIN", "DOCTOR", "NURSE", "TECHNICIAN", "PHARMACIST"]
+const departments = [
+  "Administration",
+  "Cardiology",
+  "Emergency",
+  "Pharmacy",
+  "Laboratory",
+  "Radiology",
+  "ICU",
+  "Surgery",
+]
 
 const UserCRUDPage = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<UserWithStats[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<UserWithStats | null>(null)
   const [formData, setFormData] = useState<UserFormData>({
-    username: '',
-    name: '',
-    email: '',
-    role: '',
-    department: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    username: "",
+    name: "",
+    email: "",
+    role: "",
+    department: "",
+  })
+  const [isPending, startTransition] = useTransition()
+  const [stats, setStats] = useState<any>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    loadUsers()
+    loadStats()
+  }, [])
 
   const loadUsers = async () => {
     try {
-      setLoading(true);
-      const fetchedUsers = await userOperations.findAll();
-      setUsers(fetchedUsers);
+      setLoading(true)
+      startTransition(async () => {
+        const result = await getAllUsersAction()
+        if (result.success && result.data) {
+          setUsers(result.data)
+        } else {
+          toast({
+            title: "Error",
+            description: result.error || "Failed to load users",
+            variant: "destructive",
+          })
+        }
+      })
     } catch (error) {
-      console.error('Error loading users:', error);  
+      console.error("Error loading users:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
- 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    user.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  }
+
+  const loadStats = async () => {
+    try {
+      const result = await getUserStatsAction()
+      if (result.success && result.data) {
+        setStats(result.data)
+      }
+    } catch (error) {
+      console.error("Error loading stats:", error)
+    }
+  }
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase())),
+  )
 
   const resetForm = () => {
     setFormData({
-      username: '',
-      name: '',
-      email: '',
-      role: '',
-      department: ''
-    });
-  };
+      username: "",
+      name: "",
+      email: "",
+      role: "",
+      department: "",
+    })
+  }
 
-  const handleCreateUser = async () => {
-    if (!formData.role) {
-      console.error('Role is required');
-      return;
+  const validateForm = () => {
+    if (!formData.username.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Username is required",
+        variant: "destructive",
+      })
+      return false
     }
+
+    if (!formData.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Full name is required",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    if (!formData.role) {
+      toast({
+        title: "Validation Error",
+        description: "Role is required",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    return true
+  }
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validateForm()) return
 
     try {
-      setIsSubmitting(true);
-      const newUser = await userOperations.create({
-        username: formData.username,
-        name: formData.name,
-        email: formData.email || undefined,
-        role: formData.role as Role,
-        department: formData.department || undefined,
-      });
- 
-      await loadUsers();
-      setIsCreateDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error('Error creating user:', error);     
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      startTransition(async () => {
+        const formDataObj = new FormData()
+        formDataObj.append("username", formData.username)
+        formDataObj.append("name", formData.name)
+        formDataObj.append("email", formData.email)
+        formDataObj.append("role", formData.role as string)
+        formDataObj.append("department", formData.department)
 
-  const handleEditUser = (user: User) => {
-    setEditingUser(user);
+        const result = await createUserAction(formDataObj)
+
+        if (result.success) {
+          await loadUsers()
+          await loadStats()
+          setIsCreateDialogOpen(false)
+          resetForm()
+
+          toast({
+            title: "Success",
+            description: "User created successfully",
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: result.error || "Failed to create user",
+            variant: "destructive",
+          })
+        }
+      })
+    } catch (error: any) {
+      console.error("Error creating user:", error)
+      toast({
+        title: "Error",
+        description: "Failed to create user",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleEditUser = (user: UserWithStats) => {
+    setEditingUser(user)
     setFormData({
       username: user.username,
       name: user.name,
-      email: user.email || '',
+      email: user.email || "",
       role: user.role,
-      department: user.department || ''
-    });
-    setIsEditDialogOpen(true);
-  };
+      department: user.department || "",
+    })
+    setIsEditDialogOpen(true)
+  }
 
-  const handleUpdateUser = async () => {
-    if (!editingUser) return;
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingUser) return
+    if (!formData.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Full name is required",
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
-      setIsSubmitting(true);
-      await userOperations.update(editingUser.id, {
-        name: formData.name,
-        email: formData.email || undefined,
-        department: formData.department || undefined
-      });
-     
-      await loadUsers();
-      setIsEditDialogOpen(false);
-      setEditingUser(null);
-      resetForm();
-    } catch (error) {
-      console.error('Error updating user:', error);     
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      startTransition(async () => {
+        const formDataObj = new FormData()
+        formDataObj.append("name", formData.name)
+        formDataObj.append("email", formData.email)
+        formDataObj.append("role", formData.role as string)
+        formDataObj.append("department", formData.department)
 
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      await userOperations.delete(userId);      
-      await loadUsers();
-    } catch (error) {
-      console.error('Error deleting user:', error);     
+        const result = await updateUserAction(editingUser.id, formDataObj)
+
+        if (result.success) {
+          await loadUsers()
+          await loadStats()
+          setIsEditDialogOpen(false)
+          setEditingUser(null)
+          resetForm()
+
+          toast({
+            title: "Success",
+            description: "User updated successfully",
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: result.error || "Failed to update user",
+            variant: "destructive",
+          })
+        }
+      })
+    } catch (error: any) {
+      console.error("Error updating user:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update user",
+        variant: "destructive",
+      })
     }
-  };
+  }
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    try {
+      startTransition(async () => {
+        const result = await deleteUserAction(userId)
+
+        if (result.success) {
+          await loadUsers()
+          await loadStats()
+
+          toast({
+            title: "Success",
+            description: `User ${userName} has been removed`,
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: result.error || "Failed to delete user",
+            variant: "destructive",
+          })
+        }
+      })
+    } catch (error: any) {
+      console.error("Error deleting user:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleToggleStatus = async (userId: string, currentStatus: string) => {
+    try {
+      startTransition(async () => {
+        const result = await toggleUserStatusAction(userId)
+
+        if (result.success) {
+          await loadUsers()
+          await loadStats()
+
+          toast({
+            title: "Success",
+            description: `User ${currentStatus === "ACTIVE" ? "deactivated" : "activated"} successfully`,
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: result.error || "Failed to update user status",
+            variant: "destructive",
+          })
+        }
+      })
+    } catch (error: any) {
+      console.error("Error toggling user status:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update user status",
+        variant: "destructive",
+      })
+    }
+  }
 
   const getRoleBadgeColor = (role: Role) => {
     const colors: Record<Role, string> = {
-      ADMIN: 'bg-red-100 text-red-800',
-      DOCTOR: 'bg-blue-100 text-blue-800',
-      NURSE: 'bg-green-100 text-green-800',
-      TECHNICIAN: 'bg-yellow-100 text-yellow-800',
-      PHARMACIST: 'bg-purple-100 text-purple-800',
-      PATIENT: 'bg-gray-200 text-gray-800',
-    };
-    return colors[role] || 'bg-gray-100 text-gray-800';
-  };
+      ADMIN: "bg-red-100 text-red-800",
+      DOCTOR: "bg-blue-100 text-blue-800",
+      NURSE: "bg-green-100 text-green-800",
+      TECHNICIAN: "bg-yellow-100 text-yellow-800",
+      PHARMACIST: "bg-purple-100 text-purple-800",
+      PATIENT: "bg-gray-200 text-gray-800",
+    }
+    return colors[role] || "bg-gray-100 text-gray-800"
+  }
 
-  const UserForm = ({ isEdit = false }) => (
-    <div className="space-y-4">
+  const getStatusBadgeColor = (status: string) => {
+    return status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+  }
+
+  const UserForm = ({ isEdit = false, onSubmit }: { isEdit?: boolean; onSubmit: (e: React.FormEvent) => void }) => (
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
+          <Label htmlFor="username">Username *</Label>
           <Input
             id="username"
             value={formData.username}
             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             placeholder="Enter username"
-            disabled={isEdit}
+            disabled={isEdit || isPending}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
+          <Label htmlFor="name">Full Name *</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="Enter full name"
+            disabled={isPending}
             required
           />
         </div>
@@ -200,6 +402,7 @@ const UserCRUDPage = () => {
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           placeholder="Enter email address"
+          disabled={isPending}
         />
       </div>
 
@@ -209,13 +412,16 @@ const UserCRUDPage = () => {
           <Select
             value={formData.role}
             onValueChange={(value: Role) => setFormData({ ...formData, role: value })}
+            disabled={isPending}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select role" />
             </SelectTrigger>
             <SelectContent>
-              {roles.map(role => (
-                <SelectItem key={role} value={role}>{role}</SelectItem>
+              {roles.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -225,20 +431,52 @@ const UserCRUDPage = () => {
           <Select
             value={formData.department}
             onValueChange={(value) => setFormData({ ...formData, department: value })}
+            disabled={isPending}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select department" />
             </SelectTrigger>
             <SelectContent>
-              {departments.map(dept => (
-                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+              {departments.map((dept) => (
+                <SelectItem key={dept} value={dept}>
+                  {dept}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
       </div>
-    </div>
-  );
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            if (isEdit) {
+              setIsEditDialogOpen(false)
+            } else {
+              setIsCreateDialogOpen(false)
+            }
+          }}
+          disabled={isPending}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              {isEdit ? "Updating..." : "Creating..."}
+            </>
+          ) : isEdit ? (
+            "Update User"
+          ) : (
+            "Create User"
+          )}
+        </Button>
+      </div>
+    </form>
+  )
 
   if (loading) {
     return (
@@ -248,57 +486,50 @@ const UserCRUDPage = () => {
           <span>Loading users...</span>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <AuthGuard allowedRoles={["admin"]} className="container mx-auto p-6 space-y-6">
       <Navbar />
+
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Users className="h-6 w-6" />
           <h1 className="text-3xl font-bold">User Management</h1>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add User
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New User</DialogTitle>
-              <DialogDescription>
-                Add a new user to the hospital management system.
-              </DialogDescription>
-            </DialogHeader>
-            <UserForm />
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={loadUsers} disabled={isPending}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add User
               </Button>
-              <Button onClick={handleCreateUser} disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  'Create User'
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Create New User</DialogTitle>
+                <DialogDescription>Add a new user to the hospital management system.</DialogDescription>
+              </DialogHeader>
+              <UserForm onSubmit={handleCreateUser} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
+            <div className="text-2xl font-bold">{stats?.total || users.length}</div>
+            <p className="text-xs text-muted-foreground">Active users</p>
           </CardContent>
         </Card>
         <Card>
@@ -306,7 +537,9 @@ const UserCRUDPage = () => {
             <CardTitle className="text-sm font-medium">Doctors</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.filter(u => u.role === 'DOCTOR').length}</div>
+            <div className="text-2xl font-bold">
+              {stats?.byRole?.DOCTOR || users.filter((u) => u.role === "DOCTOR").length}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -314,7 +547,9 @@ const UserCRUDPage = () => {
             <CardTitle className="text-sm font-medium">Nurses</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.filter(u => u.role === 'NURSE').length}</div>
+            <div className="text-2xl font-bold">
+              {stats?.byRole?.NURSE || users.filter((u) => u.role === "NURSE").length}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -322,10 +557,13 @@ const UserCRUDPage = () => {
             <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.filter(u => u.role === 'ADMIN').length}</div>
+            <div className="text-2xl font-bold">
+              {stats?.byRole?.ADMIN || users.filter((u) => u.role === "ADMIN").length}
+            </div>
           </CardContent>
         </Card>
       </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Users</CardTitle>
@@ -335,7 +573,7 @@ const UserCRUDPage = () => {
           <div className="flex items-center space-x-2 mb-4">
             <Search className="h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search users by name, username, email, or role..."
+              placeholder="Search users by name, username, email, role, or department..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -346,13 +584,27 @@ const UserCRUDPage = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Permissions</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Username
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -360,38 +612,48 @@ const UserCRUDPage = () => {
                     <tr key={user.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.username}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email || "-"}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <Badge className={getRoleBadgeColor(user.role)}>
-                          {user.role}
-                        </Badge>
+                        <Badge className={getRoleBadgeColor(user.role)}>{user.role}</Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.department || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.department || "-"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <Badge className={getStatusBadgeColor(user.status)}>{user.status}</Badge>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEditUser(user)} disabled={isPending}>
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleEditUser(user)}
+                            onClick={() => handleToggleStatus(user.id, user.status)}
+                            disabled={isPending}
                           >
-                            <Edit2 className="h-4 w-4" />
+                            {user.status === "ACTIVE" ? (
+                              <UserX className="h-4 w-4 text-orange-600" />
+                            ) : (
+                              <UserCheck className="h-4 w-4 text-green-600" />
+                            )}
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
+                              <Button variant="outline" size="sm" disabled={isPending}>
+                                <Trash2 className="h-4 w-4 text-red-600" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete User</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete {user.name}? This action cannot be undone.
+                                  Are you sure you want to delete {user.name}? This action cannot be undone. If the user
+                                  has associated data, they will be deactivated instead.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
+                                <AlertDialogAction onClick={() => handleDeleteUser(user.id, user.name)}>
                                   Delete
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -408,39 +670,23 @@ const UserCRUDPage = () => {
 
           {filteredUsers.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              {searchTerm ? 'No users found matching your search.' : 'No users found.'}
+              {searchTerm ? "No users found matching your search." : "No users found."}
             </div>
           )}
         </CardContent>
       </Card>
+
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
-              Update user information and permissions.
-            </DialogDescription>
+            <DialogDescription>Update user information and permissions.</DialogDescription>
           </DialogHeader>
-          <UserForm isEdit={true} />
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateUser} disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                'Update User'
-              )}
-            </Button>
-          </div>
+          <UserForm isEdit={true} onSubmit={handleUpdateUser} />
         </DialogContent>
       </Dialog>
     </AuthGuard>
-  );
-};
+  )
+}
 
-export default UserCRUDPage;
+export default UserCRUDPage
