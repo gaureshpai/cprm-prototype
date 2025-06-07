@@ -277,6 +277,37 @@ model display_schedules {
   updatedAt DateTime
 }
 
+model announcements {
+  id              String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  text            String
+  created_by      String
+  active          Boolean?  @default(true)
+  priority        Int?      @default(1)
+  target_displays String[]  @default([])
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([active], map: "idx_announcements_active")
+  @@index([created_at], map: "idx_announcements_created_at")
+}
+
+model content_items {
+  id              String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title           String
+  type            String
+  content         String
+  active          Boolean?  @default(true)
+  target_displays String[]  @default([])
+  schedule_start  DateTime? @db.Timestamp(6)
+  schedule_end    DateTime? @db.Timestamp(6)
+  created_by      String
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([active], map: "idx_content_items_active")
+  @@index([type], map: "idx_content_items_type")
+}
+
 enum Role {
   ADMIN
   DOCTOR
