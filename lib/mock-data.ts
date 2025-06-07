@@ -273,11 +273,11 @@ export const mockDoctorData = {
 }
 
 export const demoCredentials = {
-  admin: { username: "ADM001", password: "admin123" },
-  doctor: { username: "DOC001", password: "doctor123" },
-  nurse: { username: "NUR001", password: "nurse123" },
-  technician: { username: "TEC001", password: "tech123" },
-  pharmacist: { username: "PHR001", password: "pharma123" },
+  admin: { username: "admin", password: "admin123" },
+  doctor: { username: "dr.smith", password: "doctor123" },
+  nurse: { username: "nurse.jane", password: "nurse123" },
+  technician: { username: "tech.mike", password: "tech123" },
+  pharmacist: { username: "pharm.sarah", password: "pharma123" },
 }
 
 export const mockNurseData = {
