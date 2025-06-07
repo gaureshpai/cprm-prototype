@@ -252,7 +252,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6">
-            {/* Heartbeat error alert */}
             {heartbeatError && (
                 <Alert className="mb-4 border-red-200 bg-red-50">
                     <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -260,7 +259,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 </Alert>
             )}
 
-            {/* Page visibility indicator */}
             {!isVisible && (
                 <Alert className="mb-4 border-yellow-200 bg-yellow-50">
                     <AlertTriangle className="h-4 w-4 text-yellow-600" />
@@ -270,7 +268,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 </Alert>
             )}
 
-            {/* Emergency Alert Overlay */}
             {emergencyAlert && (
                 <div className="fixed inset-0 bg-red-600 bg-opacity-95 z-50 flex items-center justify-center">
                     <div className="text-center text-white">
@@ -286,7 +283,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 </div>
             )}
 
-            {/* Header */}
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <div>
@@ -311,7 +307,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Token Queue */}
                 {(contentType === "Token Queue" || contentType === "Mixed Dashboard") && data.tokenQueue.length > 0 && (
                     <Card className="shadow-lg">
                         <CardHeader className="bg-blue-600 text-white">
@@ -356,7 +351,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </Card>
                 )}
 
-                {/* Department Status */}
                 {(contentType === "Department Status" || contentType === "Mixed Dashboard") && data.departments.length > 0 && (
                     <Card className="shadow-lg">
                         <CardHeader className="bg-green-600 text-white">
@@ -384,7 +378,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </Card>
                 )}
 
-                {/* Drug Inventory */}
                 {(contentType === "Drug Inventory" || contentType === "Mixed Dashboard") && data.drugInventory.length > 0 && (
                     <Card className="shadow-lg lg:col-span-2">
                         <CardHeader className="bg-red-600 text-white">
@@ -414,7 +407,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </Card>
                 )}
 
-                {/* Hospital Information */}
                 <Card className="shadow-lg lg:col-span-2">
                     <CardHeader className="bg-gray-600 text-white">
                         <CardTitle className="flex items-center space-x-2 text-2xl">
@@ -443,8 +435,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Footer */}
+            
             <div className="mt-8 text-center text-gray-500">
                 <p>© 2025 Wenlock Hospital • UDAL Fellowship Challenge</p>
                 <p className="text-sm mt-1">Real-time updates every 5 seconds • Patient privacy protected</p>
