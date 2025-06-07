@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, X, LogOut, User, Settings, Home, Heart, AlertTriangle } from "lucide-react"
+import { Menu, X, LogOut, User, Settings, Home, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -30,7 +30,6 @@ export function Navbar() {
       admin: [
         { name: "Displays", href: "/admin/displays", icon: <Settings className="h-4 w-4 mr-2" /> },
         { name: "Users", href: "/admin/Users", icon: <User className="h-4 w-4 mr-2" /> },
-        { name: "Emergency", href: "/admin/emergency-broadcast", icon: <AlertTriangle className="h-4 w-4 mr-2" /> },
       ],
       doctor: [
         { name: "Patients", href: "/doctor/patients", icon: <User className="h-4 w-4 mr-2" /> },
