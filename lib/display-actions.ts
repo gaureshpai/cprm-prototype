@@ -180,80 +180,221 @@ export async function restartDisplayAction(id: string): Promise<ActionResponse<D
 
 export async function getDisplayDataAction(displayId: string) {
     try {
-        const tokenQueue = await prisma.tokenQueue.findMany({
-            where: {
-                status: { in: ["waiting", "in_progress"] },
-            },
-            orderBy: [
-                { timestamp: "asc" }, 
-            ],
-            take: 10,
-        })
         
-        const departments = await prisma.department.findMany({
-            orderBy: {
-                department_name: "asc", 
-            },
+        const display = await prisma.display.findUnique({
+            where: { id: displayId },
         })
-        
-        const emergencyAlerts = await prisma.emergencyAlert.findMany({
-            where: {
-                status: "active",
-            },
-            orderBy: {
-                timestamp: "desc", 
-            },
-        })
-        
-        const drugInventory = await prisma.drugInventory.findMany({
-            where: {
-                status: "critical",
-            },
-            orderBy: {
-                drug_name: "asc", 
-            },
-            take: 20,
-        })
-        
-        return {
-            tokenQueue: tokenQueue.map((token) => ({
-                token_id: token.id,
-                patient_name: token.patient_name, 
-                display_name: null, 
-                status: token.status,
-                department: token.dept_id, 
-                priority: 0, 
-                estimated_time: `${token.estimated_wait} min`, 
-            })),
-            departments: departments.map((dept) => ({
-                dept_id: dept.id,
-                department_name: dept.department_name, 
-                location: dept.location,
-                current_tokens: dept.current_tokens, 
-            })),
-            emergencyAlerts: emergencyAlerts.map((alert) => ({
-                id: alert.id,
-                codeType: alert.code_type, 
-                location: alert.department, 
-                message: `Emergency ${alert.code_type} in ${alert.department}`, 
-                priority: alert.severity === "high" ? 5 : 3, 
-            })),
-            drugInventory: drugInventory.map((drug) => ({
-                drug_id: drug.id,
-                drug_name: drug.drug_name, 
-                current_stock: drug.stock_qty, 
-                min_stock: drug.reorder_level, 
-                status: drug.status,
-            })),
+
+        if (!display) {
+            console.log("Display not found:", displayId)
+            return {
+                tokenQueue: [] as Array<{
+                    token_id: string
+                    patient_name: string
+                    display_name?: string | null
+                    status: string
+                    department: string
+                    priority: number
+                    estimated_time?: string | null
+                }>,
+                departments: [] as Array<{
+                    dept_id: string
+                    department_name: string
+                    location: string
+                    current_tokens: number
+                }>,
+                emergencyAlerts: [] as Array<{
+                    id: string
+                    codeType: string
+                    location: string
+                    message: string
+                    priority: number
+                }>,
+                drugInventory: [] as Array<{
+                    drug_id: string
+                    drug_name: string
+                    current_stock: number
+                    min_stock: number
+                    status: string
+                }>,
+                contentType: "Mixed Dashboard",
+            }
         }
+
+        console.log(`Fetching data for display: ${displayId}, content type: ${display.content}`)
+        
+        const data = {
+            tokenQueue: [] as Array<{
+                token_id: string
+                patient_name: string
+                display_name?: string | null
+                status: string
+                department: string
+                priority: number
+                estimated_time?: string | null
+            }>,
+            departments: [] as Array<{
+                dept_id: string
+                department_name: string
+                location: string
+                current_tokens: number
+            }>,
+            emergencyAlerts: [] as Array<{
+                id: string
+                codeType: string
+                location: string
+                message: string
+                priority: number
+            }>,
+            drugInventory: [] as Array<{
+                drug_id: string
+                drug_name: string
+                current_stock: number
+                min_stock: number
+                status: string
+            }>,
+            contentType: display.content,
+        }
+        
+        const shouldFetchTokenQueue = display.content === "Token Queue" || display.content === "Mixed Dashboard"
+        const shouldFetchDepartments = display.content === "Department Status" || display.content === "Mixed Dashboard"
+        const shouldFetchEmergencyAlerts = display.content === "Emergency Alerts" || display.content === "Mixed Dashboard"
+        const shouldFetchDrugInventory = display.content === "Drug Inventory" || display.content === "Mixed Dashboard"
+        
+        if (shouldFetchTokenQueue) {
+            try {
+                const tokenQueue = await prisma.tokenQueue.findMany({
+                    where: {
+                        status: { in: ["waiting", "in_progress"] },
+                    },
+                    orderBy: [
+                        { createdAt: "asc" }, 
+                    ],
+                    take: 10,
+                })
+
+                data.tokenQueue = tokenQueue.map((token) => ({
+                    token_id: token.tokenId,
+                    patient_name: token.patientName, 
+                    display_name: token.displayName,
+                    status: token.status,
+                    department: token.department, 
+                    priority: token.priority,
+                    estimated_time: token.estimatedTime, 
+                }))
+            } catch (error) {
+                console.log("Token queue error:", error instanceof Error ? error.message : String(error))
+            }
+        }
+        
+        if (shouldFetchDepartments) {
+            try {
+                const departments = await prisma.department.findMany({
+                    orderBy: {
+                        departmentName: "asc", 
+                    },
+                })
+
+                data.departments = departments.map((dept) => ({
+                    dept_id: dept.id,
+                    department_name: dept.departmentName, 
+                    location: dept.location,
+                    current_tokens: dept.currentTokens, 
+                }))
+            } catch (error) {
+                console.log("Departments error:", error instanceof Error ? error.message : String(error))
+            }
+        }
+        
+        if (shouldFetchEmergencyAlerts) {
+            try {
+                const emergencyAlerts = await prisma.emergencyAlert.findMany({
+                    where: {
+                        status: "active",
+                    },
+                    orderBy: {
+                        createdAt: "desc", 
+                    },
+                })
+
+                data.emergencyAlerts = emergencyAlerts.map((alert) => ({
+                    id: alert.id,
+                    codeType: alert.codeType, 
+                    location: alert.location, 
+                    message: alert.message || `Emergency ${alert.codeType} in ${alert.location}`, 
+                    priority: alert.priority, 
+                }))
+            } catch (error) {
+                console.log("Emergency alerts error:", error instanceof Error ? error.message : String(error))
+            }
+        }
+        
+        if (shouldFetchDrugInventory) {
+            try {
+                const drugInventory = await prisma.drugInventory.findMany({
+                    where: {
+                        status: "critical",
+                    },
+                    orderBy: {
+                        drugName: "asc", 
+                    },
+                    take: 20,
+                })
+
+                data.drugInventory = drugInventory.map((drug) => ({
+                    drug_id: drug.id,
+                    drug_name: drug.drugName, 
+                    current_stock: drug.currentStock, 
+                    min_stock: drug.minStock, 
+                    status: drug.status,
+                }))
+            } catch (error) {
+                console.log("Drug inventory error:", error instanceof Error ? error.message : String(error))
+            }
+        }
+
+        console.log("Final data summary:")
+        console.log(`- Content Type: ${data.contentType}`)
+        console.log(`- Token Queue: ${data.tokenQueue.length} items`)
+        console.log(`- Departments: ${data.departments.length} items`)
+        console.log(`- Emergency Alerts: ${data.emergencyAlerts.length} items`)
+        console.log(`- Drug Inventory: ${data.drugInventory.length} items`)
+
+        return data
     } catch (error) {
         console.error("Error fetching display data:", error)
-        
+
         return {
-            tokenQueue: [],
-            departments: [],
-            emergencyAlerts: [],
-            drugInventory: [],
+            tokenQueue: [] as Array<{
+                token_id: string
+                patient_name: string
+                display_name?: string | null
+                status: string
+                department: string
+                priority: number
+                estimated_time?: string | null
+            }>,
+            departments: [] as Array<{
+                dept_id: string
+                department_name: string
+                location: string
+                current_tokens: number
+            }>,
+            emergencyAlerts: [] as Array<{
+                id: string
+                codeType: string
+                location: string
+                message: string
+                priority: number
+            }>,
+            drugInventory: [] as Array<{
+                drug_id: string
+                drug_name: string
+                current_stock: number
+                min_stock: number
+                status: string
+            }>,
+            contentType: "Mixed Dashboard",
         }
     }
 }
@@ -291,7 +432,7 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
         ]
 
         const contentTypes = ["Token Queue", "Department Status", "Emergency Alerts", "Drug Inventory", "Mixed Dashboard"]
-        
+
         const existingDisplays = await prisma.display.count()
         if (existingDisplays > 0) {
             return { success: false, error: "Displays already exist" }
@@ -337,8 +478,8 @@ function formatDisplay(display: any): DisplayData {
         content: display.content,
         uptime: display.uptime,
         lastUpdate: display.lastUpdate.toISOString(),
-        isActive: display.isActive ?? true, 
-        config: display.config ?? {}, 
+        isActive: display.isActive ?? true,
+        config: display.config ?? {},
     }
 }
 

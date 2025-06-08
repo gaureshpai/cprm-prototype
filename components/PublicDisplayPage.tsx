@@ -51,6 +51,7 @@ interface DisplayData {
         min_stock: number
         status: string
     }>
+    contentType?: string
 }
 
 export default function PublicDisplayPage({ displayId, displayData }: PublicDisplayProps) {
@@ -59,11 +60,12 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
         departments: [],
         emergencyAlerts: [],
         drugInventory: [],
+        contentType: "Mixed Dashboard",
     })
-    const [currentTime, setCurrentTime] = useState(new Date())
+    const [currentTime, setCurrentTime] = useState<Date | null>(null)
     const [emergencyAlert, setEmergencyAlert] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(true)
-    const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+    const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
     const [isPending, startTransition] = useTransition()
     const [heartbeatError, setHeartbeatError] = useState<string | null>(null)
     const [isVisible, setIsVisible] = useState(true)
@@ -71,7 +73,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const dataIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const timeIntervalRef = useRef<NodeJS.Timeout | null>(null)
-    
+
     const sendHeartbeat = async (status: "online" | "offline" = "online") => {
         try {
             const response = await fetch("/api/displays/heartbeat", {
@@ -98,7 +100,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             setHeartbeatError(`Connection error: ${error}`)
         }
     }
-    
+
     const sendOfflineSignal = async () => {
         try {
             await sendHeartbeat("offline")
@@ -107,7 +109,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             console.error("Error sending offline signal:", error)
         }
     }
-    
+
     useEffect(() => {
         const handleVisibilityChange = () => {
             const visible = !document.hidden
@@ -116,7 +118,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             if (visible) {
                 console.log("Page became visible - sending online heartbeat")
                 sendHeartbeat("online")
-                
+
                 if (!heartbeatIntervalRef.current) {
                     heartbeatIntervalRef.current = setInterval(() => sendHeartbeat("online"), 15000)
                 }
@@ -126,7 +128,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             } else {
                 console.log("Page became hidden - sending offline signal")
                 sendOfflineSignal()
-                
+
                 if (heartbeatIntervalRef.current) {
                     clearInterval(heartbeatIntervalRef.current)
                     heartbeatIntervalRef.current = null
@@ -144,11 +146,11 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             document.removeEventListener("visibilitychange", handleVisibilityChange)
         }
     }, [displayId])
-    
+
     useEffect(() => {
         const handleBeforeUnload = () => {
             console.log("Page unloading - sending offline signal")
-            
+
             navigator.sendBeacon(
                 "/api/displays/heartbeat",
                 JSON.stringify({
@@ -169,30 +171,29 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload)
             window.removeEventListener("unload", handleUnload)
-            
+
             sendOfflineSignal()
         }
     }, [displayId])
-    
+
     useEffect(() => {
-        
         sendHeartbeat("online")
-        
+
         heartbeatIntervalRef.current = setInterval(() => {
             if (!document.hidden) {
                 sendHeartbeat("online")
             }
         }, 15000)
-        
+
         return () => {
             if (heartbeatIntervalRef.current) {
                 clearInterval(heartbeatIntervalRef.current)
             }
-            
+
             sendOfflineSignal()
         }
     }, [displayId])
-    
+
     useEffect(() => {
         fetchDisplayData()
 
@@ -222,7 +223,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 const displayData = await getDisplayDataAction(displayId)
                 setData(displayData)
                 setLastUpdate(new Date())
-                
+
                 const activeEmergencyAlert = displayData.emergencyAlerts.find((alert) => alert.priority >= 4)
 
                 if (activeEmergencyAlert) {
@@ -237,7 +238,12 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
         }
     }
 
-    const contentType = displayData?.content || "Mixed Dashboard"
+    const contentType = data.contentType || displayData?.content || "Mixed Dashboard"
+    
+    const shouldShowTokenQueue = contentType === "Token Queue" || contentType === "Mixed Dashboard"
+    const shouldShowDepartments = contentType === "Department Status" || contentType === "Mixed Dashboard"
+    const shouldShowEmergencyAlerts = contentType === "Emergency Alerts" || contentType === "Mixed Dashboard"
+    const shouldShowDrugInventory = contentType === "Drug Inventory" || contentType === "Mixed Dashboard"
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6">
@@ -282,12 +288,12 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                             {isPending && <span className="ml-2 text-blue-600">• Updating...</span>}
                         </p>
                         <p className="text-xs text-gray-400">
-                            Last updated: {lastUpdate.toLocaleTimeString()} • Auto-refresh every 5 seconds
+                        Last updated: {lastUpdate?.toLocaleTimeString("en-US")} • Auto-refresh every 5 seconds
                         </p>
                     </div>
                     <div className="text-right">
-                        <div className="text-3xl font-bold text-blue-600">{currentTime.toLocaleTimeString()}</div>
-                        <div className="text-lg text-gray-600">{currentTime.toLocaleDateString()}</div>
+                        <div className="text-3xl font-bold text-blue-600">{currentTime?.toLocaleTimeString("en-US")}</div>
+                        <div className="text-lg text-gray-600">{currentTime?.toLocaleDateString("en-US")}</div>
                         <Badge className={`mt-2 ${isVisible ? "bg-green-500" : "bg-red-500"}`}>
                             {isVisible ? "Active" : "Hidden"}
                         </Badge>
@@ -296,7 +302,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {(contentType === "Token Queue" || contentType === "Mixed Dashboard") && data.tokenQueue.length > 0 && (
+                {shouldShowTokenQueue && data.tokenQueue.length > 0 && (
                     <Card className="shadow-lg">
                         <CardHeader className="bg-blue-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
@@ -340,7 +346,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </Card>
                 )}
 
-                {(contentType === "Department Status" || contentType === "Mixed Dashboard") && data.departments.length > 0 && (
+                {shouldShowDepartments && data.departments.length > 0 && (
                     <Card className="shadow-lg">
                         <CardHeader className="bg-green-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
@@ -367,7 +373,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </Card>
                 )}
 
-                {(contentType === "Drug Inventory" || contentType === "Mixed Dashboard") && data.drugInventory.length > 0 && (
+                {shouldShowDrugInventory && data.drugInventory.length > 0 && (
                     <Card className="shadow-lg lg:col-span-2">
                         <CardHeader className="bg-red-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
@@ -395,6 +401,47 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         </CardContent>
                     </Card>
                 )}
+
+                {shouldShowEmergencyAlerts && data.emergencyAlerts.length > 0 && (
+                    <Card className="shadow-lg lg:col-span-2">
+                        <CardHeader className="bg-orange-600 text-white">
+                            <CardTitle className="flex items-center space-x-2 text-2xl">
+                                <AlertTriangle className="h-6 w-6" />
+                                <span>Active Emergency Alerts</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <div className="space-y-4">
+                                {data.emergencyAlerts.map((alert) => (
+                                    <Alert key={alert.id} className="border-orange-200 bg-orange-50">
+                                        <AlertTriangle className="h-4 w-4 text-orange-600" />
+                                        <AlertDescription className="text-orange-800">
+                                            <strong>{alert.codeType}</strong> - {alert.location}
+                                            <br />
+                                            <span className="text-sm">{alert.message}</span>
+                                        </AlertDescription>
+                                    </Alert>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {contentType !== "Mixed Dashboard" &&
+                    ((contentType === "Token Queue" && data.tokenQueue.length === 0) ||
+                        (contentType === "Department Status" && data.departments.length === 0) ||
+                        (contentType === "Emergency Alerts" && data.emergencyAlerts.length === 0) ||
+                        (contentType === "Drug Inventory" && data.drugInventory.length === 0)) && (
+                        <Card className="shadow-lg lg:col-span-2">
+                            <CardContent className="p-8 text-center">
+                                <div className="text-gray-500">
+                                    <h3 className="text-xl font-semibold mb-2">No {contentType} Data Available</h3>
+                                    <p>This display is configured to show {contentType} but no data is currently available.</p>
+                                    <p className="text-sm mt-2">Data will appear here when available.</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                 <Card className="shadow-lg lg:col-span-2">
                     <CardHeader className="bg-gray-600 text-white">
@@ -424,13 +471,13 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </CardContent>
                 </Card>
             </div>
-            
+
             <div className="mt-8 text-center text-gray-500">
                 <p>© 2025 Wenlock Hospital • UDAL Fellowship Challenge</p>
                 <p className="text-sm mt-1">Real-time updates every 5 seconds • Patient privacy protected</p>
                 <p className="text-xs mt-1">
                     Uptime: {displayData?.uptime || "N/A"} | Last Update:{" "}
-                    {displayData?.lastUpdate ? new Date(displayData.lastUpdate).toLocaleString() : "N/A"}
+                    {displayData?.lastUpdate ? new Date(displayData.lastUpdate).toLocaleString("en-US") : "N/A"}
                 </p>
             </div>
         </div>
