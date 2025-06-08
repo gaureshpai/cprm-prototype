@@ -239,7 +239,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     }
 
     const contentType = data.contentType || displayData?.content || "Mixed Dashboard"
-    
+
     const shouldShowTokenQueue = contentType === "Token Queue" || contentType === "Mixed Dashboard"
     const shouldShowDepartments = contentType === "Department Status" || contentType === "Mixed Dashboard"
     const shouldShowEmergencyAlerts = contentType === "Emergency Alerts" || contentType === "Mixed Dashboard"
@@ -288,7 +288,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                             {isPending && <span className="ml-2 text-blue-600">• Updating...</span>}
                         </p>
                         <p className="text-xs text-gray-400">
-                        Last updated: {lastUpdate?.toLocaleTimeString("en-US")} • Auto-refresh every 5 seconds
+                            Last updated: {lastUpdate?.toLocaleTimeString("en-US")} • Auto-refresh every 5 seconds
                         </p>
                     </div>
                     <div className="text-right">
@@ -326,10 +326,10 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                         <div className="text-right">
                                             <Badge
                                                 className={`text-lg px-3 py-1 ${token.status === "in_progress"
-                                                        ? "bg-blue-500"
-                                                        : token.status === "waiting"
-                                                            ? "bg-yellow-500"
-                                                            : "bg-gray-500"
+                                                    ? "bg-blue-500"
+                                                    : token.status === "waiting"
+                                                        ? "bg-yellow-500"
+                                                        : "bg-gray-500"
                                                     }`}
                                             >
                                                 {token.status === "in_progress" ? "In Progress" : "Waiting"}

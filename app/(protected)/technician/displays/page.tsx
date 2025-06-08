@@ -21,6 +21,7 @@ import {
 } from "@/lib/display-actions"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
+import Link from "next/link"
 
 const CONTENT_TYPES = [
   { value: "Token Queue", label: "Token Queue", icon: Users, description: "Patient queue and waiting times" },
@@ -358,6 +359,9 @@ export default function DisplayManagement() {
                 </Badge>
               </div>
               <p className="text-sm text-gray-600">ID: {display.id}</p>
+              <Link href={`/display/${display.id}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
+                View display
+              </Link>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
