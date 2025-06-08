@@ -341,3 +341,23 @@ function getDefaultPermissions(role: Role): any {
 
     return permissions[role] || []
 }
+
+export async function getUserByUsernameAction(username: string): Promise<UserActionResponse<UserWithStats>> {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { username },
+        })
+
+        await prisma.$disconnect()
+
+        if (!user) {
+            return { success: false, error: "User not found" }
+        }
+
+        return { success: true, data: user }
+    } catch (error) {
+        console.error("Error finding user by username:", error)
+        await prisma.$disconnect()
+        return { success: false, error: "Failed to fetch user" }
+    }
+}
