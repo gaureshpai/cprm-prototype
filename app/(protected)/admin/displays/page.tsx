@@ -31,6 +31,10 @@ const CONTENT_TYPES = [
   { value: "Mixed Dashboard", label: "Mixed Dashboard", icon: Monitor, description: "Combined information display" },
 ]
 
+const STATUS_OPTIONS = [
+  { value: "offline", label: "Offline" }
+]
+
 export default function DisplayManagement() {
   const [displays, setDisplays] = useState<DisplayData[]>([])
   const [selectedDisplay, setSelectedDisplay] = useState<DisplayData | null>(null)
@@ -44,7 +48,7 @@ export default function DisplayManagement() {
   const [editForm, setEditForm] = useState({
     location: "",
     content: "",
-    status: "",
+    status: "offline",
   })
 
   const [createForm, setCreateForm] = useState({
@@ -289,6 +293,25 @@ export default function DisplayManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label htmlFor="create-status">Status</Label>
+                  <Select
+                    name="status"
+                    value={createForm.status}
+                    onValueChange={(value) => setCreateForm({ ...createForm, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancel
@@ -427,6 +450,21 @@ export default function DisplayManagement() {
                           <p className="text-xs text-gray-500">{type.description}</p>
                         </div>
                       </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-status">Status</Label>
+              <Select name="status" value={editForm.status} onValueChange={(value) => setEditForm({ ...editForm, status: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
