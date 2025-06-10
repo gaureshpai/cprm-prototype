@@ -46,6 +46,7 @@ import { useToast } from "@/hooks/use-toast"
 interface UserFormData {
   username: string
   name: string
+  password?: string
   email: string
   role: Role | ""
   department: string
@@ -75,6 +76,7 @@ const UserCRUDPage = () => {
     name: "",
     email: "",
     role: "",
+    password: "",
     department: "",
   })
   const [isPending, startTransition] = useTransition()
@@ -130,7 +132,7 @@ const UserCRUDPage = () => {
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase())),
+      (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const resetForm = () => {
@@ -140,6 +142,7 @@ const UserCRUDPage = () => {
       email: "",
       role: "",
       department: "",
+      password: "",
     })
   }
 
@@ -180,6 +183,14 @@ const UserCRUDPage = () => {
       return false
     }
 
+    if (formData.password && formData.password.length < 6) {
+      toast({
+        title: "Validation Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      })
+      return false
+    }
     return true
   }
 
@@ -195,6 +206,9 @@ const UserCRUDPage = () => {
         formDataObj.append("email", formData.email)
         formDataObj.append("role", formData.role as string)
         formDataObj.append("department", formData.department)
+        if (formData.password) {
+          formDataObj.append("password", formData.password)
+        }
 
         const result = await createUserAction(formDataObj)
 
@@ -234,6 +248,7 @@ const UserCRUDPage = () => {
       email: user.email || "",
       role: user.role,
       department: user.department || "",
+      password: "",
     })
     setIsEditDialogOpen(true)
   }
@@ -257,6 +272,9 @@ const UserCRUDPage = () => {
         formDataObj.append("email", formData.email)
         formDataObj.append("role", formData.role as string)
         formDataObj.append("department", formData.department)
+        if (formData.password) {
+          formDataObj.append("password", formData.password)
+        }
 
         const result = await updateUserAction(editingUser.id, formDataObj)
 
@@ -351,6 +369,15 @@ const UserCRUDPage = () => {
     }
   }
 
+  const handleInputChange = (field: keyof UserFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleSelectChange = (field: keyof UserFormData) => (value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
   const getRoleBadgeColor = (role: Role) => {
     const colors: Record<Role, string> = {
       ADMIN: "bg-red-100 text-red-800",
@@ -375,7 +402,7 @@ const UserCRUDPage = () => {
           <Input
             id="username"
             value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            onChange={handleInputChange('username')}
             placeholder="Enter username"
             disabled={isEdit || isPending}
             required
@@ -386,7 +413,7 @@ const UserCRUDPage = () => {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={handleInputChange('name')}
             placeholder="Enter full name"
             disabled={isPending}
             required
@@ -394,16 +421,29 @@ const UserCRUDPage = () => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          placeholder="Enter email address"
-          disabled={isPending}
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange('email')}
+            placeholder="Enter email address"
+            disabled={isPending}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password *</Label>
+          <Input
+            id="password"
+            value={formData.password}
+            onChange={handleInputChange('password')}
+            placeholder="Enter password"
+            disabled={isEdit || isPending}
+            required
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -411,7 +451,7 @@ const UserCRUDPage = () => {
           <Label htmlFor="role">Role *</Label>
           <Select
             value={formData.role}
-            onValueChange={(value: Role) => setFormData({ ...formData, role: value })}
+            onValueChange={handleSelectChange('role')}
             disabled={isPending}
           >
             <SelectTrigger>
@@ -430,7 +470,7 @@ const UserCRUDPage = () => {
           <Label htmlFor="department">Department</Label>
           <Select
             value={formData.department}
-            onValueChange={(value) => setFormData({ ...formData, department: value })}
+            onValueChange={handleSelectChange('department')}
             disabled={isPending}
           >
             <SelectTrigger>
@@ -477,17 +517,6 @@ const UserCRUDPage = () => {
       </div>
     </form>
   )
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-96">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading users...</span>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <AuthGuard allowedRoles={["admin"]} className="container mx-auto p-6 space-y-6">
