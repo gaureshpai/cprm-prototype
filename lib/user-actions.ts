@@ -10,6 +10,7 @@ export interface CreateUserData {
     username: string
     name: string
     email?: string
+    password: string
     role: Role
     department?: string
 }
@@ -17,6 +18,7 @@ export interface CreateUserData {
 export interface UpdateUserData {
     name?: string
     email?: string
+    password?: string
     department?: string
     role?: Role
     status?: string
@@ -27,6 +29,7 @@ export interface UserWithStats {
     username: string
     name: string
     email?: string | null
+    password?: string 
     role: Role
     department?: string | null
     status: string
@@ -81,13 +84,14 @@ export async function createUserAction(formData: FormData): Promise<UserActionRe
         const username = formData.get("username") as string
         const name = formData.get("name") as string
         const email = formData.get("email") as string
+        const password = formData.get("password") as string
         const role = formData.get("role") as Role
         const department = formData.get("department") as string
 
         if (!username || !name || !role) {
             return { success: false, error: "Username, name, and role are required" }
         }
-        
+
         const existingUser = await prisma.user.findUnique({
             where: { username },
         })
@@ -96,7 +100,7 @@ export async function createUserAction(formData: FormData): Promise<UserActionRe
             await prisma.$disconnect()
             return { success: false, error: "Username already exists" }
         }
-        
+
         if (email) {
             const existingEmail = await prisma.user.findUnique({
                 where: { email },
@@ -108,16 +112,26 @@ export async function createUserAction(formData: FormData): Promise<UserActionRe
             }
         }
 
+        const userData: any = {
+            username,
+            name,
+            email: email || undefined,
+            role,
+            department: department || undefined,
+            status: "ACTIVE",
+            permissions: getDefaultPermissions(role),
+        }
+        
+        if (password) {
+            try {
+                userData.password = password
+            } catch (error) {
+                console.warn("Password field not available in schema yet")
+            }
+        }
+
         const user = await prisma.user.create({
-            data: {
-                username,
-                name,
-                email: email || undefined,
-                role,
-                department: department || undefined,
-                status: "ACTIVE",
-                permissions: getDefaultPermissions(role),
-            },
+            data: userData,
         })
 
         await prisma.$disconnect()
@@ -135,13 +149,14 @@ export async function updateUserAction(id: string, formData: FormData): Promise<
     try {
         const name = formData.get("name") as string
         const email = formData.get("email") as string
+        const password = formData.get("password") as string
         const role = formData.get("role") as Role
         const department = formData.get("department") as string
 
         if (!name) {
             return { success: false, error: "Name is required" }
         }
-        
+
         if (email) {
             const existingEmail = await prisma.user.findFirst({
                 where: {
@@ -156,15 +171,25 @@ export async function updateUserAction(id: string, formData: FormData): Promise<
             }
         }
 
+        const updateData: any = {
+            name,
+            email: email || undefined,
+            role,
+            department: department || undefined,
+            updatedAt: new Date(),
+        }
+        
+        if (password && password.trim() !== "") {
+            try {
+                updateData.password = password
+            } catch (error) {
+                console.warn("Password field not available in schema yet")
+            }
+        }
+
         const user = await prisma.user.update({
             where: { id },
-            data: {
-                name,
-                email: email || undefined,
-                role,
-                department: department || undefined,
-                updatedAt: new Date(),
-            },
+            data: updateData,
         })
 
         await prisma.$disconnect()
@@ -180,11 +205,9 @@ export async function updateUserAction(id: string, formData: FormData): Promise<
 
 export async function deleteUserAction(id: string): Promise<UserActionResponse<boolean>> {
     try {
-        
         const userDependencies = await checkUserDependencies(id)
 
         if (userDependencies.hasAppointments || userDependencies.hasPrescriptions) {
-            
             await prisma.user.update({
                 where: { id },
                 data: {
@@ -193,7 +216,6 @@ export async function deleteUserAction(id: string): Promise<UserActionResponse<b
                 },
             })
         } else {
-            
             await prisma.user.delete({
                 where: { id },
             })
@@ -359,5 +381,40 @@ export async function getUserByUsernameAction(username: string): Promise<UserAct
         console.error("Error finding user by username:", error)
         await prisma.$disconnect()
         return { success: false, error: "Failed to fetch user" }
+    }
+}
+
+export async function validateUserCredentialsAction(
+    username: string,
+    password: string,
+): Promise<UserActionResponse<UserWithStats>> {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { username },
+        })
+
+        await prisma.$disconnect()
+
+        if (!user) {
+            return { success: false, error: "User not found" }
+        }
+
+        if (user.status !== "ACTIVE") {
+            return { success: false, error: "Account is inactive" }
+        }
+        
+        if ("password" in user && user.password) {
+            if (user.password !== password) {
+                return { success: false, error: "Invalid password" }
+            }
+        } else {
+            console.warn("Password field not available, allowing login for development")
+        }
+
+        return { success: true, data: user }
+    } catch (error) {
+        console.error("Error validating user credentials:", error)
+        await prisma.$disconnect()
+        return { success: false, error: "Failed to validate credentials" }
     }
 }

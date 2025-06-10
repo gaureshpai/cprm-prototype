@@ -10,11 +10,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Eye, EyeOff, AlertTriangle, Users, Copy, TestTube, Loader2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
-import { getUserByUsernameAction } from "@/lib/user-actions"
+import { validateUserCredentialsAction } from "@/lib/user-actions"
 import { demoCredentials } from "@/lib/mock-data"
 
 export default function LoginPage() {
@@ -60,14 +67,13 @@ export default function LoginPage() {
 
   const validateLogin = async (username: string, password: string) => {
     try {
-
       const isDemoLogin = Object.values(demoCredentials).some(
-        cred => cred.username === username && cred.password === password
+        (cred) => cred.username === username && cred.password === password,
       )
 
       if (isDemoLogin) {
         const demoRole = Object.entries(demoCredentials).find(
-          ([_, cred]) => cred.username === username && cred.password === password
+          ([_, cred]) => cred.username === username && cred.password === password,
         )?.[0]
 
         return {
@@ -80,35 +86,30 @@ export default function LoginPage() {
             role: demoRole?.toUpperCase(),
             status: "ACTIVE",
             permissions: getDefaultPermissions(demoRole?.toUpperCase() as any),
-          }
+          },
         }
       }
-
-      const result = await getUserByUsernameAction(username)
+      
+      const result = await validateUserCredentialsAction(username, password)
 
       if (!result.success || !result.data) {
-        return { success: false, error: "User not found" }
+        return { success: false, error: result.error || "Invalid credentials" }
       }
 
       const user = result.data
-
-      if (user.status !== "ACTIVE") {
-        return { success: false, error: "Account is inactive" }
-      }
 
       return {
         success: true,
         user: {
           id: user.id,
           username: user.username,
-          name: user.username,
+          name: user.name,
           email: user.email,
           role: user.role,
           status: user.status,
           permissions: user.permissions,
-        }
+        },
       }
-
     } catch (error) {
       console.error("Login validation error:", error)
       return { success: false, error: "Login validation failed" }
@@ -172,13 +173,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             <div className="bg-black p-2 rounded-md">
-              <Image
-                src="/logo.png"
-                alt="inunity Logo"
-                width={24}
-                height={24}
-                className="invert"
-              />
+              <Image src="/logo.png" alt="inunity Logo" width={24} height={24} className="invert" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">UDAL - Wenlock Hospital</CardTitle>
@@ -255,12 +250,7 @@ export default function LoginPage() {
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={isLoading}
-                >
+                <Button type="button" variant="outline" className="w-full" disabled={isLoading}>
                   <TestTube className="h-4 w-4 mr-2" />
                   Use Demo Credentials
                 </Button>
@@ -272,9 +262,7 @@ export default function LoginPage() {
                     <Users className="h-5 w-5" />
                     Demo Credentials
                   </DialogTitle>
-                  <DialogDescription>
-                    Click on any credential to auto-fill the login form
-                  </DialogDescription>
+                  <DialogDescription>Click on any credential to auto-fill the login form</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -285,9 +273,7 @@ export default function LoginPage() {
                       onClick={() => handleDemoCredentialClick(role as keyof typeof demoCredentials)}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium capitalize text-gray-900">
-                          {credentials.username}
-                        </span>
+                        <span className="font-medium capitalize text-gray-900">{credentials.username}</span>
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                           {role.toUpperCase()}
                         </span>
@@ -328,11 +314,7 @@ export default function LoginPage() {
               </DialogContent>
             </Dialog>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading || !formData.username || !formData.password}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading || !formData.username || !formData.password}>
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
