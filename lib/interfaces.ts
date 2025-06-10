@@ -124,6 +124,7 @@ export interface User {
     id: string
     name: string
     email?: string
+    password?: string
     role: "admin" | "doctor" | "nurse" | "technician" | "pharmacist" | "patient"
     username?: string
     permissions: string[]
