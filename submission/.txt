@@ -1,0 +1,34 @@
+- Title:
+`CPRM - Centralized Patient-Resource Mgmt System`
+
+- Description Of Project (How does it solves the problem?): 
+`In order to remedy the concerns, my system is a total, privacy-oriented hospital display management system. 
+It maintains patient privacy through token-based queues (e.g., "001, 002" rather than full names) and showing only initials (e.g., "R.K."). 
+Sensitive departments are given extra privacy measures. 
+The system also includes an actual-time emergency alert system, including Code Blue for full-screen immediate alerts on all displays. 
+Automated responses activate pre-programmed processes, with multi-level alerts (Critical, High, Medium) to ensure proper response. 
+Beyond privacy and emergencies, the system enhances hospital operations with live queue management, real-time patient flow tracking, and department status updates (bed availability, staff allocation, equipment status). 
+It provides drug inventory alerts and operating theater scheduling, streamlining workflows. 
+Built with a modular architecture, it supports API-first integration with existing systems, compatibility with major display managers (LG), and any hospital database. 
+Scalable across 100+ displays in multiple buildings, it ensures seamless, efficient, and secure hospital-wide management.
+
+The website has role based access where the different roles are: Admin, Doctor, Nurse, Technician, Pharmacist
+*Being a Frontend developer, my solution is more frontend specific/focused*
+you can login with the demo credentials given in the login page 
+For Admin: Dashboard - Create Update Read Delete emergency alerts, announcements, manage displays, Users, check analytics
+For Doctor: Dashboard - Create  Update Read Delete Prescription, Patient users, OT status
+For Nurse:  Dashboard - Create  Update Read Delete and monitor Patient data, Ward management, Prescriptions
+For Technician:  Dashboard - Create  Update Read Delete displays and configure them
+For Pharmacist:  Dashboard - Create  Update Read Delete Purchase order, manage drug inventory
+For all users: profile and settings that reflect the overall system, auth guard and privacy across roles
+The displays are focused on auto fetch real time data for every 5 seconds and not web socket to avoid dependency on any particular systems (Displays to be on even if there is no Admin active) also have used display/{id} that can be either auto generated or customized and allotted particular screens as mixed screen/drug inventory/token queue 
+
+Tech stack used:
+Nextjs, Prisma OMR, Neon Postgres SQL, Shadcn UI components library, Tailwindcss,
+`
+
+- Project Related Links:
+https://github.com/gaureshpai/cprm-prototype
+https://cprm-prototype.vercel.app/
+
+- 

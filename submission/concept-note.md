@@ -35,7 +35,7 @@ Our Centralized Patient & Resource Management System (CPRM) creates a unified di
 - **Frontend**: Next.js with React components and Tailwind CSS for responsive design
 - **Backend**: Next.js API routes and server actions for data processing
 - **Data Storage**: Currently using CSV files, with database integration planned
-- **Real-Time Updates**: WebSocket connections for instant data synchronization
+- **Real-Time Updates**: Fetch data every 5 seconds directly from the database
 
 #### Data Flow
 1. Department systems generate data (patient arrivals, inventory changes, etc.)
@@ -65,6 +65,3 @@ Our Centralized Patient & Resource Management System (CPRM) creates a unified di
 
 ### Conclusion
 The UDAL Centralized Patient & Resource Management System transforms Wenlock Hospital's fragmented displays into a cohesive information network that improves communication, enhances patient care, and optimizes resource utilization. By connecting departments that previously operated in isolation, we create a more efficient and responsive healthcare environment.
-\`\`\`
-
-Now let's create a script to simulate real-time data synchronization between departments:
