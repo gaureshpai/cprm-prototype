@@ -448,7 +448,7 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
             displaysToCreate.push({
                 location,
                 content: contentTypes[Math.floor(Math.random() * contentTypes.length)],
-                status: Math.random() > 0.3 ? "online" : Math.random() > 0.5 ? "offline" : "warning",
+                status:"offline",
                 uptime: `${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m`,
                 lastUpdate: new Date(Date.now() - Math.random() * 3600000),
             })
