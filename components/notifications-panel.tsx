@@ -1,22 +1,84 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Bell, AlertTriangle, Info, CheckCircle, Clock, X } from "lucide-react"
+import { Bell, AlertTriangle, Info, CheckCircle, Clock, X, Loader2, RefreshCw } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { mockNotifications } from "@/lib/mock-data"
+import { getAllAnnouncementsAction, type Announcement } from "@/lib/content-actions"
 import { getNotificationColor } from "@/lib/functions"
+
+interface Notification {
+  id: string
+  title: string
+  message: string
+  type: string
+  time: string
+  read: boolean
+  priority?: string
+}
 
 export function NotificationsPanel() {
   const { user } = useAuth()
-  const [notifications, setNotifications] = useState(mockNotifications)
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const unreadCount = notifications.filter((n) => !n.read).length
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAnnouncements()
+    }
+  }, [isOpen])
+
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const result = await getAllAnnouncementsAction()
+
+      if (result.success && result.data) {
+        const notificationsFromAnnouncements = mapAnnouncementsToNotifications(result.data)
+        setNotifications(notificationsFromAnnouncements)
+      } else {
+        setError(result.error || "Failed to fetch announcements")
+      }
+    } catch (error) {
+      console.error("Error fetching announcements:", error)
+      setError("Failed to fetch announcements")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const mapAnnouncementsToNotifications = (announcements: Announcement[]): Notification[] => {
+    return announcements.map((announcement) => {
+      // Format the date to a readable string
+      const date = new Date(announcement.createdAt)
+      const formattedDate = date.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+
+      return {
+        id: announcement.id,
+        title: "Announcement",
+        message: announcement.text,
+        type: "info",
+        time: formattedDate,
+        read: false, // Default to unread for new announcements
+        priority: announcement.active ? "normal" : "low",
+      }
+    })
+  }
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -60,24 +122,39 @@ export function NotificationsPanel() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">Notifications</CardTitle>
+                <CardTitle className="text-lg">Announcements</CardTitle>
                 <CardDescription>
-                  {unreadCount > 0 ? `${unreadCount} unread notifications` : "All caught up!"}
+                  {unreadCount > 0 ? `${unreadCount} unread Announcements` : "All caught up!"}
                 </CardDescription>
               </div>
-              {unreadCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-                  Mark all read
-                </Button>
-              )}
+              <div className="flex space-x-2">
+                {!loading && (
+                  <Button variant="outline" size="sm" onClick={fetchAnnouncements}>
+                    <RefreshCw className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-96">
-              {notifications.length === 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  <span className="ml-2 text-gray-500">Loading Announcements...</span>
+                </div>
+              ) : error ? (
+                <div className="text-center py-8 text-gray-500">
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-2 text-yellow-500" />
+                  <p>{error}</p>
+                  <Button variant="outline" size="sm" className="mt-4" onClick={fetchAnnouncements}>
+                    Try Again
+                  </Button>
+                </div>
+              ) : notifications.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Bell className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                  <p>No notifications</p>
+                  <p>No Announcements</p>
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -102,17 +179,6 @@ export function NotificationsPanel() {
                                   High
                                 </Badge>
                               )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  deleteNotification(notification.id)
-                                }}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
                             </div>
                           </div>
                           <p className={`text-sm mt-1 ${!notification.read ? "text-gray-700" : "text-gray-500"}`}>
