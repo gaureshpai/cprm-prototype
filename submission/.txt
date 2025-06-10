@@ -21,7 +21,7 @@ For Nurse:  Dashboard - Create  Update Read Delete and monitor Patient data, War
 For Technician:  Dashboard - Create  Update Read Delete displays and configure them
 For Pharmacist:  Dashboard - Create  Update Read Delete Purchase order, manage drug inventory
 For all users: profile and settings that reflect the overall system, auth guard and privacy across roles
-The displays are focused on auto fetch real time data for every 5 seconds and not web socket to avoid dependency on any particular systems (Displays to be on even if there is no Admin active) also have used display/{id} that can be either auto generated or customized and allotted particular screens as mixed screen/drug inventory/token queue 
+The displays are focused on auto fetch real time data for every 5 seconds and not web socket to avoid dependency on any particular systems (Displays to be on even if there is no Admin active) also have used display/{id} that can be either auto generated or customized and allotted particular screens as mixed screen/drug inventory/token queue and also the status of the Display screen as online or offline is given real time to the Admin
 
 Tech stack used:
 Nextjs, Prisma OMR, Neon Postgres SQL, Shadcn UI components library, Tailwindcss,

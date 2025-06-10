@@ -12,6 +12,7 @@ model User {
   username      String         @unique @db.VarChar(50)
   email         String?        @unique @db.VarChar(100)
   name          String
+  password      String         @db.VarChar(255)
   role          Role
   department    String?
   permissions   Json           @default("[]")
@@ -25,18 +26,26 @@ model User {
 }
 
 model Patient {
-  id            String         @id @default(cuid())
-  name          String
-  age           Int
-  gender        String
-  phone         String?
-  address       String?
-  condition     String?
-  status        String         @default("Active")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  appointments  Appointment[]
-  prescriptions Prescription[]
+  id               String         @id @default(cuid())
+  name             String
+  age              Int
+  gender           String
+  phone            String?
+  address          String?
+  condition        String?
+  status           String         @default("Active")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  allergies        String[]
+  bloodType        String?        @db.VarChar(10)
+  emergencyContact String?        @db.VarChar(100)
+  emergencyPhone   String?        @db.VarChar(20)
+  medicalHistory   Json?          @default("[]")
+  vitals           Json?          @default("{}")
+  lastVisit        DateTime?      @db.Timestamp(6)
+  nextAppointment  DateTime?      @db.Timestamp(6)
+  appointments     Appointment[]
+  prescriptions    Prescription[]
 
   @@map("patients")
 }
