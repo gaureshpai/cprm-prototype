@@ -1,22 +1,91 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Clock, Calendar, AlertTriangle, CheckCircle, Activity, Heart } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
-import { mockOTData } from "@/lib/mock-data"
+import { SurgeryScheduler } from "@/components/surgery-scheduler"
+import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
+import { getOTStatusAction, type OTData } from "@/lib/ot-actions"
 import { getPriorityColor, getScheduleStatusColor, getStatusColor } from "@/lib/functions"
 
 export default function DoctorOTPage() {
   const [currentDate] = useState(new Date())
-  const occupiedTheaters = mockOTData.theaters.filter((t) => t.status === "occupied").length
-  const availableTheaters = mockOTData.theaters.filter((t) => t.status === "available").length
-  const maintenanceTheaters = mockOTData.theaters.filter(
+  const [otData, setOtData] = useState<OTData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const { user } = useAuth()
+  const { toast } = useToast()
+  
+  useEffect(() => {
+    loadOTData()
+  }, [])
+
+  const loadOTData = async () => {
+    try {
+      setLoading(true)
+      startTransition(async () => {
+        const result = await getOTStatusAction()
+        if (result.success && result.data) {
+          setOtData(result.data)
+        } else {
+          toast({
+            title: "Error",
+            description: result.error || "Failed to load OT data",
+            variant: "destructive",
+          })
+        }
+      })
+    } catch (error) {
+      console.error("Error loading OT data:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load OT data",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleScheduleSuccess = () => {
+    setShowScheduleDialog(false)
+    loadOTData() 
+    toast({
+      title: "Success",
+      description: "Surgery scheduled successfully",
+    })
+  }
+
+  if (!otData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin mx-auto mb-4 border-4 border-blue-600 border-t-transparent rounded-full" />
+          <p>Loading OT status...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const occupiedTheaters = otData.theaters.filter((t) => t.status === "occupied").length
+  const availableTheaters = otData.theaters.filter((t) => t.status === "available").length
+  const maintenanceTheaters = otData.theaters.filter(
     (t) => t.status === "maintenance" || t.status === "cleaning",
   ).length
 
@@ -38,10 +107,27 @@ export default function DoctorOTPage() {
                 })}
               </p>
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => alert("Schedule Surgery button Clicked")}>
-              <Calendar className="mr-2 h-4 w-4" />
-              Schedule Surgery
-            </Button>
+            <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Schedule Surgery
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Schedule New Surgery</DialogTitle>
+                  <DialogDescription>
+                    Schedule a new surgery by selecting patient, theater, and time slot.
+                  </DialogDescription>
+                </DialogHeader>
+                <SurgeryScheduler
+                  onSuccess={handleScheduleSuccess}
+                  onCancel={() => setShowScheduleDialog(false)}
+                  availableTheaters={otData.theaters.filter((t) => t.status === "available")}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -51,7 +137,7 @@ export default function DoctorOTPage() {
                 <Activity className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockOTData.theaters.length}</div>
+                <div className="text-2xl font-bold">{otData.theaters.length}</div>
                 <p className="text-xs text-muted-foreground">Operating theaters</p>
               </CardContent>
             </Card>
@@ -84,7 +170,7 @@ export default function DoctorOTPage() {
                 <AlertTriangle className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{mockOTData.emergencyQueue.length}</div>
+                <div className="text-2xl font-bold text-orange-600">{otData.emergencyQueue.length}</div>
                 <p className="text-xs text-muted-foreground">Waiting for emergency surgery</p>
               </CardContent>
             </Card>
@@ -99,7 +185,7 @@ export default function DoctorOTPage() {
 
             <TabsContent value="theaters" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockOTData.theaters.map((theater) => (
+                {otData.theaters.map((theater) => (
                   <Card key={theater.id} className="border-l-4 border-l-blue-400">
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
@@ -202,12 +288,11 @@ export default function DoctorOTPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockOTData.todaySchedule.map((surgery) => (
+                    {otData.todaySchedule.map((surgery) => (
                       <div
                         key={surgery.id}
-                        className={`flex items-center justify-between p-4 border rounded-lg ${
-                          surgery.status === "in-progress" ? "bg-blue-50 border-blue-200" : "bg-white"
-                        }`}
+                        className={`flex items-center justify-between p-4 border rounded-lg ${surgery.status === "in-progress" ? "bg-blue-50 border-blue-200" : "bg-white"
+                          }`}
                       >
                         <div className="flex items-center space-x-4">
                           <div className="text-center w-20">
@@ -243,7 +328,7 @@ export default function DoctorOTPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockOTData.emergencyQueue.map((emergency) => (
+                    {otData.emergencyQueue.map((emergency) => (
                       <div
                         key={emergency.id}
                         className="flex items-center justify-between p-4 border rounded-lg bg-red-50 border-red-200"
