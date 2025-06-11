@@ -39,9 +39,9 @@ export default function AdminPanel() {
   const [analytics, setAnalytics] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   
-  const [announcementsLoading, setAnnouncementsLoading] = useState(false)
-  const [contentLoading, setContentLoading] = useState(false)
-  const [emergencyAlertsLoading, setEmergencyAlertsLoading] = useState(false)
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true)
+  const [contentLoading, setContentLoading] = useState(true)
+  const [emergencyAlertsLoading, setEmergencyAlertsLoading] = useState(true)
 
   const [isPending, startTransition] = useTransition()
   const { user } = useAuth()
