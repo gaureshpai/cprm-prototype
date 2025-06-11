@@ -81,33 +81,6 @@ model PrescriptionItem {
   @@map("prescription_items")
 }
 
-model PurchaseOrder {
-  id        String              @id @default(cuid())
-  supplier  String
-  status    OrderStatus         @default(ORDERED)
-  orderDate DateTime            @default(now())
-  totalCost Decimal?            @db.Decimal(10, 2)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  items     PurchaseOrderItem[]
-
-  @@map("purchase_orders")
-}
-
-model PurchaseOrderItem {
-  id              String        @id @default(cuid())
-  purchaseOrderId String
-  drugId          String
-  quantity        Int
-  unitCost        Decimal?      @db.Decimal(10, 2)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  drug            DrugInventory @relation(fields: [drugId], references: [id])
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-
-  @@map("purchase_order_items")
-}
-
 model BloodBank {
   id             String      @id @default(cuid())
   status         BloodStatus
@@ -224,7 +197,6 @@ model DrugInventory {
   category           String?
   expiryDate         DateTime?
   prescriptionItems  PrescriptionItem[]
-  purchaseOrderItems PurchaseOrderItem[]
 
   @@map("drug_inventory")
 }
@@ -242,12 +214,6 @@ enum DrugStatus {
   LOW_STOCK
   OUT_OF_STOCK
   CRITICAL
-}
-
-enum AppointmentType {
-  CONSULTATION
-  FOLLOW_UP
-  EMERGENCY
 }
 
 enum OrderStatus {
