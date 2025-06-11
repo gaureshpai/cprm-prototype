@@ -41,7 +41,6 @@ export function Navbar() {
       ],
       technician: [
         { name: "Displays", href: "/technician/displays", icon: <Settings className="h-4 w-4 mr-2" /> },
-        { name: "Systems", href: "/technician/systems", icon: <Heart className="h-4 w-4 mr-2" /> },
       ],
     }
 
