@@ -26,9 +26,10 @@ import Link from "next/link"
 const CONTENT_TYPES = [
   { value: "Token Queue", label: "Token Queue", icon: Users, description: "Patient queue and waiting times" },
   { value: "Department Status", label: "Department Status", icon: Activity, description: "Department occupancy and status" },
-  { value: "Emergency Alerts", label: "Emergency Alerts", icon: AlertTriangle, description: "Critical alerts and codes" },
   { value: "Drug Inventory", label: "Drug Inventory", icon: Pill, description: "Medication stock levels" },
   { value: "Mixed Dashboard", label: "Mixed Dashboard", icon: Monitor, description: "Combined information display" },
+  { value: "Patient Dashboard", label: "Patient Dashboard", icon: Monitor, description: "Combined information display for patients" },
+  { value: "Staff Dashboard", label: "Staff Dashboard", icon: Monitor, description: "Combined information display for Staffs" },
 ]
 
 const STATUS_OPTIONS = [
@@ -390,10 +391,6 @@ export default function DisplayManagement() {
               <div>
                 <p className="text-sm font-medium">Content Type</p>
                 <p className="text-sm text-gray-600">{display.content}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Uptime</p>
-                <p className="text-sm text-gray-600">{display.uptime}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Last Update</p>
