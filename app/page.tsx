@@ -33,15 +33,15 @@ import Image from "next/image"
 
 const DEMO_PATIENT_IDS = [
   {
-    id: "P001",
-    name: "John Smith",
+    id: "cmbrofpyb0000m2fkls3bxlsz",
+    name: "Gauresh G Pai",
     condition: "Hypertension",
     status: "Active",
   },
   {
-    id: "P002",
-    name: "Sarah Johnson",
-    condition: "Diabetes",
+    id: "cmbseeoyn0000m2jc0wcbehbe",
+    name: "Giridhar Pai",
+    condition: "Headache",
     status: "Active",
   }
 ]
