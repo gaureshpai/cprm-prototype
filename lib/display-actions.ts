@@ -431,7 +431,7 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
             "Parking Entrance",
         ]
 
-        const contentTypes = ["Token Queue", "Department Status", "Emergency Alerts", "Drug Inventory", "Mixed Dashboard"]
+        const contentTypes = ["Token Queue", "Department Status", "Emergency Alerts", "Drug Inventory", "Mixed Dashboard", "Patient Dashboard", "Staff Dashboard"]
 
         const existingDisplays = await prisma.display.count()
         if (existingDisplays > 0) {
