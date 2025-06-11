@@ -189,8 +189,6 @@ export async function createEmergencyAlertAction(formData: FormData): Promise<Co
         await prisma.$disconnect()
         revalidatePath("/admin")
 
-        console.log(`Emergency alert created: ${codeType} at ${location}`)
-
         return {
             success: true,
             data: {

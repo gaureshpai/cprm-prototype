@@ -172,7 +172,6 @@ async function getOrCreateDoctorByUsername(username: string): Promise<string> {
                     permissions: ["patient_management", "appointments", "prescriptions", "medical_records"],
                 },
             })
-            console.log(`Created new doctor: ${username} with ID: ${doctor.id}`)
         }
 
         return doctor.id
@@ -502,7 +501,6 @@ export async function getPatientDetails(patientId: string): Promise<PatientData 
 export async function createPrescription(data: CreatePrescriptionData): Promise<PrescriptionData> {
     try {
         const doctorId = await getOrCreateDoctorByUsername(data.doctorUsername)
-        console.log(`Creating prescription for doctor: ${data.doctorUsername} (ID: ${doctorId})`)
 
         const drugPromises = data.medications.map(async (med) => {
             let drug = await prisma.drugInventory.findFirst({
@@ -518,7 +516,6 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
                         status: "normal",
                     },
                 })
-                console.log(`Created new drug: ${med.drugName}`)
             }
 
             if (drug.currentStock <= 0) {
@@ -584,7 +581,6 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
             },
         })
 
-        console.log(`Prescription created successfully: ${prescription.id}`)
         revalidatePath("/doctor")
 
         return {
@@ -820,7 +816,6 @@ export async function getAllDrugsForSelection(query?: string): Promise<
     }[]
 > {
     try {
-        console.log(`Querying drug inventory${query ? ` with query: ${query}` : ""}`)
 
         const drugs = await prisma.drugInventory.findMany({
             where: query
@@ -844,8 +839,6 @@ export async function getAllDrugsForSelection(query?: string): Promise<
             orderBy: [{ currentStock: "desc" }, { drugName: "asc" }],
             take: 100,
         })
-
-        console.log(`Found ${drugs.length} drugs in database`)
         
         return drugs.map((drug) => ({
             ...drug,

@@ -107,7 +107,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 setHeartbeatError(`Heartbeat failed: ${data.error || response.statusText}`)
             } else {
                 setHeartbeatError(null)
-                console.log(`Heartbeat sent: ${status}`)
             }
         } catch (error) {
             console.error("Error sending heartbeat:", error)
@@ -118,7 +117,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     const sendOfflineSignal = async () => {
         try {
             await sendHeartbeat("offline")
-            console.log("Offline signal sent")
         } catch (error) {
             console.error("Error sending offline signal:", error)
         }
@@ -130,7 +128,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             setIsVisible(visible)
 
             if (visible) {
-                console.log("Page became visible - sending online heartbeat")
                 sendHeartbeat("online")
 
                 if (!heartbeatIntervalRef.current) {
@@ -143,7 +140,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     startContentRotation()
                 }
             } else {
-                console.log("Page became hidden - sending offline signal")
                 sendOfflineSignal()
 
                 if (heartbeatIntervalRef.current) {
@@ -170,8 +166,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
 
     useEffect(() => {
         const handleBeforeUnload = () => {
-            console.log("Page unloading - sending offline signal")
-
             navigator.sendBeacon(
                 "/api/displays/heartbeat",
                 JSON.stringify({
@@ -273,10 +267,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
         rotationIntervalRef.current = setInterval(() => {
             currentIndex = (currentIndex + 1) % sections.length
             setActiveSection(sections[currentIndex])
-            console.log(`Rotated to section: ${sections[currentIndex]} for ${data.contentType}`)
         }, 15000)
-
-        console.log(`Content rotation started for ${data.contentType}`)
     }
 
     const fetchDisplayData = async (showLoading = true) => {

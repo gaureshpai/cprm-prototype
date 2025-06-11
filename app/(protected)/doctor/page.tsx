@@ -164,10 +164,8 @@ export default function DoctorDashboard() {
 
   const loadAvailableDrugs = async (query?: string) => {
     try {
-      console.log("Loading available drugs...", query ? `with query: ${query}` : "")
       const result = await getAllDrugsForSelectionAction(query)
       if (result.success && result.data) {
-        console.log(`Loaded ${result.data.length} drugs`)
         setAvailableDrugs(result.data)
       } else {
         console.error("Failed to load drugs:", result.error)
@@ -250,7 +248,6 @@ export default function DoctorDashboard() {
   }
 
   const handleDrugSelection = (medicationId: string, drugName: string) => {
-    console.log(`Selected drug: ${drugName} for medication ${medicationId}`)
     updateMedication(medicationId, "drugName", drugName)
   }
 
@@ -602,9 +599,6 @@ export default function DoctorDashboard() {
                                                     onClick={() => {
                                                       updateMedication(medication.id, "drugName", drug.drugName)
                                                       setDrugSearchQuery("")
-                                                      console.log(
-                                                        `Selected drug: ${drug.drugName} for medication ${medication.id}`,
-                                                      )
                                                     }}
                                                   >
                                                     <div className="flex items-center justify-between">

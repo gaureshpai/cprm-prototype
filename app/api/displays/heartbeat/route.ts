@@ -12,8 +12,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Display ID is required" }, { status: 400 })
         }
 
-        console.log(`Heartbeat received for ${displayId}: ${status} at ${timestamp || new Date().toISOString()}`)
-
         const updatedDisplay = await prisma.display.update({
             where: { id: displayId },
             data: {

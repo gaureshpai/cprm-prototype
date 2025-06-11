@@ -84,8 +84,6 @@ export async function createPrescriptionAction(formData: FormData): Promise<Acti
         const notes = formData.get("notes") as string
         const followUpDate = formData.get("followUpDate") as string
 
-        console.log(`Creating prescription for doctor: ${doctorUsername}, patient: ${patientId}`)
-
         const medications: CreatePrescriptionData["medications"] = []
         let index = 0
         while (formData.get(`medications[${index}][drugName]`)) {
@@ -177,9 +175,7 @@ export async function getAvailableDrugsAction(
 
 export async function getAllDrugsForSelectionAction(query?: string) {
     try {
-        console.log(`Fetching drugs for selection${query ? ` with query: ${query}` : ""}`)
         const drugs = await getAllDrugsForSelection(query)
-        console.log(`Found ${drugs.length} drugs`)
         return { success: true, data: drugs }
     } catch (error) {
         console.error("Error in getAllDrugsForSelectionAction:", error)

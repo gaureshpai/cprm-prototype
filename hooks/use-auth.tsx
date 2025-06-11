@@ -12,12 +12,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    console.log("AuthProvider: Checking for existing session")
     const savedUser = localStorage.getItem("udal_user")
     if (savedUser) {
       try {
-        const parsedUser = JSON.parse(savedUser)
-        console.log("AuthProvider: Found saved user:", parsedUser)
+        const parsedUser = JSON.parse(savedUser)      
         setUser(parsedUser)
       } catch (error) {
         console.error("AuthProvider: Error parsing saved user:", error)
@@ -29,23 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = (userData: User) => {
-    console.log("AuthContext: Login called with:", userData)
+  const login = (userData: User) => {  
     setUser(userData)
     localStorage.setItem("udal_user", JSON.stringify(userData))
-    console.log("AuthContext: User set and localStorage updated")
   }
 
   const logout = () => {
-    console.log("AuthContext: Logout called")
+    
     setUser(null)
     localStorage.removeItem("udal_user")
     router.push("/login")
   }
-
-  useEffect(() => {
-    console.log("AuthContext: User state changed:", user)
-  }, [user])
 
   return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>
 }

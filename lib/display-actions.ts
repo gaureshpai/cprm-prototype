@@ -220,8 +220,6 @@ export async function getDisplayDataAction(displayId: string) {
                 contentType: "Mixed Dashboard",
             }
         }
-
-        console.log(`Fetching data for display: ${displayId}, content type: ${display.content}`)
         
         const data = {
             tokenQueue: [] as Array<{
@@ -352,13 +350,6 @@ export async function getDisplayDataAction(displayId: string) {
                 console.log("Drug inventory error:", error instanceof Error ? error.message : String(error))
             }
         }
-
-        console.log("Final data summary:")
-        console.log(`- Content Type: ${data.contentType}`)
-        console.log(`- Token Queue: ${data.tokenQueue.length} items`)
-        console.log(`- Departments: ${data.departments.length} items`)
-        console.log(`- Emergency Alerts: ${data.emergencyAlerts.length} items`)
-        console.log(`- Drug Inventory: ${data.drugInventory.length} items`)
 
         return data
     } catch (error) {

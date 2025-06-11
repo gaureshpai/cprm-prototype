@@ -11,8 +11,6 @@ export default async function DisplayPage({ params }: DisplayPageProps) {
   const prisma = new PrismaClient()
 
   try {
-    console.log(`Loading display with ID: ${id}`)
-
     const display = await prisma.display.findUnique({
       where: { id },
     })
@@ -55,7 +53,6 @@ export default async function DisplayPage({ params }: DisplayPageProps) {
             lastUpdate: new Date(),
           },
         })
-        console.log(`Updated display ${id} status to warning`)
       } else {
         console.log(`Display ${id} does not exist, cannot update status`)
       }
