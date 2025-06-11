@@ -114,8 +114,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                 if (response.ok) {
                     const doctorsData = await response.json()
                     setDoctors(doctorsData)
-
-                    // Auto-select current user if they are a doctor
                     if (user?.role === "doctor") {
                         const currentDoctor = doctorsData.find((doc: Doctor) => doc.name === user.name)
                         if (currentDoctor) {
@@ -132,7 +130,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                     description: "Could not load doctor data.",
                     variant: "destructive",
                 })
-                // Fallback doctors
                 setDoctors([
                     { id: "doctor-1", name: "Dr. Smith", department: "Surgery" },
                     { id: "doctor-2", name: "Dr. Johnson", department: "Cardiology" },
@@ -206,8 +203,8 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
             formDataToSubmit.append("patientId", formData.patientId)
             formDataToSubmit.append("theaterId", formData.theaterId)
             formDataToSubmit.append("procedure", formData.procedure)
-            formDataToSubmit.append("surgeonId", selectedDoctors[0]) // Primary surgeon
-            formDataToSubmit.append("surgeonIds", JSON.stringify(selectedDoctors)) // All selected doctors
+            formDataToSubmit.append("surgeonId", selectedDoctors[0])
+            formDataToSubmit.append("surgeonIds", JSON.stringify(selectedDoctors))
             formDataToSubmit.append("scheduledTime", scheduledDateTime.toISOString())
             formDataToSubmit.append("estimatedDuration", formData.estimatedDuration)
             formDataToSubmit.append("priority", formData.priority)
@@ -259,7 +256,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Patient Selection */}
                     <div className="space-y-3">
                         <Label htmlFor="patient-search">Select Patient *</Label>
                         <Input
@@ -299,11 +295,9 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         )}
                     </div>
 
-                    {/* Doctor Selection */}
                     <div className="space-y-3">
                         <Label htmlFor="doctor-search">Select Doctors/Surgeons *</Label>
 
-                        {/* Selected Doctors Display */}
                         {selectedDoctors.length > 0 && (
                             <div className="flex flex-wrap gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
                                 {selectedDoctors.map((doctorId) => {
@@ -368,7 +362,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         )}
                     </div>
 
-                    {/* Theater Selection */}
                     <div className="space-y-2">
                         <Label htmlFor="theater">Operating Theater *</Label>
                         <Select
@@ -405,7 +398,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         )}
                     </div>
 
-                    {/* Date and Time */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="date">Date *</Label>
@@ -428,7 +420,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         </div>
                     </div>
 
-                    {/* Procedure */}
                     <div className="space-y-2">
                         <Label htmlFor="procedure">Procedure *</Label>
                         <Input
@@ -439,7 +430,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         />
                     </div>
 
-                    {/* Duration and Priority */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="duration">Estimated Duration</Label>
@@ -479,7 +469,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         </div>
                     </div>
 
-                    {/* Notes */}
                     <div className="space-y-2">
                         <Label htmlFor="notes">Additional Notes</Label>
                         <Textarea
@@ -491,7 +480,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         />
                     </div>
 
-                    {/* Submit Buttons */}
                     <div className="flex justify-end space-x-3">
                         <Button type="button" variant="outline" onClick={onCancel}>
                             Cancel
@@ -507,7 +495,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                 </form>
             </div>
 
-            {/* Surgery Summary Panel */}
             <div className="space-y-4">
                 <Card>
                     <CardHeader>

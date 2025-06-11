@@ -323,7 +323,6 @@ export async function scheduleSurgery(surgeryData: {
         }
 
         if (!primarySurgeon) {
-            // If primary surgeon not found by ID, try to find any doctor as fallback
             const fallbackSurgeon = await prisma.user.findFirst({
                 where: { role: "DOCTOR" },
                 select: { id: true, name: true, role: true },
@@ -332,12 +331,10 @@ export async function scheduleSurgery(surgeryData: {
             if (!fallbackSurgeon) {
                 throw new Error("No surgeons available")
             }
-
-            // Use fallback surgeon
+            
             const durationHours = Number.parseFloat(surgeryData.estimatedDuration.split(" ")[0]) || 2
             const estimatedEnd = new Date(surgeryData.scheduledTime.getTime() + durationHours * 60 * 60 * 1000)
-
-            // Get all selected surgeons for display
+            
             let surgeonNames = fallbackSurgeon.name || "Available Doctor"
             if (surgeryData.surgeonIds && surgeryData.surgeonIds.length > 1) {
                 const allSurgeons = await prisma.user.findMany({
@@ -388,8 +385,7 @@ export async function scheduleSurgery(surgeryData: {
 
         const durationHours = Number.parseFloat(surgeryData.estimatedDuration.split(" ")[0]) || 2
         const estimatedEnd = new Date(surgeryData.scheduledTime.getTime() + durationHours * 60 * 60 * 1000)
-
-        // Get all selected surgeons for display
+        
         let surgeonNames = primarySurgeon.name || "Selected Doctor"
         if (surgeryData.surgeonIds && surgeryData.surgeonIds.length > 1) {
             const allSurgeons = await prisma.user.findMany({
