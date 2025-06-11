@@ -16,6 +16,17 @@ import {
     type PrescriptionData,
     type CreatePrescriptionData,
 } from "./doctor-service"
+import { getAllDrugsForSelection } from "./doctor-service"
+
+export async function getAllDrugsForSelectionAction(query?: string) {
+    try {
+        const drugs = await getAllDrugsForSelection(query)
+        return { success: true, data: drugs }
+    } catch (error) {
+        console.error("Error in getAllDrugsForSelectionAction:", error)
+        return { success: false, error: "Failed to fetch drugs for selection" }
+    }
+}
 
 export interface ActionResponse<T> {
     success: boolean

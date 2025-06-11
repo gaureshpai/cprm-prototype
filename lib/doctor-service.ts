@@ -33,7 +33,18 @@ export interface PatientData {
         dosage: string
         frequency: string
         duration: string
-        instructions?: string
+        instructions?: string | null
+        drugInfo: {
+            id: string
+            currentStock: number
+            minStock: number
+            status: string
+            category?: string | null
+            batchNumber?: string | null
+            expiryDate?: Date | null
+            location: string
+        }
+        prescriptionDate: Date
     }>
     medicalHistory: Array<{
         id: string
@@ -85,7 +96,15 @@ export interface PrescriptionItemData {
     duration: string
     instructions?: string | null
     drug: {
+        id: string
         drugName: string
+        currentStock: number
+        minStock: number
+        status: string
+        category?: string | null
+        batchNumber?: string | null
+        expiryDate?: Date | null
+        location: string
     }
 }
 
@@ -109,7 +128,7 @@ export interface MedicalRecordData {
 
 export interface CreatePrescriptionData {
     patientId: string
-    doctorId: string
+    doctorUsername: string  
     notes?: string
     medications: {
         drugName: string
@@ -122,7 +141,7 @@ export interface CreatePrescriptionData {
 
 export interface CreateMedicalRecordData {
     patientId: string
-    doctorId: string
+    doctorUsername: string  
     diagnosis: string
     symptoms: string[]
     treatment?: string
@@ -132,8 +151,32 @@ export interface CreateMedicalRecordData {
     followUpDate?: string
 }
 
-export async function getDoctorAppointments(doctorId: string, date?: Date): Promise<AppointmentData[]> {
+
+async function getDoctorByUsername(username: string) {
+    const doctor = await prisma.user.findUnique({
+        where: { username: username },
+        select: { id: true, username: true, role: true, name: true, status: true }
+    })
+    return doctor
+}
+
+
+export async function getDoctorAppointments(doctorUsername: string, date?: Date): Promise<AppointmentData[]> {
     try {
+        
+        const doctor = await getDoctorByUsername(doctorUsername)
+        if (!doctor) {
+            throw new Error(`Doctor with username ${doctorUsername} not found`)
+        }
+
+        if (doctor.role !== 'DOCTOR') {
+            throw new Error(`User ${doctor.name} (${doctorUsername}) is not a doctor`)
+        }
+
+        if (doctor.status !== 'ACTIVE') {
+            throw new Error(`Doctor ${doctor.name} is not active`)
+        }
+
         const targetDate = date || new Date()
         const startOfDay = new Date(targetDate)
         startOfDay.setHours(0, 0, 0, 0)
@@ -142,7 +185,7 @@ export async function getDoctorAppointments(doctorId: string, date?: Date): Prom
 
         const appointments = await prisma.appointment.findMany({
             where: {
-                doctorId,
+                doctorId: doctor.id,  
                 date: {
                     gte: startOfDay,
                     lte: endOfDay,
@@ -169,7 +212,7 @@ export async function getDoctorAppointments(doctorId: string, date?: Date): Prom
             date: appointment.date,
             time: appointment.time,
             status: appointment.status,
-            type: appointment.type.toString(), 
+            type: appointment.type.toString(),
             notes: appointment.notes,
             patient: appointment.patient,
             createdAt: appointment.createdAt,
@@ -180,25 +223,46 @@ export async function getDoctorAppointments(doctorId: string, date?: Date): Prom
     }
 }
 
-export async function getDoctorPatients(doctorId: string, limit = 50): Promise<PatientData[]> {
+
+export async function getDoctorPatients(doctorUsername: string, limit = 50): Promise<PatientData[]> {
     try {
+        
+        const doctor = await getDoctorByUsername(doctorUsername)
+        if (!doctor) {
+            throw new Error(`Doctor with username ${doctorUsername} not found`)
+        }
+
+        if (doctor.role !== 'DOCTOR') {
+            throw new Error(`User ${doctor.name} (${doctorUsername}) is not a doctor`)
+        }
+
+        if (doctor.status !== 'ACTIVE') {
+            throw new Error(`Doctor ${doctor.name} is not active`)
+        }
+
+        
         const patients = await prisma.patient.findMany({
             where: {
-                appointments: {
-                    some: {
-                        doctorId,
-                    },
-                },
+                status: "Active", 
             },
             include: {
                 prescriptions: {
-                    where: {
-                        doctorId,
-                    },
                     include: {
                         items: {
                             include: {
-                                drug: true,
+                                drug: {
+                                    select: {
+                                        id: true,
+                                        drugName: true,
+                                        currentStock: true,
+                                        minStock: true,
+                                        status: true,
+                                        category: true,
+                                        batchNumber: true,
+                                        expiryDate: true,
+                                        location: true,
+                                    },
+                                },
                             },
                         },
                     },
@@ -240,7 +304,18 @@ export async function getDoctorPatients(doctorId: string, limit = 50): Promise<P
                     dosage: item.dosage,
                     frequency: item.frequency,
                     duration: item.duration,
-                    instructions: item.instructions || "",
+                    instructions: item.instructions,
+                    drugInfo: {
+                        id: item.drug.id,
+                        currentStock: item.drug.currentStock,
+                        minStock: item.drug.minStock,
+                        status: item.drug.status,
+                        category: item.drug.category,
+                        batchNumber: item.drug.batchNumber,
+                        expiryDate: item.drug.expiryDate,
+                        location: item.drug.location,
+                    },
+                    prescriptionDate: prescription.createdAt,
                 })),
             ),
             medicalHistory: [], 
@@ -248,10 +323,11 @@ export async function getDoctorPatients(doctorId: string, limit = 50): Promise<P
             updatedAt: patient.updatedAt,
         }))
     } catch (error) {
-        console.error("Error fetching doctor patients:", error)
+        console.error("Error fetching all patients:", error)
         throw new Error("Failed to fetch patients")
     }
 }
+
 
 export async function searchPatients(query: string, limit = 20): Promise<PatientData[]> {
     try {
@@ -269,7 +345,19 @@ export async function searchPatients(query: string, limit = 20): Promise<Patient
                     include: {
                         items: {
                             include: {
-                                drug: true,
+                                drug: {
+                                    select: {
+                                        id: true,
+                                        drugName: true,
+                                        currentStock: true,
+                                        minStock: true,
+                                        status: true,
+                                        category: true,
+                                        batchNumber: true,
+                                        expiryDate: true,
+                                        location: true,
+                                    },
+                                },
                             },
                         },
                     },
@@ -311,7 +399,18 @@ export async function searchPatients(query: string, limit = 20): Promise<Patient
                     dosage: item.dosage,
                     frequency: item.frequency,
                     duration: item.duration,
-                    instructions: item.instructions || "",
+                    instructions: item.instructions,
+                    drugInfo: {
+                        id: item.drug.id,
+                        currentStock: item.drug.currentStock,
+                        minStock: item.drug.minStock,
+                        status: item.drug.status,
+                        category: item.drug.category,
+                        batchNumber: item.drug.batchNumber,
+                        expiryDate: item.drug.expiryDate,
+                        location: item.drug.location,
+                    },
+                    prescriptionDate: prescription.createdAt,
                 })),
             ),
             medicalHistory: [], 
@@ -324,6 +423,7 @@ export async function searchPatients(query: string, limit = 20): Promise<Patient
     }
 }
 
+
 export async function getPatientDetails(patientId: string): Promise<PatientData | null> {
     try {
         const patient = await prisma.patient.findUnique({
@@ -333,7 +433,19 @@ export async function getPatientDetails(patientId: string): Promise<PatientData 
                     include: {
                         items: {
                             include: {
-                                drug: true,
+                                drug: {
+                                    select: {
+                                        id: true,
+                                        drugName: true,
+                                        currentStock: true,
+                                        minStock: true,
+                                        status: true,
+                                        category: true,
+                                        batchNumber: true,
+                                        expiryDate: true,
+                                        location: true,
+                                    },
+                                },
                             },
                         },
                     },
@@ -372,7 +484,18 @@ export async function getPatientDetails(patientId: string): Promise<PatientData 
                     dosage: item.dosage,
                     frequency: item.frequency,
                     duration: item.duration,
-                    instructions: item.instructions || "",
+                    instructions: item.instructions,
+                    drugInfo: {
+                        id: item.drug.id,
+                        currentStock: item.drug.currentStock,
+                        minStock: item.drug.minStock,
+                        status: item.drug.status,
+                        category: item.drug.category,
+                        batchNumber: item.drug.batchNumber,
+                        expiryDate: item.drug.expiryDate,
+                        location: item.drug.location,
+                    },
+                    prescriptionDate: prescription.createdAt,
                 })),
             ),
             medicalHistory: [], 
@@ -385,14 +508,46 @@ export async function getPatientDetails(patientId: string): Promise<PatientData 
     }
 }
 
+
 export async function createPrescription(data: CreatePrescriptionData): Promise<PrescriptionData> {
     try {
+        
+        const doctor = await getDoctorByUsername(data.doctorUsername)
+
+        if (!doctor) {
+            throw new Error(`Doctor with username ${data.doctorUsername} not found`)
+        }
+
+        if (doctor.role !== 'DOCTOR') {
+            throw new Error(`User ${doctor.name} (${data.doctorUsername}) is not a doctor`)
+        }
+
+        if (doctor.status !== 'ACTIVE') {
+            throw new Error(`Doctor ${doctor.name} is not active`)
+        }
+
+        
+        const patient = await prisma.patient.findUnique({
+            where: { id: data.patientId },
+            select: { id: true, name: true, status: true }
+        })
+
+        if (!patient) {
+            throw new Error(`Patient with ID ${data.patientId} not found`)
+        }
+
+        if (patient.status !== 'Active') {
+            throw new Error(`Patient ${patient.name} is not active`)
+        }
+
+        
         const drugPromises = data.medications.map(async (med) => {
             let drug = await prisma.drugInventory.findFirst({
                 where: { drugName: { equals: med.drugName, mode: "insensitive" } },
             })
 
             if (!drug) {
+                
                 drug = await prisma.drugInventory.create({
                     data: {
                         drugName: med.drugName,
@@ -403,15 +558,26 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
                 })
             }
 
+            
+            if (drug.currentStock <= 0) {
+                throw new Error(`${drug.drugName} is out of stock`)
+            }
+
+            
+            if (drug.expiryDate && drug.expiryDate < new Date()) {
+                throw new Error(`${drug.drugName} has expired`)
+            }
+
             return drug
         })
 
         const drugs = await Promise.all(drugPromises)
+
         
         const prescription = await prisma.prescription.create({
             data: {
                 patientId: data.patientId,
-                doctorId: data.doctorId,
+                doctorId: doctor.id,  
                 notes: data.notes,
                 status: "Pending",
                 items: {
@@ -435,13 +601,22 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
                     include: {
                         drug: {
                             select: {
+                                id: true,
                                 drugName: true,
+                                currentStock: true,
+                                minStock: true,
+                                status: true,
+                                category: true,
+                                batchNumber: true,
+                                expiryDate: true,
+                                location: true,
                             },
                         },
                     },
                 },
             },
         })
+
         
         await prisma.patient.update({
             where: { id: data.patientId },
@@ -472,14 +647,68 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
         }
     } catch (error) {
         console.error("Error creating prescription:", error)
+
+        
+        if (error instanceof Error && error.message.includes('not found') ||
+            error instanceof Error && error.message.includes('not a doctor') ||
+            error instanceof Error && error.message.includes('not active')) {
+            throw error
+        }
+
+        
         throw new Error("Failed to create prescription")
     }
 }
 
-export async function getDoctorPrescriptions(doctorId: string, limit = 50): Promise<PrescriptionData[]> {
+
+export async function validatePrescriptionData(patientId: string, doctorUsername: string) {
     try {
+        console.log('Validating prescription data...')
+        console.log('Patient ID:', patientId)
+        console.log('Doctor Username:', doctorUsername)
+
+        
+        const doctor = await getDoctorByUsername(doctorUsername)
+        console.log('Doctor found:', doctor)
+
+        
+        const patient = await prisma.patient.findUnique({
+            where: { id: patientId },
+            select: { id: true, name: true, status: true }
+        })
+
+        console.log('Patient found:', patient)
+
+        return {
+            doctor,
+            patient,
+            isValid: !!doctor && !!patient && doctor.role === 'DOCTOR' && doctor.status === 'ACTIVE' && patient.status === 'Active'
+        }
+    } catch (error) {
+        console.error('Error validating prescription data:', error)
+        return { doctor: null, patient: null, isValid: false }
+    }
+}
+
+
+export async function getDoctorPrescriptions(doctorUsername: string, limit = 50): Promise<PrescriptionData[]> {
+    try {
+        
+        const doctor = await getDoctorByUsername(doctorUsername)
+        if (!doctor) {
+            throw new Error(`Doctor with username ${doctorUsername} not found`)
+        }
+
+        if (doctor.role !== 'DOCTOR') {
+            throw new Error(`User ${doctor.name} (${doctorUsername}) is not a doctor`)
+        }
+
+        if (doctor.status !== 'ACTIVE') {
+            throw new Error(`Doctor ${doctor.name} is not active`)
+        }
+
         const prescriptions = await prisma.prescription.findMany({
-            where: { doctorId },
+            where: { doctorId: doctor.id },  
             include: {
                 patient: {
                     select: {
@@ -491,7 +720,15 @@ export async function getDoctorPrescriptions(doctorId: string, limit = 50): Prom
                     include: {
                         drug: {
                             select: {
+                                id: true,
                                 drugName: true,
+                                currentStock: true,
+                                minStock: true,
+                                status: true,
+                                category: true,
+                                batchNumber: true,
+                                expiryDate: true,
+                                location: true,
                             },
                         },
                     },
@@ -527,6 +764,7 @@ export async function getDoctorPrescriptions(doctorId: string, limit = 50): Prom
     }
 }
 
+
 export async function updateAppointmentStatus(appointmentId: string, status: string): Promise<boolean> {
     try {
         await prisma.appointment.update({
@@ -542,8 +780,23 @@ export async function updateAppointmentStatus(appointmentId: string, status: str
     }
 }
 
-export async function getDoctorStats(doctorId: string) {
+
+export async function getDoctorStats(doctorUsername: string) {
     try {
+        
+        const doctor = await getDoctorByUsername(doctorUsername)
+        if (!doctor) {
+            throw new Error(`Doctor with username ${doctorUsername} not found`)
+        }
+
+        if (doctor.role !== 'DOCTOR') {
+            throw new Error(`User ${doctor.name} (${doctorUsername}) is not a doctor`)
+        }
+
+        if (doctor.status !== 'ACTIVE') {
+            throw new Error(`Doctor ${doctor.name} is not active`)
+        }
+
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const tomorrow = new Date(today)
@@ -552,29 +805,28 @@ export async function getDoctorStats(doctorId: string) {
         const [todayAppointments, totalPatients, pendingPrescriptions, completedAppointments] = await Promise.all([
             prisma.appointment.count({
                 where: {
-                    doctorId,
+                    doctorId: doctor.id,  
                     date: {
                         gte: today,
                         lt: tomorrow,
                     },
                 },
             }),
+            
             prisma.patient.count({
                 where: {
-                    appointments: {
-                        some: { doctorId },
-                    },
+                    status: "Active",
                 },
             }),
             prisma.prescription.count({
                 where: {
-                    doctorId,
+                    doctorId: doctor.id,  
                     status: "Pending",
                 },
             }),
             prisma.appointment.count({
                 where: {
-                    doctorId,
+                    doctorId: doctor.id,  
                     date: {
                         gte: today,
                         lt: tomorrow,
@@ -596,7 +848,78 @@ export async function getDoctorStats(doctorId: string) {
     }
 }
 
-export async function getAvailableDrugs(query?: string): Promise<{ id: string; drugName: string }[]> {
+
+export async function getAvailableDrugs(query?: string): Promise<
+    {
+        id: string
+        drugName: string
+        currentStock: number
+        minStock: number
+        status: string
+        category?: string | null
+        expiryDate?: Date | null
+        location: string
+    }[]
+> {
+    try {
+        const drugs = await prisma.drugInventory.findMany({
+            where: {
+                AND: [
+                    query
+                        ? {
+                            drugName: {
+                                contains: query,
+                                mode: "insensitive",
+                            },
+                        }
+                        : {},
+                    {
+                        OR: [
+                            { expiryDate: null }, 
+                            { expiryDate: { gt: new Date() } }, 
+                        ],
+                    },
+                ],
+            },
+            select: {
+                id: true,
+                drugName: true,
+                currentStock: true,
+                minStock: true,
+                status: true,
+                category: true,
+                expiryDate: true,
+                location: true,
+            },
+            orderBy: [
+                { currentStock: "desc" }, 
+                { status: "asc" }, 
+                { drugName: "asc" },
+            ],
+            take: 100, 
+        })
+
+        return drugs
+    } catch (error) {
+        console.error("Error fetching available drugs:", error)
+        throw new Error("Failed to fetch available drugs")
+    }
+}
+
+
+export async function getAllDrugsForSelection(query?: string): Promise<
+    {
+        id: string
+        drugName: string
+        currentStock: number
+        minStock: number
+        status: string
+        category?: string | null
+        expiryDate?: Date | null
+        location: string
+        isAvailable: boolean
+    }[]
+> {
     try {
         const drugs = await prisma.drugInventory.findMany({
             where: query
@@ -610,16 +933,26 @@ export async function getAvailableDrugs(query?: string): Promise<{ id: string; d
             select: {
                 id: true,
                 drugName: true,
+                currentStock: true,
+                minStock: true,
+                status: true,
+                category: true,
+                expiryDate: true,
+                location: true,
             },
-            orderBy: {
-                drugName: "asc",
-            },
-            take: 50,
+            orderBy: [
+                { currentStock: "desc" }, 
+                { drugName: "asc" },
+            ],
+            take: 100,
         })
 
-        return drugs
+        return drugs.map((drug) => ({
+            ...drug,
+            isAvailable: drug.currentStock > 0 && (!drug.expiryDate || drug.expiryDate > new Date()),
+        }))
     } catch (error) {
-        console.error("Error fetching available drugs:", error)
-        throw new Error("Failed to fetch available drugs")
+        console.error("Error fetching all drugs:", error)
+        throw new Error("Failed to fetch drugs")
     }
 }
