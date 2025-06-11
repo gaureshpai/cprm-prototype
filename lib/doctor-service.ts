@@ -696,45 +696,59 @@ export async function getDoctorStats(doctorUsername: string) {
         const tomorrow = new Date(today)
         tomorrow.setDate(tomorrow.getDate() + 1)
 
-        const [todayAppointments, totalPatients, pendingPrescriptions, completedAppointments] = await Promise.all([
-            prisma.appointment.count({
-                where: {
-                    doctorId,
-                    date: {
-                        gte: today,
-                        lt: tomorrow,
+        const [todayAppointments, totalPatients, pendingPrescriptions, completedAppointments, prescriptionsToday] =
+            await Promise.all([
+                prisma.appointment.count({
+                    where: {
+                        doctorId,
+                        date: {
+                            gte: today,
+                            lt: tomorrow,
+                        },
                     },
-                },
-            }),
-
-            prisma.patient.count({
-                where: {
-                    status: "Active",
-                },
-            }),
-            prisma.prescription.count({
-                where: {
-                    doctorId,
-                    status: "Pending",
-                },
-            }),
-            prisma.appointment.count({
-                where: {
-                    doctorId,
-                    date: {
-                        gte: today,
-                        lt: tomorrow,
+                }),
+                
+                prisma.patient.count({
+                    where: {
+                        status: "Active",
                     },
-                    status: "Completed",
-                },
-            }),
-        ])
+                }),
+                
+                prisma.prescription.count({
+                    where: {
+                        doctorId,
+                        status: "Pending",
+                    },
+                }),
+                
+                prisma.appointment.count({
+                    where: {
+                        doctorId,
+                        date: {
+                            gte: today,
+                            lt: tomorrow,
+                        },
+                        status: "Completed",
+                    },
+                }),
+                
+                prisma.prescription.count({
+                    where: {
+                        doctorId,
+                        createdAt: {
+                            gte: today,
+                            lt: tomorrow,
+                        },
+                    },
+                }),
+            ])
 
         return {
             todayAppointments,
             totalPatients,
             pendingPrescriptions,
             completedAppointments,
+            prescriptionsToday,
         }
     } catch (error) {
         console.error("Error fetching doctor stats:", error)
@@ -832,8 +846,7 @@ export async function getAllDrugsForSelection(query?: string): Promise<
         })
 
         console.log(`Found ${drugs.length} drugs in database`)
-
-        // Ensure location is always defined
+        
         return drugs.map((drug) => ({
             ...drug,
             location: drug.location || "Main Pharmacy",
