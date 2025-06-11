@@ -57,7 +57,6 @@ import {
 } from "@/lib/doctor-actions"
 import {
   getDoctorNotificationsAction,
-  markNotificationReadAction,
   type NotificationData,
 } from "@/lib/notification-actions"
 import { getStatusColor } from "@/lib/functions"
@@ -326,21 +325,6 @@ export default function DoctorDashboard() {
     } catch (error) {
       console.error("Error updating appointment:", error)
     }
-  }
-
-  const handleMarkNotificationRead = async (notificationId: string) => {
-    try {
-      const result = await markNotificationReadAction(notificationId)
-      if (result.success) {
-        setNotifications(notifications.map((n) => (n.id === notificationId ? { ...n, read: true } : n)))
-      }
-    } catch (error) {
-      console.error("Error marking notification as read:", error)
-    }
-  }
-
-  const handleDismissNotification = (notificationId: string) => {
-    setNotifications(notifications.filter((n) => n.id !== notificationId))
   }
 
   const getNotificationIcon = (type: string) => {
@@ -1107,26 +1091,6 @@ export default function DoctorDashboard() {
                                   <span className="text-xs text-gray-500">
                                     {new Date(notification.createdAt).toLocaleString()}
                                   </span>
-                                  <div className="flex space-x-2">
-                                    {!notification.read && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleMarkNotificationRead(notification.id)}
-                                        className="text-xs"
-                                      >
-                                        Mark as Read
-                                      </Button>
-                                    )}
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleDismissNotification(notification.id)}
-                                      className="text-xs text-gray-500 hover:text-gray-700"
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </Button>
-                                  </div>
                                 </div>
                               </div>
                             </div>
