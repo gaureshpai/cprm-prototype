@@ -136,7 +136,7 @@ export default function LoginPage() {
         throw new Error("User role is not defined")
       }
 
-      const userRole = user.role.toLowerCase() as "admin" | "doctor" | "nurse" | "technician" | "pharmacist" | "patient"
+      const userRole = user.role.toLowerCase() as "admin" | "doctor" | "nurse" | "technician" | "pharmacist"
 
       login({
         id: user.id,
@@ -201,7 +201,6 @@ export default function LoginPage() {
                   <SelectItem value="nurse">Nurse</SelectItem>
                   <SelectItem value="technician">Technician</SelectItem>
                   <SelectItem value="pharmacist">Pharmacist</SelectItem>
-                  <SelectItem value="patient">Patient</SelectItem>
                 </SelectContent>
               </Select>
             </div>

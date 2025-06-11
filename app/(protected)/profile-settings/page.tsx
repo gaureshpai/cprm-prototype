@@ -31,7 +31,7 @@ export default function ProfileSettings() {
 
     return (
         <AuthGuard
-            allowedRoles={["admin", "doctor", "nurse", "technician", "pharmacist", "patient"]}
+            allowedRoles={["admin", "doctor", "nurse", "technician", "pharmacist"]}
             className="container mx-auto p-6 space-y-6"
         >
             <Navbar />

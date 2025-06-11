@@ -125,7 +125,7 @@ export interface User {
     name: string
     email?: string
     password?: string
-    role: "admin" | "doctor" | "nurse" | "technician" | "pharmacist" | "patient"
+    role: "admin" | "doctor" | "nurse" | "technician" | "pharmacist"
     username?: string
     permissions: string[]
     department?: string
