@@ -15,7 +15,6 @@ import {
   createDisplayAction,
   updateDisplayAction,
   deleteDisplayAction,
-  restartDisplayAction,
   seedDisplaysAction,
   type DisplayData,
 } from "@/lib/display-actions"
@@ -26,9 +25,15 @@ import Link from "next/link"
 const CONTENT_TYPES = [
   { value: "Token Queue", label: "Token Queue", icon: Users, description: "Patient queue and waiting times" },
   { value: "Department Status", label: "Department Status", icon: Activity, description: "Department occupancy and status" },
-  { value: "Emergency Alerts", label: "Emergency Alerts", icon: AlertTriangle, description: "Critical alerts and codes" },
   { value: "Drug Inventory", label: "Drug Inventory", icon: Pill, description: "Medication stock levels" },
   { value: "Mixed Dashboard", label: "Mixed Dashboard", icon: Monitor, description: "Combined information display" },
+  { value: "Patient Dashboard", label: "Patient Dashboard", icon: Monitor, description: "Combined information display for patients" },
+  { value: "Staff Dashboard", label: "Staff Dashboard", icon: Monitor, description: "Combined information display for Staffs" },
+  { value: "OT Status", label: "OT Status", icon: Monitor, description: "OT status and scheduling" },
+]
+
+const STATUS_OPTIONS = [
+  { value: "offline", label: "Offline" }
 ]
 
 export default function DisplayManagement() {
@@ -44,7 +49,7 @@ export default function DisplayManagement() {
   const [editForm, setEditForm] = useState({
     location: "",
     content: "",
-    status: "",
+    status: "offline",
   })
 
   const [createForm, setCreateForm] = useState({
@@ -174,28 +179,6 @@ export default function DisplayManagement() {
     })
   }
 
-  const handleDeleteDisplay = async (displayId: string) => {
-    if (!confirm("Are you sure you want to delete this display?")) return
-
-    startTransition(async () => {
-      const result = await deleteDisplayAction(displayId)
-
-      if (result.success) {
-        setDisplays(displays.filter((d) => d.id !== displayId))
-        toast({
-          title: "Success",
-          description: "Display deleted successfully",
-        })
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to delete display",
-          variant: "destructive",
-        })
-      }
-    })
-  }
-
   const handleSeedDisplays = async () => {
     if (!confirm("This will create 73 sample displays. Continue?")) return
 
@@ -223,7 +206,7 @@ export default function DisplayManagement() {
   const warningDisplays = displays.filter((d) => d.status === "warning").length
 
   return (
-    <AuthGuard allowedRoles={["admin"]} className="p-6 space-y-6">
+    <AuthGuard allowedRoles={["technician"]} className="p-6 space-y-6">
       <Navbar />
       <div className="flex justify-between items-center">
         <div>
@@ -248,12 +231,6 @@ export default function DisplayManagement() {
             </Button>
           )}
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Display
-              </Button>
-            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create New Display</DialogTitle>
@@ -284,6 +261,25 @@ export default function DisplayManagement() {
                       {CONTENT_TYPES.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="create-status">Status</Label>
+                  <Select
+                    name="status"
+                    value={createForm.status}
+                    onValueChange={(value) => setCreateForm({ ...createForm, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -369,10 +365,6 @@ export default function DisplayManagement() {
                 <p className="text-sm text-gray-600">{display.content}</p>
               </div>
               <div>
-                <p className="text-sm font-medium">Uptime</p>
-                <p className="text-sm text-gray-600">{display.uptime}</p>
-              </div>
-              <div>
                 <p className="text-sm font-medium">Last Update</p>
                 <p className="text-sm text-gray-600">{new Date(display.lastUpdate).toLocaleString()}</p>
               </div>
@@ -380,15 +372,6 @@ export default function DisplayManagement() {
                 <Button size="sm" variant="outline" onClick={() => handleEditDisplay(display)} className="flex-1">
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDeleteDisplay(display.id)}
-                  className="text-red-600 hover:text-red-700"
-                  disabled={isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -427,6 +410,21 @@ export default function DisplayManagement() {
                           <p className="text-xs text-gray-500">{type.description}</p>
                         </div>
                       </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-status">Status</Label>
+              <Select name="status" value={editForm.status} onValueChange={(value) => setEditForm({ ...editForm, status: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
