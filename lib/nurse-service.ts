@@ -340,8 +340,6 @@ export async function administerMedication(
 
 export async function completeTask(taskId: string, nurseId: string): Promise<{ success: boolean; message: string }> {
     try {
-        console.log(`Task ${taskId} completed by nurse ${nurseId}`)
-
         return { success: true, message: "Task completed successfully" }
     } catch (error) {
         console.error("Error completing task:", error)
