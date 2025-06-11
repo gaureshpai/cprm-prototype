@@ -35,10 +35,6 @@ export function Navbar() {
         { name: "Patients", href: "/doctor/patients", icon: <User className="h-4 w-4 mr-2" /> },
         { name: "OT Status", href: "/doctor/ot", icon: <Heart className="h-4 w-4 mr-2" /> },
       ],
-      nurse: [
-        { name: "Ward", href: "/nurse/ward", icon: <User className="h-4 w-4 mr-2" /> },
-        { name: "Medication", href: "/nurse/medication", icon: <Heart className="h-4 w-4 mr-2" /> },
-      ],
       pharmacist: [
         { name: "Inventory", href: "/pharmacist/inventory", icon: <Settings className="h-4 w-4 mr-2" /> },
         { name: "Orders", href: "/pharmacist/orders", icon: <Heart className="h-4 w-4 mr-2" /> },
