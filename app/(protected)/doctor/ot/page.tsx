@@ -72,16 +72,7 @@ export default function DoctorOTPage() {
     })
   }
 
-  if (!otData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin mx-auto mb-4 border-4 border-blue-600 border-t-transparent rounded-full" />
-          <p>Loading OT status...</p>
-        </div>
-      </div>
-    )
-  }
+  if (!otData) return
 
   const occupiedTheaters = otData.theaters.filter((t) => t.status === "occupied").length
   const availableTheaters = otData.theaters.filter((t) => t.status === "available").length

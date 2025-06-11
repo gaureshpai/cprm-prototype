@@ -84,7 +84,7 @@ async function ensureDefaultTheaters() {
                 surgeon: "",
                 patientName: "",
                 startTime: new Date(),
-                estimatedEnd: new Date(Date.now() + 2 * 60 * 60 * 1000), 
+                estimatedEnd: new Date(Date.now() + 2 * 60 * 60 * 1000),
             },
             {
                 id: "OT-004",
@@ -108,12 +108,12 @@ async function ensureDefaultTheaters() {
 export async function getOTStatus(): Promise<OTData> {
     try {
         await ensureDefaultTheaters()
-        
+
         const [otStatuses, patients, doctors, emergencyAlerts] = await Promise.all([
             prisma.oTStatus.findMany({
                 orderBy: { createdAt: "desc" },
             }),
-            
+
             prisma.patient.findMany({
                 where: {
                     status: "Active",
@@ -122,23 +122,23 @@ export async function getOTStatus(): Promise<OTData> {
                 orderBy: { createdAt: "desc" },
                 take: 10,
             }),
-            
+
             prisma.user.findMany({
                 where: { role: "DOCTOR" },
                 select: { id: true, name: true },
             }),
-            
+
             prisma.emergencyAlert.findMany({
                 where: { status: "active" },
                 orderBy: { priority: "asc" },
             }),
         ])
-        
+
         const theaters: OTTheater[] = otStatuses.map((ot: any) => {
             const now = new Date()
             const startTime = new Date(ot.startTime)
             const estimatedEnd = new Date(ot.estimatedEnd)
-            
+
             let actualStatus: "occupied" | "available" | "maintenance" | "cleaning" = "available"
 
             if (ot.status === "In Progress" && now >= startTime && now <= estimatedEnd) {
@@ -181,7 +181,7 @@ export async function getOTStatus(): Promise<OTData> {
                         : undefined,
             }
         })
-        
+
         const todaySchedule: OTSchedule[] = otStatuses
             .filter((ot: any) => ot.patientName && ot.procedure !== "Available")
             .map((ot: any) => ({
@@ -194,9 +194,9 @@ export async function getOTStatus(): Promise<OTData> {
                 theater: ot.id,
                 status: ot.status === "In Progress" ? "in-progress" : ot.status === "Completed" ? "completed" : "scheduled",
             }))
-        
+
         const emergencyQueue: EmergencyCase[] = []
-        
+
         emergencyAlerts.forEach((alert: any) => {
             emergencyQueue.push({
                 id: alert.id,
@@ -207,7 +207,7 @@ export async function getOTStatus(): Promise<OTData> {
                 estimatedDuration: "1-2 hours",
             })
         })
-        
+
         patients
             .filter(
                 (p: any) =>
@@ -230,11 +230,11 @@ export async function getOTStatus(): Promise<OTData> {
         return {
             theaters,
             todaySchedule,
-            emergencyQueue: emergencyQueue.slice(0, 5), 
+            emergencyQueue: emergencyQueue.slice(0, 5),
         }
     } catch (error) {
         console.error("Error fetching OT status:", error)
-        
+
         return {
             theaters: [
                 { id: "OT-001", name: "Operating Theater 1", status: "available", lastCleaned: "Recently cleaned" },
@@ -302,31 +302,110 @@ export async function scheduleSurgery(surgeryData: {
     patientId: string
     procedure: string
     surgeonId: string
+    surgeonIds?: string[]
     theaterId: string
     scheduledTime: Date
     estimatedDuration: string
     priority: string
+    notes?: string
 }) {
     try {
-        const [patient, surgeon] = await Promise.all([
+        const [patient, primarySurgeon] = await Promise.all([
             prisma.patient.findUnique({ where: { id: surgeryData.patientId } }),
-            prisma.user.findUnique({ where: { id: surgeryData.surgeonId } }),
+            prisma.user.findUnique({
+                where: { id: surgeryData.surgeonId },
+                select: { id: true, name: true, role: true },
+            }),
         ])
 
-        if (!patient || !surgeon) {
-            throw new Error("Patient or surgeon not found")
+        if (!patient) {
+            throw new Error("Patient not found")
         }
-        
+
+        if (!primarySurgeon) {
+            // If primary surgeon not found by ID, try to find any doctor as fallback
+            const fallbackSurgeon = await prisma.user.findFirst({
+                where: { role: "DOCTOR" },
+                select: { id: true, name: true, role: true },
+            })
+
+            if (!fallbackSurgeon) {
+                throw new Error("No surgeons available")
+            }
+
+            // Use fallback surgeon
+            const durationHours = Number.parseFloat(surgeryData.estimatedDuration.split(" ")[0]) || 2
+            const estimatedEnd = new Date(surgeryData.scheduledTime.getTime() + durationHours * 60 * 60 * 1000)
+
+            // Get all selected surgeons for display
+            let surgeonNames = fallbackSurgeon.name || "Available Doctor"
+            if (surgeryData.surgeonIds && surgeryData.surgeonIds.length > 1) {
+                const allSurgeons = await prisma.user.findMany({
+                    where: { id: { in: surgeryData.surgeonIds } },
+                    select: { name: true },
+                })
+                surgeonNames = allSurgeons.map((s) => s.name).join(", ")
+            }
+
+            await prisma.oTStatus.upsert({
+                where: { id: surgeryData.theaterId },
+                update: {
+                    procedure: surgeryData.procedure,
+                    status: "Scheduled",
+                    progress: 0,
+                    surgeon: surgeonNames,
+                    patientName: patient.name,
+                    startTime: surgeryData.scheduledTime,
+                    estimatedEnd: estimatedEnd,
+                    updatedAt: new Date(),
+                },
+                create: {
+                    id: surgeryData.theaterId,
+                    procedure: surgeryData.procedure,
+                    status: "Scheduled",
+                    progress: 0,
+                    surgeon: surgeonNames,
+                    patientName: patient.name,
+                    startTime: surgeryData.scheduledTime,
+                    estimatedEnd: estimatedEnd,
+                },
+            })
+
+            await prisma.appointment.create({
+                data: {
+                    patientId: surgeryData.patientId,
+                    doctorId: fallbackSurgeon.id,
+                    date: surgeryData.scheduledTime,
+                    time: surgeryData.scheduledTime.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+                    type: "EMERGENCY",
+                    status: "Scheduled",
+                    notes: `Surgery: ${surgeryData.procedure} - Priority: ${surgeryData.priority}${surgeryData.notes ? ` - ${surgeryData.notes}` : ""}`,
+                },
+            })
+
+            return { success: true, id: surgeryData.theaterId }
+        }
+
         const durationHours = Number.parseFloat(surgeryData.estimatedDuration.split(" ")[0]) || 2
         const estimatedEnd = new Date(surgeryData.scheduledTime.getTime() + durationHours * 60 * 60 * 1000)
-        
+
+        // Get all selected surgeons for display
+        let surgeonNames = primarySurgeon.name || "Selected Doctor"
+        if (surgeryData.surgeonIds && surgeryData.surgeonIds.length > 1) {
+            const allSurgeons = await prisma.user.findMany({
+                where: { id: { in: surgeryData.surgeonIds } },
+                select: { name: true },
+            })
+            surgeonNames = allSurgeons.map((s) => s.name).join(", ")
+        }
+
         await prisma.oTStatus.upsert({
             where: { id: surgeryData.theaterId },
             update: {
                 procedure: surgeryData.procedure,
                 status: "Scheduled",
                 progress: 0,
-                surgeon: surgeon.name,
+                surgeon: surgeonNames,
                 patientName: patient.name,
                 startTime: surgeryData.scheduledTime,
                 estimatedEnd: estimatedEnd,
@@ -337,13 +416,13 @@ export async function scheduleSurgery(surgeryData: {
                 procedure: surgeryData.procedure,
                 status: "Scheduled",
                 progress: 0,
-                surgeon: surgeon.name,
+                surgeon: surgeonNames,
                 patientName: patient.name,
                 startTime: surgeryData.scheduledTime,
                 estimatedEnd: estimatedEnd,
             },
         })
-        
+
         await prisma.appointment.create({
             data: {
                 patientId: surgeryData.patientId,
@@ -352,7 +431,7 @@ export async function scheduleSurgery(surgeryData: {
                 time: surgeryData.scheduledTime.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
                 type: "EMERGENCY",
                 status: "Scheduled",
-                notes: `Surgery: ${surgeryData.procedure} - Priority: ${surgeryData.priority}`,
+                notes: `Surgery: ${surgeryData.procedure} - Priority: ${surgeryData.priority}${surgeryData.notes ? ` - ${surgeryData.notes}` : ""}`,
             },
         })
 
