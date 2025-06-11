@@ -128,7 +128,7 @@ export interface MedicalRecordData {
 
 export interface CreatePrescriptionData {
     patientId: string
-    doctorUsername: string 
+    doctorUsername: string
     notes?: string
     medications: {
         drugName: string
@@ -166,7 +166,7 @@ async function getOrCreateDoctorByUsername(username: string): Promise<string> {
                     username: username,
                     name: username,
                     email: `${username.toLowerCase().replace(/\s+/g, ".")}@wenlock.hospital`,
-                    password: "demo123", 
+                    password: "demo123",
                     role: "DOCTOR",
                     status: "ACTIVE",
                     permissions: ["patient_management", "appointments", "prescriptions", "medical_records"],
@@ -221,7 +221,7 @@ export async function getDoctorAppointments(doctorUsername: string, date?: Date)
             date: appointment.date,
             time: appointment.time,
             status: appointment.status,
-            type: appointment.type.toString(), 
+            type: appointment.type.toString(),
             notes: appointment.notes,
             patient: appointment.patient,
             createdAt: appointment.createdAt,
@@ -236,7 +236,7 @@ export async function getDoctorPatients(doctorUsername: string, limit = 50): Pro
     try {
         const patients = await prisma.patient.findMany({
             where: {
-                status: "Active", 
+                status: "Active",
             },
             include: {
                 prescriptions: {
@@ -262,7 +262,7 @@ export async function getDoctorPatients(doctorUsername: string, limit = 50): Pro
                     orderBy: {
                         createdAt: "desc",
                     },
-                    take: 5, 
+                    take: 5,
                 },
             },
             orderBy: {
@@ -311,7 +311,7 @@ export async function getDoctorPatients(doctorUsername: string, limit = 50): Pro
                     prescriptionDate: prescription.createdAt,
                 })),
             ),
-            medicalHistory: [], 
+            medicalHistory: [],
             createdAt: patient.createdAt,
             updatedAt: patient.updatedAt,
         }))
@@ -405,7 +405,7 @@ export async function searchPatients(query: string, limit = 20): Promise<Patient
                     prescriptionDate: prescription.createdAt,
                 })),
             ),
-            medicalHistory: [], 
+            medicalHistory: [],
             createdAt: patient.createdAt,
             updatedAt: patient.updatedAt,
         }))
@@ -489,7 +489,7 @@ export async function getPatientDetails(patientId: string): Promise<PatientData 
                     prescriptionDate: prescription.createdAt,
                 })),
             ),
-            medicalHistory: [], 
+            medicalHistory: [],
             createdAt: patient.createdAt,
             updatedAt: patient.updatedAt,
         }
@@ -503,7 +503,7 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
     try {
         const doctorId = await getOrCreateDoctorByUsername(data.doctorUsername)
         console.log(`Creating prescription for doctor: ${data.doctorUsername} (ID: ${doctorId})`)
-        
+
         const drugPromises = data.medications.map(async (med) => {
             let drug = await prisma.drugInventory.findFirst({
                 where: { drugName: { equals: med.drugName, mode: "insensitive" } },
@@ -513,18 +513,18 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
                 drug = await prisma.drugInventory.create({
                     data: {
                         drugName: med.drugName,
-                        currentStock: 100, 
+                        currentStock: 0,
                         minStock: 10,
                         status: "normal",
                     },
                 })
                 console.log(`Created new drug: ${med.drugName}`)
             }
-            
+
             if (drug.currentStock <= 0) {
                 console.warn(`Drug ${drug.drugName} is out of stock but allowing prescription`)
             }
-            
+
             if (drug.expiryDate && drug.expiryDate < new Date()) {
                 console.warn(`Drug ${drug.drugName} has expired but allowing prescription`)
             }
@@ -533,11 +533,11 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
         })
 
         const drugs = await Promise.all(drugPromises)
-        
+
         const prescription = await prisma.prescription.create({
             data: {
                 patientId: data.patientId,
-                doctorId: doctorId, 
+                doctorId: doctorId,
                 notes: data.notes,
                 status: "Pending",
                 items: {
@@ -576,7 +576,7 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
                 },
             },
         })
-        
+
         await prisma.patient.update({
             where: { id: data.patientId },
             data: {
@@ -706,7 +706,7 @@ export async function getDoctorStats(doctorUsername: string) {
                     },
                 },
             }),
-            
+
             prisma.patient.count({
                 where: {
                     status: "Active",
@@ -767,10 +767,7 @@ export async function getAvailableDrugs(query?: string): Promise<
                         }
                         : {},
                     {
-                        OR: [
-                            { expiryDate: null }, 
-                            { expiryDate: { gt: new Date() } }, 
-                        ],
+                        OR: [{ expiryDate: null }, { expiryDate: { gt: new Date() } }],
                     },
                 ],
             },
@@ -784,12 +781,8 @@ export async function getAvailableDrugs(query?: string): Promise<
                 expiryDate: true,
                 location: true,
             },
-            orderBy: [
-                { currentStock: "desc" }, 
-                { status: "asc" }, 
-                { drugName: "asc" },
-            ],
-            take: 100, 
+            orderBy: [{ currentStock: "desc" }, { status: "asc" }, { drugName: "asc" }],
+            take: 100,
         })
 
         return drugs
@@ -813,6 +806,8 @@ export async function getAllDrugsForSelection(query?: string): Promise<
     }[]
 > {
     try {
+        console.log(`Querying drug inventory${query ? ` with query: ${query}` : ""}`)
+
         const drugs = await prisma.drugInventory.findMany({
             where: query
                 ? {
@@ -832,19 +827,20 @@ export async function getAllDrugsForSelection(query?: string): Promise<
                 expiryDate: true,
                 location: true,
             },
-            orderBy: [
-                { currentStock: "desc" }, 
-                { drugName: "asc" },
-            ],
+            orderBy: [{ currentStock: "desc" }, { drugName: "asc" }],
             take: 100,
         })
 
+        console.log(`Found ${drugs.length} drugs in database`)
+
+        // Ensure location is always defined
         return drugs.map((drug) => ({
             ...drug,
+            location: drug.location || "Main Pharmacy",
             isAvailable: drug.currentStock > 0 && (!drug.expiryDate || drug.expiryDate > new Date()),
         }))
     } catch (error) {
         console.error("Error fetching all drugs:", error)
-        throw new Error("Failed to fetch drugs")
+        throw new Error(`Failed to fetch drugs: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
 }

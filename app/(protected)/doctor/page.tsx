@@ -33,9 +33,6 @@ import {
   X,
   Package,
   AlertCircle,
-  Thermometer,
-  Activity,
-  Heart,
   Clock,
   Phone,
   MapPin,
@@ -55,10 +52,7 @@ import {
   type PatientData,
   type AppointmentData,
 } from "@/lib/doctor-actions"
-import {
-  getDoctorNotificationsAction,
-  type NotificationData,
-} from "@/lib/notification-actions"
+import { getDoctorNotificationsAction, type NotificationData } from "@/lib/notification-actions"
 import { getStatusColor } from "@/lib/functions"
 
 interface Medication {
@@ -127,16 +121,16 @@ export default function DoctorDashboard() {
   }, [drugSearchQuery])
 
   const loadDashboardData = async () => {
-    if (!user?.name) return 
+    if (!user?.name) return
 
     try {
       setLoading(true)
       startTransition(async () => {
         const [appointmentsResult, patientsResult, statsResult, notificationsResult] = await Promise.all([
-          getDoctorAppointmentsAction(user.name), 
-          getDoctorPatientsAction(user.name, 10), 
-          getDoctorStatsAction(user.name), 
-          getDoctorNotificationsAction(user.id), 
+          getDoctorAppointmentsAction(user.name),
+          getDoctorPatientsAction(user.name, 10),
+          getDoctorStatsAction(user.name),
+          getDoctorNotificationsAction(user.id),
         ])
 
         if (appointmentsResult.success && appointmentsResult.data) {
@@ -169,14 +163,53 @@ export default function DoctorDashboard() {
 
   const loadAvailableDrugs = async (query?: string) => {
     try {
+      console.log("Loading available drugs...", query ? `with query: ${query}` : "")
       const result = await getAllDrugsForSelectionAction(query)
       if (result.success && result.data) {
+        console.log(`Loaded ${result.data.length} drugs`)
         setAvailableDrugs(result.data)
+      } else {
+        console.error("Failed to load drugs:", result.error)
+        toast({
+          title: "Error",
+          description: "Failed to load available medications",
+          variant: "destructive",
+        })
       }
     } catch (error) {
       console.error("Error loading available drugs:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load available medications",
+        variant: "destructive",
+      })
     }
   }
+
+  useEffect(() => {
+    // Close drug search dropdown when clicking outside
+    function handleClickOutside(event: MouseEvent) {
+      if (drugSearchQuery) {
+        const dropdowns = document.querySelectorAll(".drug-search-dropdown")
+        let clickedInside = false
+
+        dropdowns.forEach((dropdown) => {
+          if (dropdown.contains(event.target as Node)) {
+            clickedInside = true
+          }
+        })
+
+        if (!clickedInside) {
+          setDrugSearchQuery("")
+        }
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [drugSearchQuery])
 
   const handlePatientSearch = async (query: string) => {
     setPatientSearch(query)
@@ -217,9 +250,8 @@ export default function DoctorDashboard() {
   }
 
   const handleDrugSelection = (medicationId: string, drugName: string) => {
-    const isCustom = drugName === "OTHER"
-    updateMedication(medicationId, "drugName", isCustom ? "" : drugName)
-    updateMedication(medicationId, "isCustom", isCustom)
+    console.log(`Selected drug: ${drugName} for medication ${medicationId}`)
+    updateMedication(medicationId, "drugName", drugName)
   }
 
   const handleSubmitPrescription = async () => {
@@ -255,7 +287,7 @@ export default function DoctorDashboard() {
       startTransition(async () => {
         const formData = new FormData()
         formData.append("patientId", selectedPatient.id)
-        formData.append("doctorId", user.name) 
+        formData.append("doctorId", user.name)
         formData.append("diagnosis", diagnosis)
         formData.append("notes", notes)
         formData.append("followUpDate", followUpDate)
@@ -539,63 +571,83 @@ export default function DoctorDashboard() {
                                   <Label>Medication Name</Label>
                                   {!medication.isCustom ? (
                                     <div className="space-y-2">
-                                      <Select
-                                        value={medication.drugName}
-                                        onValueChange={(value) => handleDrugSelection(medication.id, value)}
-                                      >
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select medication from inventory" />
-                                        </SelectTrigger>
-                                        <SelectContent className="max-h-60">
-                                          <div className="p-2 border-b">
-                                            <div className="relative">
-                                              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-                                              <Input
-                                                placeholder="Search drugs..."
-                                                className="pl-7 h-8 text-sm"
-                                                value={drugSearchQuery}
-                                                onChange={(e) => setDrugSearchQuery(e.target.value)}
-                                              />
-                                            </div>
+                                      <div className="relative">
+                                        <div className="flex gap-2">
+                                          <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                            <Input
+                                              placeholder="Search medications..."
+                                              className="pl-10"
+                                              value={drugSearchQuery}
+                                              onChange={(e) => setDrugSearchQuery(e.target.value)}
+                                            />
                                           </div>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => updateMedication(medication.id, "isCustom", true)}
+                                          >
+                                            Custom
+                                          </Button>
+                                        </div>
 
-                                          {availableDrugs.length > 0 ? (
-                                            <>
-                                              {availableDrugs.map((drug) => (
-                                                <SelectItem key={drug.id} value={drug.drugName}>
-                                                  <div className="flex items-center justify-between w-full">
-                                                    <div className="flex items-center space-x-2">
-                                                      <Package className="h-3 w-3" />
-                                                      <span>{drug.drugName}</span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-1 ml-2">
-                                                      {getDrugStockBadge(drug)}
-                                                      {drug.category && (
-                                                        <Badge variant="outline" className="text-xs">
-                                                          {drug.category}
-                                                        </Badge>
-                                                      )}
+                                        {drugSearchQuery.length > 0 && (
+                                          <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto drug-search-dropdown">
+                                            {availableDrugs.length > 0 ? (
+                                              <>
+                                                {availableDrugs.map((drug) => (
+                                                  <div
+                                                    key={drug.id}
+                                                    className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+                                                    onClick={() => {
+                                                      updateMedication(medication.id, "drugName", drug.drugName)
+                                                      setDrugSearchQuery("")
+                                                      console.log(
+                                                        `Selected drug: ${drug.drugName} for medication ${medication.id}`,
+                                                      )
+                                                    }}
+                                                  >
+                                                    <div className="flex items-center justify-between">
+                                                      <div className="flex items-center space-x-2">
+                                                        <Package className="h-4 w-4 text-gray-500" />
+                                                        <span>{drug.drugName}</span>
+                                                      </div>
+                                                      <div className="flex items-center space-x-1">
+                                                        {getDrugStockBadge(drug)}
+                                                        {drug.category && (
+                                                          <Badge variant="outline" className="text-xs">
+                                                            {drug.category}
+                                                          </Badge>
+                                                        )}
+                                                      </div>
                                                     </div>
                                                   </div>
-                                                </SelectItem>
-                                              ))}
-                                              <SelectItem value="OTHER" className="border-t">
-                                                <div className="flex items-center space-x-2 text-orange-600">
-                                                  <AlertCircle className="h-3 w-3" />
-                                                  <span>Other (Enter manually)</span>
-                                                </div>
-                                              </SelectItem>
-                                            </>
-                                          ) : (
-                                            <SelectItem value="OTHER">
-                                              <div className="flex items-center space-x-2 text-orange-600">
-                                                <AlertCircle className="h-3 w-3" />
-                                                <span>No drugs found - Enter manually</span>
-                                              </div>
-                                            </SelectItem>
-                                          )}
-                                        </SelectContent>
-                                      </Select>
+                                                ))}
+                                              </>
+                                            ) : (
+                                              <div className="p-2 text-center text-gray-500">No medications found</div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {medication.drugName && (
+                                        <div className="flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded-md">
+                                          <div className="flex items-center space-x-2">
+                                            <Pill className="h-4 w-4 text-blue-600" />
+                                            <span className="font-medium">{medication.drugName}</span>
+                                          </div>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 text-gray-500"
+                                            onClick={() => updateMedication(medication.id, "drugName", "")}
+                                          >
+                                            <X className="h-4 w-4" />
+                                            <span className="sr-only">Clear selection</span>
+                                          </Button>
+                                        </div>
+                                      )}
 
                                       {medication.drugName &&
                                         availableDrugs.find((d) => d.drugName === medication.drugName) && (
@@ -628,7 +680,10 @@ export default function DoctorDashboard() {
                                         <Button
                                           variant="ghost"
                                           size="sm"
-                                          onClick={() => handleDrugSelection(medication.id, "")}
+                                          onClick={() => {
+                                            updateMedication(medication.id, "isCustom", false)
+                                            updateMedication(medication.id, "drugName", "")
+                                          }}
                                           className="text-blue-600 hover:text-blue-700 p-0 h-auto"
                                         >
                                           Back to inventory
@@ -900,7 +955,9 @@ export default function DoctorDashboard() {
                                             </div>
                                             <div>
                                               <span className="text-sm text-gray-500">Status:</span>
-                                              <Badge className={`ml-2 ${getStatusColor(patient.status)}`}>{patient.status}</Badge>
+                                              <Badge className={`ml-2 ${getStatusColor(patient.status)}`}>
+                                                {patient.status}
+                                              </Badge>
                                             </div>
                                             <div className="flex items-center">
                                               <Clock className="h-4 w-4 mr-2 text-gray-500" />
@@ -975,13 +1032,16 @@ export default function DoctorDashboard() {
                                                 >
                                                   <div className="flex-1">
                                                     <div className="flex items-center justify-between">
-                                                      <span className="font-medium text-gray-900">{medication.name}</span>
+                                                      <span className="font-medium text-gray-900">
+                                                        {medication.name}
+                                                      </span>
                                                       <div className="flex gap-2">
                                                         <Badge variant="outline">Active</Badge>
                                                         {medication.drugInfo && (
                                                           <Badge
                                                             variant={
-                                                              medication.drugInfo.currentStock <= medication.drugInfo.minStock
+                                                              medication.drugInfo.currentStock <=
+                                                                medication.drugInfo.minStock
                                                                 ? "destructive"
                                                                 : "secondary"
                                                             }
@@ -1001,11 +1061,15 @@ export default function DoctorDashboard() {
                                                         <span className="mr-4">
                                                           Category: {medication.drugInfo.category || "N/A"}
                                                         </span>
-                                                        <span className="mr-4">Location: {medication.drugInfo.location}</span>
+                                                        <span className="mr-4">
+                                                          Location: {medication.drugInfo.location}
+                                                        </span>
                                                         {medication.drugInfo.expiryDate && (
                                                           <span>
                                                             Expires:{" "}
-                                                            {new Date(medication.drugInfo.expiryDate).toLocaleDateString()}
+                                                            {new Date(
+                                                              medication.drugInfo.expiryDate,
+                                                            ).toLocaleDateString()}
                                                           </span>
                                                         )}
                                                       </div>
@@ -1017,7 +1081,8 @@ export default function DoctorDashboard() {
                                                     )}
                                                     {medication.prescriptionDate && (
                                                       <p className="mt-1 text-xs text-gray-400">
-                                                        Prescribed: {new Date(medication.prescriptionDate).toLocaleDateString()}
+                                                        Prescribed:{" "}
+                                                        {new Date(medication.prescriptionDate).toLocaleDateString()}
                                                       </p>
                                                     )}
                                                   </div>
@@ -1025,7 +1090,9 @@ export default function DoctorDashboard() {
                                               ),
                                             )}
                                             {(!patient.medications || patient.medications.length === 0) && (
-                                              <div className="text-center py-4 text-gray-500">No current medications</div>
+                                              <div className="text-center py-4 text-gray-500">
+                                                No current medications
+                                              </div>
                                             )}
                                           </div>
                                         </CardContent>

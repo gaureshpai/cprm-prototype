@@ -79,13 +79,13 @@ export async function getPatientDetailsAction(patientId: string): Promise<Action
 export async function createPrescriptionAction(formData: FormData): Promise<ActionResponse<PrescriptionData>> {
     try {
         const patientId = formData.get("patientId") as string
-        const doctorUsername = formData.get("doctorId") as string 
+        const doctorUsername = formData.get("doctorId") as string
         const diagnosis = formData.get("diagnosis") as string
         const notes = formData.get("notes") as string
         const followUpDate = formData.get("followUpDate") as string
 
         console.log(`Creating prescription for doctor: ${doctorUsername}, patient: ${patientId}`)
-        
+
         const medications: CreatePrescriptionData["medications"] = []
         let index = 0
         while (formData.get(`medications[${index}][drugName]`)) {
@@ -109,7 +109,7 @@ export async function createPrescriptionAction(formData: FormData): Promise<Acti
 
         const prescriptionData: CreatePrescriptionData = {
             patientId,
-            doctorUsername, 
+            doctorUsername,
             notes: notes || undefined,
             medications,
         }
@@ -177,11 +177,17 @@ export async function getAvailableDrugsAction(
 
 export async function getAllDrugsForSelectionAction(query?: string) {
     try {
+        console.log(`Fetching drugs for selection${query ? ` with query: ${query}` : ""}`)
         const drugs = await getAllDrugsForSelection(query)
+        console.log(`Found ${drugs.length} drugs`)
         return { success: true, data: drugs }
     } catch (error) {
         console.error("Error in getAllDrugsForSelectionAction:", error)
-        return { success: false, error: "Failed to fetch drugs for selection" }
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to fetch drugs for selection",
+            data: [],
+        }
     }
 }
 
