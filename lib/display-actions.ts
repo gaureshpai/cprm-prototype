@@ -331,7 +331,11 @@ export async function getDisplayDataAction(displayId: string) {
             try {
                 const drugInventory = await prisma.drugInventory.findMany({
                     where: {
-                        status: "critical",
+                        OR: [
+                            { status: "critical" },
+                            { status: "out_of_stock" },
+                            { status: "low" },
+                        ],
                     },
                     orderBy: {
                         drugName: "asc", 

@@ -534,7 +534,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                         <Alert key={drug.drug_id} className="border-red-200 bg-red-50">
                                             <AlertTriangle className="h-4 w-4 text-red-600" />
                                             <AlertDescription className="text-red-800">
-                                                <strong>{drug.drug_name}</strong> - Critical stock level
+                                                <strong>{drug.drug_name}</strong> - {drug.status=="low"?"Low Stock level":"Out Of Stock "}
                                                 <br />
                                                 <span className="text-sm">
                                                     Current: {drug.current_stock} | Min: {drug.min_stock}
