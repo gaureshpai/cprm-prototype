@@ -19,7 +19,6 @@ model User {
   status        String         @default("ACTIVE")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  appointments  Appointment[]
   prescriptions Prescription[]
 
   @@map("users")
@@ -44,28 +43,9 @@ model Patient {
   vitals           Json?          @default("{}")
   lastVisit        DateTime?      @db.Timestamp(6)
   nextAppointment  DateTime?      @db.Timestamp(6)
-  appointments     Appointment[]
   prescriptions    Prescription[]
 
   @@map("patients")
-}
-
-model Appointment {
-  id        String          @id @default(cuid())
-  patientId String
-  doctorId  String
-  date      DateTime
-  time      String
-  status    String          @default("Scheduled")
-  type      AppointmentType
-  notes     String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  doctor    User            @relation(fields: [doctorId], references: [id])
-  patient   Patient         @relation(fields: [patientId], references: [id])
-
-  @@index([doctorId, date])
-  @@map("appointments")
 }
 
 model Prescription {
