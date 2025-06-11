@@ -20,12 +20,15 @@ import {
   Pill,
   Heart,
   Shield,
-  Users,
   Award,
   Mail,
   Stethoscope,
   Activity,
   AlertCircle,
+  Copy,
+  CheckCircle,
+  Info,
+  Eye,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getPatientByIdAction } from "@/lib/patient-actions"
@@ -34,11 +37,27 @@ import type { PatientData } from "@/lib/doctor-service"
 import Link from "next/link"
 import Image from "next/image"
 
+const DEMO_PATIENT_IDS = [
+  {
+    id: "P001",
+    name: "John Smith",
+    condition: "Hypertension",
+    status: "Active",
+  },
+  {
+    id: "P002",
+    name: "Sarah Johnson",
+    condition: "Diabetes",
+    status: "Active",
+  }
+]
+
 export default function HomePage() {
   const [patientId, setPatientId] = useState("")
   const [patient, setPatient] = useState<PatientData | null>(null)
   const [loading, setLoading] = useState(false)
   const [searchAttempted, setSearchAttempted] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
   const { toast } = useToast()
 
   const handlePatientSearch = async (e: React.FormEvent) => {
@@ -66,7 +85,7 @@ export default function HomePage() {
         setPatient(null)
         toast({
           title: "Patient Not Found",
-          description: "Please check your patient ID and try again",
+          description: "Please check your patient ID and try again. Try using one of the demo IDs below.",
           variant: "destructive",
         })
       }
@@ -89,6 +108,35 @@ export default function HomePage() {
     setSearchAttempted(false)
   }
 
+  const copyPatientId = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id)
+      setCopiedId(id)
+      setPatientId(id)
+      toast({
+        title: "Patient ID Copied",
+        description: `${id} has been copied and filled in the search box`,
+      })
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy patient ID",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const quickSearch = (id: string) => {
+    setPatientId(id)
+    setTimeout(() => {
+      const form = document.querySelector("form")
+      if (form) {
+        form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))
+      }
+    }, 100)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <header className="bg-white shadow-sm border-b">
@@ -97,13 +145,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-3">
                 <div className="bg-black p-2 rounded-md">
-                  <Image
-                    src="/logo.png"
-                    alt="InUnity Logo"
-                    width={24}
-                    height={24}
-                    className="invert"
-                  />
+                  <Image src="/logo.png" alt="InUnity Logo" width={24} height={24} className="invert" />
                 </div>
                 <p className="text-2xl font-bold">UDAL - Wenlock Hospital</p>
               </div>
@@ -117,11 +159,9 @@ export default function HomePage() {
                 Staff Login
               </Link>
             </nav>
-
           </div>
         </div>
       </header>
-
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section className="text-center mb-12">
@@ -159,6 +199,12 @@ export default function HomePage() {
                       {loading ? "Searching..." : "Search"}
                     </Button>
                   </div>
+                  {patientId && !patient && searchAttempted && (
+                    <p className="text-sm text-amber-600 flex items-center space-x-1">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>Try using one of the demo Patient IDs above</span>
+                    </p>
+                  )}
                 </div>
                 {patient && (
                   <Button type="button" variant="outline" onClick={clearSearch} className="w-full">
@@ -346,6 +392,76 @@ export default function HomePage() {
             </Card>
           </section>
         )}
+
+        <section className="mb-8">
+          <Card className="max-w-4xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-blue-800">
+                <Info className="h-5 w-5" />
+                <span>Demo Patient IDs - Try These!</span>
+              </CardTitle>
+              <CardDescription className="text-blue-600">
+                Click on any patient ID below to automatically search and view their medical records
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {DEMO_PATIENT_IDS.map((demoPatient) => (
+                  <div
+                    key={demoPatient.id}
+                    className="bg-white rounded-lg border border-blue-200 p-4 hover:shadow-md transition-all cursor-pointer group"
+                    onClick={() => quickSearch(demoPatient.id)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                          {demoPatient.id}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            copyPatientId(demoPatient.id)
+                          }}
+                        >
+                          {copiedId === demoPatient.id ? (
+                            <CheckCircle className="h-3 w-3 text-green-600" />
+                          ) : (
+                            <Copy className="h-3 w-3 text-gray-500" />
+                          )}
+                        </Button>
+                      </div>
+                      <Eye className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{demoPatient.name}</p>
+                      <p className="text-sm text-gray-600">{demoPatient.condition}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <Badge className={`text-xs ${getStatusColor(demoPatient.status)}`}>{demoPatient.status}</Badge>
+                        <span className="text-xs text-blue-600 group-hover:text-blue-800">Click to view →</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">How to use:</p>
+                    <ul className="space-y-1 text-blue-700">
+                      <li>• Click any patient card above to automatically search</li>
+                      <li>• Or copy a Patient ID and paste it in the search box below</li>
+                      <li>• You can also manually type any Patient ID (format: P001, P002, etc.)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       </main>
     </div>
   )
