@@ -11,22 +11,12 @@ import {
     updateAppointmentStatus,
     getDoctorStats,
     getAvailableDrugs,
+    getAllDrugsForSelection,
     type PatientData,
     type AppointmentData,
     type PrescriptionData,
     type CreatePrescriptionData,
 } from "./doctor-service"
-import { getAllDrugsForSelection } from "./doctor-service"
-
-export async function getAllDrugsForSelectionAction(query?: string) {
-    try {
-        const drugs = await getAllDrugsForSelection(query)
-        return { success: true, data: drugs }
-    } catch (error) {
-        console.error("Error in getAllDrugsForSelectionAction:", error)
-        return { success: false, error: "Failed to fetch drugs for selection" }
-    }
-}
 
 export interface ActionResponse<T> {
     success: boolean
@@ -35,11 +25,11 @@ export interface ActionResponse<T> {
 }
 
 export async function getDoctorAppointmentsAction(
-    doctorId: string,
+    doctorUsername: string,
     date?: Date,
 ): Promise<ActionResponse<AppointmentData[]>> {
     try {
-        const appointments = await getDoctorAppointments(doctorId, date)
+        const appointments = await getDoctorAppointments(doctorUsername, date)
         return { success: true, data: appointments }
     } catch (error) {
         console.error("Error in getDoctorAppointmentsAction:", error)
@@ -48,11 +38,11 @@ export async function getDoctorAppointmentsAction(
 }
 
 export async function getDoctorPatientsAction(
-    doctorId: string,
+    doctorUsername: string,
     limit?: number,
 ): Promise<ActionResponse<PatientData[]>> {
     try {
-        const patients = await getDoctorPatients(doctorId, limit)
+        const patients = await getDoctorPatients(doctorUsername, limit)
         return { success: true, data: patients }
     } catch (error) {
         console.error("Error in getDoctorPatientsAction:", error)
@@ -89,10 +79,12 @@ export async function getPatientDetailsAction(patientId: string): Promise<Action
 export async function createPrescriptionAction(formData: FormData): Promise<ActionResponse<PrescriptionData>> {
     try {
         const patientId = formData.get("patientId") as string
-        const doctorId = formData.get("doctorId") as string
+        const doctorUsername = formData.get("doctorId") as string 
         const diagnosis = formData.get("diagnosis") as string
         const notes = formData.get("notes") as string
         const followUpDate = formData.get("followUpDate") as string
+
+        console.log(`Creating prescription for doctor: ${doctorUsername}, patient: ${patientId}`)
         
         const medications: CreatePrescriptionData["medications"] = []
         let index = 0
@@ -107,7 +99,7 @@ export async function createPrescriptionAction(formData: FormData): Promise<Acti
             index++
         }
 
-        if (!patientId || !doctorId) {
+        if (!patientId || !doctorUsername) {
             return { success: false, error: "Patient and doctor are required" }
         }
 
@@ -117,7 +109,7 @@ export async function createPrescriptionAction(formData: FormData): Promise<Acti
 
         const prescriptionData: CreatePrescriptionData = {
             patientId,
-            doctorId,
+            doctorUsername, 
             notes: notes || undefined,
             medications,
         }
@@ -127,16 +119,19 @@ export async function createPrescriptionAction(formData: FormData): Promise<Acti
         return { success: true, data: prescription }
     } catch (error) {
         console.error("Error in createPrescriptionAction:", error)
-        return { success: false, error: "Failed to create prescription" }
+        return {
+            success: false,
+            error: `Failed to create prescription: ${error instanceof Error ? error.message : "Unknown error"}`,
+        }
     }
 }
 
 export async function getDoctorPrescriptionsAction(
-    doctorId: string,
+    doctorUsername: string,
     limit?: number,
 ): Promise<ActionResponse<PrescriptionData[]>> {
     try {
-        const prescriptions = await getDoctorPrescriptions(doctorId, limit)
+        const prescriptions = await getDoctorPrescriptions(doctorUsername, limit)
         return { success: true, data: prescriptions }
     } catch (error) {
         console.error("Error in getDoctorPrescriptionsAction:", error)
@@ -158,9 +153,9 @@ export async function updateAppointmentStatusAction(
     }
 }
 
-export async function getDoctorStatsAction(doctorId: string): Promise<ActionResponse<any>> {
+export async function getDoctorStatsAction(doctorUsername: string): Promise<ActionResponse<any>> {
     try {
-        const stats = await getDoctorStats(doctorId)
+        const stats = await getDoctorStats(doctorUsername)
         return { success: true, data: stats }
     } catch (error) {
         console.error("Error in getDoctorStatsAction:", error)
@@ -180,9 +175,14 @@ export async function getAvailableDrugsAction(
     }
 }
 
-export type {
-    PatientData,
-    AppointmentData,
-    PrescriptionData,
-    CreatePrescriptionData,
+export async function getAllDrugsForSelectionAction(query?: string) {
+    try {
+        const drugs = await getAllDrugsForSelection(query)
+        return { success: true, data: drugs }
+    } catch (error) {
+        console.error("Error in getAllDrugsForSelectionAction:", error)
+        return { success: false, error: "Failed to fetch drugs for selection" }
+    }
 }
+
+export type { PatientData, AppointmentData, PrescriptionData, CreatePrescriptionData }
