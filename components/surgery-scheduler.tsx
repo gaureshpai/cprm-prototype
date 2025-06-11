@@ -114,6 +114,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                 if (response.ok) {
                     const doctorsData = await response.json()
                     setDoctors(doctorsData)
+                    
                     if (user?.role === "doctor") {
                         const currentDoctor = doctorsData.find((doc: Doctor) => doc.name === user.name)
                         if (currentDoctor) {
@@ -130,6 +131,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                     description: "Could not load doctor data.",
                     variant: "destructive",
                 })
+                
                 setDoctors([
                     { id: "doctor-1", name: "Dr. Smith", department: "Surgery" },
                     { id: "doctor-2", name: "Dr. Johnson", department: "Cardiology" },
@@ -198,13 +200,37 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                 setLoading(false)
                 return
             }
+            
+            const response = await fetch("/api/theaters/check-conflict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    theaterId: formData.theaterId,
+                    scheduledTime: scheduledDateTime.toISOString(),
+                    estimatedDuration: formData.estimatedDuration,
+                }),
+            })
+
+            if (response.ok) {
+                const { hasConflict } = await response.json()
+                if (hasConflict) {
+                    toast({
+                        title: "Scheduling Conflict",
+                        description:
+                            "This theater is already booked for the selected time. Please choose a different time or theater.",
+                        variant: "destructive",
+                    })
+                    setLoading(false)
+                    return
+                }
+            }
 
             const formDataToSubmit = new FormData()
             formDataToSubmit.append("patientId", formData.patientId)
             formDataToSubmit.append("theaterId", formData.theaterId)
             formDataToSubmit.append("procedure", formData.procedure)
-            formDataToSubmit.append("surgeonId", selectedDoctors[0])
-            formDataToSubmit.append("surgeonIds", JSON.stringify(selectedDoctors))
+            formDataToSubmit.append("surgeonId", selectedDoctors[0]) 
+            formDataToSubmit.append("surgeonIds", JSON.stringify(selectedDoctors)) 
             formDataToSubmit.append("scheduledTime", scheduledDateTime.toISOString())
             formDataToSubmit.append("estimatedDuration", formData.estimatedDuration)
             formDataToSubmit.append("priority", formData.priority)
@@ -373,16 +399,18 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                             </SelectTrigger>
                             <SelectContent>
                                 {availableTheaters.length > 0 ? (
-                                    availableTheaters.map((theater) => (
-                                        <SelectItem key={theater.id} value={theater.id}>
-                                            <div className="flex items-center justify-between w-full">
-                                                <span>{theater.name}</span>
-                                                <Badge variant="outline" className="ml-2 text-green-600">
-                                                    Available
-                                                </Badge>
-                                            </div>
-                                        </SelectItem>
-                                    ))
+                                    availableTheaters
+                                        .filter((theater) => theater.status === "available")
+                                        .map((theater) => (
+                                            <SelectItem key={theater.id} value={theater.id}>
+                                                <div className="flex items-center justify-between w-full">
+                                                    <span>{theater.name}</span>
+                                                    <Badge variant="outline" className="ml-2 text-green-600">
+                                                        Available
+                                                    </Badge>
+                                                </div>
+                                            </SelectItem>
+                                        ))
                                 ) : (
                                     <SelectItem value="no-theaters" disabled>
                                         No theaters available
@@ -468,7 +496,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                             </Select>
                         </div>
                     </div>
-
+                    
                     <div className="space-y-2">
                         <Label htmlFor="notes">Additional Notes</Label>
                         <Textarea

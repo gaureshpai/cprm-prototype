@@ -166,7 +166,6 @@ export function TheaterManagementModal({ theaters, onRefresh }: TheaterManagemen
                 </DialogHeader>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Theater Form */}
                     <div>
                         <Card>
                             <CardHeader>
@@ -239,7 +238,6 @@ export function TheaterManagementModal({ theaters, onRefresh }: TheaterManagemen
                         </Card>
                     </div>
 
-                    {/* Theater List */}
                     <div>
                         <Card>
                             <CardHeader>
