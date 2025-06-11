@@ -21,7 +21,7 @@ export const getStatusColor = (status: string) => {
     case "online":
       return "text-green-600 bg-green-50 border-green-200"
     case "offline":
-      return "text-red-600 bg-red-50 border-red-200"
+      return "text-red-600 bg-red-500 border-red-200"
     case "warning":
       return "text-yellow-600 bg-yellow-50 border-yellow-200"
     case "occupied":

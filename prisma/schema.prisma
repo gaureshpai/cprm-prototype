@@ -241,12 +241,6 @@ enum AppointmentType {
   EMERGENCY
 }
 
-enum OrderStatus {
-  ORDERED
-  RECEIVED
-  CANCELLED
-}
-
 enum BloodType {
   A_POS
   A_NEG

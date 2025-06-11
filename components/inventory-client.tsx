@@ -16,7 +16,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pill, Search, ShoppingCart, Plus, Edit } from "lucide-react"
-import { addDrugToInventoryAction, updateDrugInventoryAction, createReorderAction } from "@/lib/pharmacist-actions"
+import { addDrugToInventoryAction, updateDrugInventoryAction } from "@/lib/pharmacist-actions"
 import { useToast } from "@/hooks/use-toast"
 import { DrugInventoryItem, InventoryClientProps } from "@/lib/helpers"
 import { getStatusColor } from "@/lib/functions"
@@ -116,31 +116,6 @@ export default function InventoryClient({ inventory }: InventoryClientProps) {
         }
     }
 
-    const handleReorder = async (drugId: string) => {
-        try {
-            const result = await createReorderAction(drugId)
-
-            if (result.success) {
-                toast({
-                    title: "Reorder created",
-                    description: "A reorder request has been created.",
-                })
-            } else {
-                toast({
-                    title: "Error creating reorder",
-                    description: result.error || "An error occurred while creating the reorder.",
-                    variant: "destructive",
-                })
-            }
-        } catch (error) {
-            toast({
-                title: "Error creating reorder",
-                description: "An unexpected error occurred.",
-                variant: "destructive",
-            })
-        }
-    }
-
     return (
         <div className="space-y-6">
             <Card>
@@ -221,12 +196,6 @@ export default function InventoryClient({ inventory }: InventoryClientProps) {
                                             <Edit className="h-3 w-3 mr-1" />
                                             Edit
                                         </Button>
-                                        {(drug.status === "critical" || drug.status === "low") && (
-                                            <Button size="sm" variant="outline" onClick={() => handleReorder(drug.id)}>
-                                                <ShoppingCart className="h-3 w-3 mr-1" />
-                                                Reorder
-                                            </Button>
-                                        )}
                                     </div>
                                 </div>
                             ))

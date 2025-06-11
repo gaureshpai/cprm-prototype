@@ -35,7 +35,6 @@ export interface UserWithStats {
     status: string
     createdAt: Date
     updatedAt: Date
-    permissions: any
 }
 
 export interface UserActionResponse<T> {
@@ -119,7 +118,6 @@ export async function createUserAction(formData: FormData): Promise<UserActionRe
             role,
             department: department || undefined,
             status: "ACTIVE",
-            permissions: getDefaultPermissions(role),
         }
         
         if (password) {
@@ -342,26 +340,6 @@ async function checkUserDependencies(userId: string) {
             hasPrescriptions: false,
         }
     }
-}
-
-function getDefaultPermissions(role: Role): any {
-    const permissions = {
-        ADMIN: [
-            "user_management",
-            "display_management",
-            "content_management",
-            "emergency_alerts",
-            "system_settings",
-            "analytics",
-        ],
-        DOCTOR: ["patient_management", "appointments", "prescriptions", "medical_records"],
-        NURSE: ["patient_care", "appointments", "medication_administration"],
-        TECHNICIAN: ["equipment_management", "maintenance", "technical_support"],
-        PHARMACIST: ["drug_inventory", "prescriptions", "medication_dispensing"],
-        PATIENT: ["view_appointments", "view_prescriptions", "personal_records"],
-    }
-
-    return permissions[role] || []
 }
 
 export async function getUserByUsernameAction(username: string): Promise<UserActionResponse<UserWithStats>> {

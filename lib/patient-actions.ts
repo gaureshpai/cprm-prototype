@@ -187,7 +187,7 @@ export async function updatePatientVitalsAction(formData: FormData) {
     }
 }
 
-export async function deletePatient(patientId: string) {
+export async function decactivatePatient(patientId: string) {
     try {
         const patient = await prisma.patient.update({
             where: { id: patientId },
@@ -248,7 +248,7 @@ export async function getAllPatients(page = 1, limit = 50, search?: string) {
         ])
 
         return {
-            patients: patients.map((patient) => ({
+            patients: patients.map((patient:any) => ({
                 id: patient.id,
                 name: patient.name,
                 age: patient.age,
@@ -267,8 +267,8 @@ export async function getAllPatients(page = 1, limit = 50, search?: string) {
                         : { bp: "", pulse: "", temp: "", weight: "", height: "" },
                 lastVisit: patient.lastVisit,
                 nextAppointment: patient.nextAppointment,
-                medications: patient.prescriptions.flatMap((prescription) =>
-                    prescription.items.map((item) => ({
+                medications: patient.prescriptions.flatMap((prescription:any) =>
+                    prescription.items.map((item:any) => ({
                         id: item.id,
                         name: item.drug.drugName,
                         dosage: item.dosage,
@@ -291,13 +291,13 @@ export async function getAllPatients(page = 1, limit = 50, search?: string) {
     }
 }
 
-export async function deletePatientAction(patientId: string): Promise<ActionResponse<any>> {
+export async function decactivatePatientAction(patientId: string): Promise<ActionResponse<any>> {
     try {
         if (!patientId) {
             return { success: false, error: "Patient ID is required" }
         }
 
-        const patient = await deletePatient(patientId)
+        const patient = await decactivatePatient(patientId)
         return { success: true, data: patient }
     } catch (error) {
         console.error("Error in deletePatientAction:", error)

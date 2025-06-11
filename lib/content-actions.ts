@@ -50,7 +50,7 @@ export async function getAllContentAction(): Promise<ContentResponse<ContentItem
         })
         
         const contentCounts = displays.reduce(
-            (acc, display) => {
+            (acc:any, display:any) => {
                 if (!display.content) return acc
                 acc[display.content] = (acc[display.content] || 0) + 1
                 return acc
@@ -63,7 +63,7 @@ export async function getAllContentAction(): Promise<ContentResponse<ContentItem
             title: content,
             type: getContentType(content),
             content: `Content for ${content}`,
-            activeScreens: count,
+            activeScreens: count as number,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         }))
@@ -88,7 +88,7 @@ export async function getAllAnnouncementsAction(): Promise<ContentResponse<Annou
             take: 20,
         })
 
-        const announcements: Announcement[] = systemAlerts.map((alert) => ({
+        const announcements: Announcement[] = systemAlerts.map((alert:any) => ({
             id: alert.id,
             text: alert.message,
             createdAt: alert.createdAt.toISOString(),
@@ -240,7 +240,7 @@ export async function getRecentEmergencyAlertsAction(): Promise<ContentResponse<
             take: 10,
         })
 
-        const formattedAlerts: EmergencyAlert[] = alerts.map((alert) => ({
+        const formattedAlerts: EmergencyAlert[] = alerts.map((alert:any) => ({
             id: alert.id,
             codeType: alert.codeType,
             location: alert.location,
@@ -284,9 +284,9 @@ export async function getSystemAnalyticsAction() {
     try {
         const displays = await prisma.display.findMany()
         const totalDisplays = displays.length
-        const onlineDisplays = displays.filter((d) => d.status === "online").length
-        const offlineDisplays = displays.filter((d) => d.status === "offline").length
-        const warningDisplays = displays.filter((d) => d.status === "warning").length
+        const onlineDisplays = displays.filter((d:any) => d.status === "online").length
+        const offlineDisplays = displays.filter((d:any) => d.status === "offline").length
+        const warningDisplays = displays.filter((d:any) => d.status === "warning").length
         
         const uptimePercentage = totalDisplays > 0 ? Math.round((onlineDisplays / totalDisplays) * 100) : 0
         

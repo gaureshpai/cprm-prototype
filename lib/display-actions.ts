@@ -271,7 +271,7 @@ export async function getDisplayDataAction(displayId: string) {
                     take: 10,
                 })
 
-                data.tokenQueue = tokenQueue.map((token) => ({
+                data.tokenQueue = tokenQueue.map((token:any) => ({
                     token_id: token.tokenId,
                     patient_name: token.patientName, 
                     display_name: token.displayName,
@@ -293,7 +293,7 @@ export async function getDisplayDataAction(displayId: string) {
                     },
                 })
 
-                data.departments = departments.map((dept) => ({
+                data.departments = departments.map((dept:any) => ({
                     dept_id: dept.id,
                     department_name: dept.departmentName, 
                     location: dept.location,
@@ -315,7 +315,7 @@ export async function getDisplayDataAction(displayId: string) {
                     },
                 })
 
-                data.emergencyAlerts = emergencyAlerts.map((alert) => ({
+                data.emergencyAlerts = emergencyAlerts.map((alert:any) => ({
                     id: alert.id,
                     codeType: alert.codeType, 
                     location: alert.location, 
@@ -343,7 +343,7 @@ export async function getDisplayDataAction(displayId: string) {
                     take: 20,
                 })
 
-                data.drugInventory = drugInventory.map((drug) => ({
+                data.drugInventory = drugInventory.map((drug:any) => ({
                     drug_id: drug.id,
                     drug_name: drug.drugName, 
                     current_stock: drug.currentStock, 

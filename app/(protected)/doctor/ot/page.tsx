@@ -431,6 +431,7 @@ export default function DoctorOTPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {otData.todaySchedule.length === 0 && <p className="text-sm text-gray-600">No surgeries scheduled for today.</p>}
                     {otData.todaySchedule.map((surgery) => (
                       <div
                         key={surgery.id}
@@ -471,6 +472,7 @@ export default function DoctorOTPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {otData.emergencyQueue.length === 0 && <p className="text-sm text-gray-600">No patients in the queue</p>}
                     {otData.emergencyQueue.map((emergency) => (
                       <div
                         key={emergency.id}
@@ -489,9 +491,6 @@ export default function DoctorOTPage() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Badge className={getPriorityColor(emergency.priority)}>{emergency.priority}</Badge>
-                          <Button size="sm" className="bg-red-600 hover:bg-red-700">
-                            Assign Theater
-                          </Button>
                         </div>
                       </div>
                     ))}

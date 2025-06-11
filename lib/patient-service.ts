@@ -146,7 +146,7 @@ export async function updatePatient(data: UpdatePatientData) {
     }
 }
 
-export async function deletePatient(patientId: string) {
+export async function decactivatePatient(patientId: string) {
     try {
         const patient = await prisma.patient.update({
             where: { id: patientId },
@@ -207,7 +207,7 @@ export async function getAllPatients(page = 1, limit = 50, search?: string) {
         ])
 
         return {
-            patients: patients.map((patient) => ({
+            patients: patients.map((patient: any) => ({
                 id: patient.id,
                 name: patient.name,
                 age: patient.age,
@@ -226,8 +226,8 @@ export async function getAllPatients(page = 1, limit = 50, search?: string) {
                         : { bp: "", pulse: "", temp: "", weight: "", height: "" },
                 lastVisit: patient.lastVisit,
                 nextAppointment: patient.nextAppointment,
-                medications: patient.prescriptions.flatMap((prescription) =>
-                    prescription.items.map((item) => ({
+                medications: patient.prescriptions.flatMap((prescription:any) =>
+                    prescription.items.map((item:any) => ({
                         id: item.id,
                         name: item.drug.drugName,
                         dosage: item.dosage,
@@ -322,7 +322,7 @@ export async function getPatientById(patientId: string): Promise<PatientDetailsD
                     : { bp: "", pulse: "", temp: "", weight: "", height: "" },
             lastVisit: patient.lastVisit,
             nextAppointment: patient.nextAppointment,
-            appointments: patient.appointments.map((appointment) => ({
+            appointments: patient.appointments.map((appointment:any) => ({
                 id: appointment.id,
                 date: appointment.date,
                 time: appointment.time,
@@ -331,8 +331,8 @@ export async function getPatientById(patientId: string): Promise<PatientDetailsD
                 notes: appointment.notes,
                 doctor: appointment.doctor,
             })),
-            medications: patient.prescriptions.flatMap((prescription) =>
-                prescription.items.map((item) => ({
+            medications: patient.prescriptions.flatMap((prescription:any) =>
+                prescription.items.map((item:any) => ({
                     id: item.id,
                     name: item.drug.drugName,
                     dosage: item.dosage,
@@ -409,7 +409,7 @@ export async function getPatientAppointments(patientId: string, limit = 20) {
             take: limit,
         })
 
-        return appointments.map((appointment) => ({
+        return appointments.map((appointment:any) => ({
             id: appointment.id,
             date: appointment.date,
             time: appointment.time,
@@ -460,8 +460,8 @@ export async function getPatientMedications(patientId: string, limit = 20) {
             take: limit,
         })
 
-        return prescriptions.flatMap((prescription) =>
-            prescription.items.map((item) => ({
+        return prescriptions.flatMap((prescription:any) =>
+            prescription.items.map((item:any) => ({
                 id: item.id,
                 name: item.drug.drugName,
                 dosage: item.dosage,

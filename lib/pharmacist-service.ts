@@ -115,46 +115,6 @@ export async function getPrescriptions(): Promise<PrescriptionWithItems[]> {
     }
 }
 
-export async function getPurchaseOrders(): Promise<PurchaseOrderWithItems[]> {
-    try {
-        const purchaseOrders = await prisma.purchaseOrder.findMany({
-            include: {
-                items: {
-                    include: {
-                        drug: {
-                            select: {
-                                drugName: true,
-                            },
-                        },
-                    },
-                },
-            },
-            orderBy: { createdAt: "desc" },
-        })
-
-        return purchaseOrders.map((order) => {
-            const items = order.items.map((item: any) => ({
-                drugName: item.drug?.drugName || "Unknown Drug",
-                quantity: item.quantity,
-                unitCost: Number(item.unitCost) || 0,
-                total: item.quantity * (Number(item.unitCost) || 0),
-            }))
-
-            return {
-                id: order.id,
-                supplier: order.supplier,
-                status: order.status,
-                orderDate: order.orderDate.toISOString(),
-                totalCost: Number(order.totalCost) || 0,
-                items,
-            }
-        })
-    } catch (error) {
-        console.error("Error fetching purchase orders:", error)
-        return []
-    }
-}
-
 function getStockStatus(stock: number, reorderLevel: number): string {
     if (stock <= reorderLevel * 0.5) return "critical"
     if (stock <= reorderLevel) return "low"
@@ -281,41 +241,6 @@ export async function completePrescription(prescriptionId: string): Promise<{ su
     } catch (error) {
         console.error("Error completing prescription:", error)
         return { success: false, error: "Failed to complete prescription" }
-    }
-}
-
-export async function createReorder(drugId: string): Promise<{ success: boolean; error?: string }> {
-    try {
-        const drug = await prisma.drugInventory.findUnique({
-            where: { id: drugId },
-        })
-
-        if (!drug) {
-            return { success: false, error: "Drug not found" }
-        }
-        
-        const reorderQuantity = drug.minStock * 3 
-        const estimatedCost = reorderQuantity * 10 
-
-        await prisma.purchaseOrder.create({
-            data: {
-                supplier: "Medical Supplies Co.",
-                status: "ORDERED",
-                totalCost: estimatedCost,
-                items: {
-                    create: {
-                        drugId: drug.id,
-                        quantity: reorderQuantity,
-                        unitCost: 10,
-                    },
-                },
-            },
-        })
-
-        return { success: true }
-    } catch (error) {
-        console.error("Error creating reorder:", error)
-        return { success: false, error: "Failed to create reorder" }
     }
 }
 

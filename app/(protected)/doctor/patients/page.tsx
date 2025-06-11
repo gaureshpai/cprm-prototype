@@ -38,16 +38,17 @@ import {
   MapPin,
   Clock,
   Edit,
-  Trash2,
   Plus,
+  X,
 } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import { PatientForm } from "@/components/patient-form"
 import { useToast } from "@/hooks/use-toast"
-import { getAllPatientsAction, deletePatientAction } from "@/lib/patient-actions"
+import { getAllPatientsAction } from "@/lib/patient-actions"
 import type { PatientData } from "@/lib/doctor-actions"
 import { getStatusColor } from "@/lib/functions"
+import { decactivatePatient } from "@/lib/patient-service"
 
 export default function DoctorPatientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -93,32 +94,6 @@ export default function DoctorPatientsPage() {
 
   const handleSearch = async () => {
     await loadPatients()
-  }
-
-  const handleDeletePatient = async (patientId: string) => {
-    try {
-      const result = await deletePatientAction(patientId)
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: "Patient deleted successfully",
-        })
-        await loadPatients()
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to delete patient",
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      console.error("Error deleting patient:", error)
-      toast({
-        title: "Error",
-        description: "Failed to delete patient",
-        variant: "destructive",
-      })
-    }
   }
 
   const handlePatientSuccess = async () => {
@@ -270,11 +245,9 @@ export default function DoctorPatientsPage() {
                             </DialogHeader>
 
                             <Tabs defaultValue="overview" className="w-full">
-                              <TabsList className="grid w-full grid-cols-4">
+                              <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                                <TabsTrigger value="vitals">Vitals</TabsTrigger>
                                 <TabsTrigger value="medications">Medications</TabsTrigger>
-                                <TabsTrigger value="history">History</TabsTrigger>
                               </TabsList>
 
                               <TabsContent value="overview" className="space-y-4">
@@ -349,64 +322,6 @@ export default function DoctorPatientsPage() {
                                     </div>
                                   </CardContent>
                                 </Card>
-                              </TabsContent>
-
-                              <TabsContent value="vitals" className="space-y-4">
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                  <Card>
-                                    <CardContent className="pt-4">
-                                      <div className="flex items-center space-x-2">
-                                        <Heart className="h-5 w-5 text-red-500" />
-                                        <div>
-                                          <p className="text-sm text-gray-500">Blood Pressure</p>
-                                          <p className="text-lg font-semibold">{patient.vitals?.bp || "N/A"}</p>
-                                        </div>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-
-                                  <Card>
-                                    <CardContent className="pt-4">
-                                      <div className="flex items-center space-x-2">
-                                        <Activity className="h-5 w-5 text-blue-500" />
-                                        <div>
-                                          <p className="text-sm text-gray-500">Pulse Rate</p>
-                                          <p className="text-lg font-semibold">{patient.vitals?.pulse || "N/A"}</p>
-                                        </div>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-
-                                  <Card>
-                                    <CardContent className="pt-4">
-                                      <div className="flex items-center space-x-2">
-                                        <Thermometer className="h-5 w-5 text-orange-500" />
-                                        <div>
-                                          <p className="text-sm text-gray-500">Temperature</p>
-                                          <p className="text-lg font-semibold">{patient.vitals?.temp || "N/A"}</p>
-                                        </div>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-
-                                  <Card>
-                                    <CardContent className="pt-4">
-                                      <div>
-                                        <p className="text-sm text-gray-500">Weight</p>
-                                        <p className="text-lg font-semibold">{patient.vitals?.weight || "N/A"}</p>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-
-                                  <Card>
-                                    <CardContent className="pt-4">
-                                      <div>
-                                        <p className="text-sm text-gray-500">Height</p>
-                                        <p className="text-lg font-semibold">{patient.vitals?.height || "N/A"}</p>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                </div>
                               </TabsContent>
 
                               <TabsContent value="medications" className="space-y-4">
@@ -501,34 +416,6 @@ export default function DoctorPatientsPage() {
                                   </CardContent>
                                 </Card>
                               </TabsContent>
-
-                              <TabsContent value="history" className="space-y-4">
-                                <Card>
-                                  <CardHeader>
-                                    <CardTitle className="text-sm">Medical History</CardTitle>
-                                  </CardHeader>
-                                  <CardContent>
-                                    <div className="space-y-4">
-                                      {(patient.medicalHistory || []).map((record: any, index: number) => (
-                                        <div key={index} className="border-l-2 border-blue-200 pl-4">
-                                          <div className="flex justify-between items-start">
-                                            <div>
-                                              <p className="font-medium">{record.diagnosis}</p>
-                                              <p className="text-sm text-gray-600">{record.treatment}</p>
-                                            </div>
-                                            <span className="text-sm text-gray-500">
-                                              {record.date ? new Date(record.date).toLocaleDateString() : "N/A"}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      ))}
-                                      {(!patient.medicalHistory || patient.medicalHistory.length === 0) && (
-                                        <div className="text-center py-4 text-gray-500">No medical history available</div>
-                                      )}
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              </TabsContent>
                             </Tabs>
                           </DialogContent>
                         </Dialog>
@@ -568,8 +455,8 @@ export default function DoctorPatientsPage() {
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
+                              <X className="h-3 w-3 mr-1" />
+                              Deactivate
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -583,10 +470,10 @@ export default function DoctorPatientsPage() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDeletePatient(patient.id)}
+                                onClick={() => decactivatePatient(patient.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
-                                Delete
+                                Deactivate
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>

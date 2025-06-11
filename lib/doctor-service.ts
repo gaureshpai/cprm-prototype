@@ -169,7 +169,6 @@ async function getOrCreateDoctorByUsername(username: string): Promise<string> {
                     password: "demo123",
                     role: "DOCTOR",
                     status: "ACTIVE",
-                    permissions: ["patient_management", "appointments", "prescriptions", "medical_records"],
                 },
             })
         }
@@ -213,7 +212,7 @@ export async function getDoctorAppointments(doctorUsername: string, date?: Date)
             },
         })
 
-        return appointments.map((appointment) => ({
+        return appointments.map((appointment:any) => ({
             id: appointment.id,
             patientId: appointment.patientId,
             doctorId: appointment.doctorId,
@@ -270,7 +269,7 @@ export async function getDoctorPatients(doctorUsername: string, limit = 50): Pro
             take: limit,
         })
 
-        return patients.map((patient) => ({
+        return patients.map((patient:any) => ({
             id: patient.id,
             name: patient.name,
             age: patient.age,
@@ -289,8 +288,8 @@ export async function getDoctorPatients(doctorUsername: string, limit = 50): Pro
                     : { bp: "", pulse: "", temp: "", weight: "", height: "" },
             lastVisit: patient.lastVisit,
             nextAppointment: patient.nextAppointment,
-            medications: patient.prescriptions.flatMap((prescription) =>
-                prescription.items.map((item) => ({
+            medications: patient.prescriptions.flatMap((prescription:any) =>
+                prescription.items.map((item:any) => ({
                     id: item.id,
                     name: item.drug.drugName,
                     dosage: item.dosage,
@@ -364,7 +363,7 @@ export async function searchPatients(query: string, limit = 20): Promise<Patient
             take: limit,
         })
 
-        return patients.map((patient) => ({
+        return patients.map((patient:any) => ({
             id: patient.id,
             name: patient.name,
             age: patient.age,
@@ -383,8 +382,8 @@ export async function searchPatients(query: string, limit = 20): Promise<Patient
                     : { bp: "", pulse: "", temp: "", weight: "", height: "" },
             lastVisit: patient.lastVisit,
             nextAppointment: patient.nextAppointment,
-            medications: patient.prescriptions.flatMap((prescription) =>
-                prescription.items.map((item) => ({
+            medications: patient.prescriptions.flatMap((prescription:any) =>
+                prescription.items.map((item:any) => ({
                     id: item.id,
                     name: item.drug.drugName,
                     dosage: item.dosage,
@@ -467,8 +466,8 @@ export async function getPatientDetails(patientId: string): Promise<PatientData 
                     : { bp: "", pulse: "", temp: "", weight: "", height: "" },
             lastVisit: patient.lastVisit,
             nextAppointment: patient.nextAppointment,
-            medications: patient.prescriptions.flatMap((prescription) =>
-                prescription.items.map((item) => ({
+            medications: patient.prescriptions.flatMap((prescription:any) =>
+                prescription.items.map((item:any) => ({
                     id: item.id,
                     name: item.drug.drugName,
                     dosage: item.dosage,
@@ -590,7 +589,7 @@ export async function createPrescription(data: CreatePrescriptionData): Promise<
             status: prescription.status,
             notes: prescription.notes,
             patient: prescription.patient,
-            items: prescription.items.map((item) => ({
+            items: prescription.items.map((item:any) => ({
                 id: item.id,
                 drugId: item.drugId,
                 dosage: item.dosage,
@@ -644,14 +643,14 @@ export async function getDoctorPrescriptions(doctorUsername: string, limit = 50)
             take: limit,
         })
 
-        return prescriptions.map((prescription) => ({
+        return prescriptions.map((prescription:any) => ({
             id: prescription.id,
             patientId: prescription.patientId,
             doctorId: prescription.doctorId,
             status: prescription.status,
             notes: prescription.notes,
             patient: prescription.patient,
-            items: prescription.items.map((item) => ({
+            items: prescription.items.map((item:any) => ({
                 id: item.id,
                 drugId: item.drugId,
                 dosage: item.dosage,
@@ -840,7 +839,7 @@ export async function getAllDrugsForSelection(query?: string): Promise<
             take: 100,
         })
         
-        return drugs.map((drug) => ({
+        return drugs.map((drug:any) => ({
             ...drug,
             location: drug.location || "Main Pharmacy",
             isAvailable: drug.currentStock > 0 && (!drug.expiryDate || drug.expiryDate > new Date()),

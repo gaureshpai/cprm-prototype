@@ -4,12 +4,10 @@ import { revalidatePath } from "next/cache"
 import {
     getDrugInventory,
     getPrescriptions,
-    getPurchaseOrders,
     processPrescription,
     completePrescription,
     addDrugToInventory,
     updateDrugInventory,
-    createReorder,
     getPharmacyStatistics,
     getTopMedications,
     getPrescriptionTrends,
@@ -21,10 +19,6 @@ export async function getDrugInventoryAction() {
 
 export async function getPrescriptionsAction() {
     return await getPrescriptions()
-}
-
-export async function getPurchaseOrdersAction() {
-    return await getPurchaseOrders()
 }
 
 export async function processPrescriptionAction(
@@ -65,12 +59,6 @@ export async function addDrugToInventoryAction(drugData: {
 
 export async function updateDrugInventoryAction(drugId: string, updates: any) {
     const result = await updateDrugInventory(drugId, updates)
-    revalidatePath("/pharmacist/inventory")
-    return result
-}
-
-export async function createReorderAction(drugId: string) {
-    const result = await createReorder(drugId)
     revalidatePath("/pharmacist/inventory")
     return result
 }
