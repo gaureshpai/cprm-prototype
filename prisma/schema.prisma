@@ -249,81 +249,12 @@ model DrugInventory {
   @@map("drug_inventory")
 }
 
-model audit_logs {
-  id         String   @id
-  userId     String?
-  action     String
-  resource   String
-  resourceId String?
-  details    Json?
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([resource])
-  @@index([userId])
-}
-
-model display_groups {
-  id          String   @id
-  name        String
-  description String?
-  displayIds  String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime
-}
-
-model display_schedules {
-  id        String   @id
-  displayId String
-  content   String
-  startTime DateTime
-  endTime   DateTime
-  isActive  Boolean  @default(true)
-  priority  Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-}
-
-model announcements {
-  id              String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  text            String
-  created_by      String
-  active          Boolean?  @default(true)
-  priority        Int?      @default(1)
-  target_displays String[]  @default([])
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
-  updated_at      DateTime? @default(now()) @db.Timestamp(6)
-
-  @@index([active], map: "idx_announcements_active")
-  @@index([created_at], map: "idx_announcements_created_at")
-}
-
-model content_items {
-  id              String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  title           String
-  type            String
-  content         String
-  active          Boolean?  @default(true)
-  target_displays String[]  @default([])
-  schedule_start  DateTime? @db.Timestamp(6)
-  schedule_end    DateTime? @db.Timestamp(6)
-  created_by      String
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
-  updated_at      DateTime? @default(now()) @db.Timestamp(6)
-
-  @@index([active], map: "idx_content_items_active")
-  @@index([type], map: "idx_content_items_type")
-}
-
 enum Role {
   ADMIN
   DOCTOR
   NURSE
   TECHNICIAN
   PHARMACIST
-  PATIENT
 }
 
 enum DrugStatus {
@@ -360,21 +291,4 @@ enum BloodStatus {
   SUFFICIENT
   LOW
   CRITICAL
-}
-
-enum DisplayContentType {
-  TOKEN_QUEUE
-  DEPARTMENT_STATUS
-  EMERGENCY_ALERTS
-  DRUG_INVENTORY
-  MIXED_DASHBOARD
-  BLOOD_BANK
-  OT_STATUS
-}
-
-enum DisplayStatus {
-  ONLINE
-  OFFLINE
-  WARNING
-  MAINTENANCE
 }
