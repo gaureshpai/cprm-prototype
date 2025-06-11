@@ -32,6 +32,8 @@ import {
   Loader2,
   Bell,
   X,
+  Package,
+  AlertCircle,
 } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
@@ -43,7 +45,7 @@ import {
   searchPatientsAction,
   createPrescriptionAction,
   getDoctorStatsAction,
-  getAvailableDrugsAction,
+  getAllDrugsForSelectionAction,
   updateAppointmentStatusAction,
   type PatientData,
   type AppointmentData,
@@ -61,6 +63,19 @@ interface Medication {
   frequency: string
   duration: string
   instructions: string
+  isCustom: boolean 
+}
+
+interface DrugOption {
+  id: string
+  drugName: string
+  currentStock: number
+  minStock: number
+  status: string
+  category?: string | null
+  expiryDate?: Date | null
+  location: string
+  isAvailable: boolean
 }
 
 export default function DoctorDashboard() {
@@ -68,12 +83,14 @@ export default function DoctorDashboard() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
+
   
   const [appointments, setAppointments] = useState<AppointmentData[]>([])
   const [patients, setPatients] = useState<PatientData[]>([])
   const [stats, setStats] = useState<any>(null)
   const [notifications, setNotifications] = useState<NotificationData[]>([])
   const [loading, setLoading] = useState(true)
+
   
   const [selectedPatient, setSelectedPatient] = useState<PatientData | null>(null)
   const [patientSearch, setPatientSearch] = useState("")
@@ -83,7 +100,9 @@ export default function DoctorDashboard() {
   const [notes, setNotes] = useState("")
   const [followUpDate, setFollowUpDate] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [availableDrugs, setAvailableDrugs] = useState<{ id: string; drugName: string }[]>([])
+  const [availableDrugs, setAvailableDrugs] = useState<DrugOption[]>([])
+  const [drugSearchQuery, setDrugSearchQuery] = useState("")
+
   
   useEffect(() => {
     if (user?.id) {
@@ -91,17 +110,32 @@ export default function DoctorDashboard() {
     }
   }, [user])
 
+  
+  useEffect(() => {
+    if (dialogOpen) {
+      loadAvailableDrugs()
+    }
+  }, [dialogOpen])
+
+  
+  useEffect(() => {
+    if (drugSearchQuery.length >= 2) {
+      loadAvailableDrugs(drugSearchQuery)
+    } else if (drugSearchQuery.length === 0) {
+      loadAvailableDrugs()
+    }
+  }, [drugSearchQuery])
+
   const loadDashboardData = async () => {
     if (!user?.id) return
 
     try {
       setLoading(true)
       startTransition(async () => {
-        const [appointmentsResult, patientsResult, statsResult, drugsResult, notificationsResult] = await Promise.all([
+        const [appointmentsResult, patientsResult, statsResult, notificationsResult] = await Promise.all([
           getDoctorAppointmentsAction(user.id),
           getDoctorPatientsAction(user.id, 10),
           getDoctorStatsAction(user.id),
-          getAvailableDrugsAction(),
           getDoctorNotificationsAction(user.id),
         ])
 
@@ -115,10 +149,6 @@ export default function DoctorDashboard() {
 
         if (statsResult.success && statsResult.data) {
           setStats(statsResult.data)
-        }
-
-        if (drugsResult.success && drugsResult.data) {
-          setAvailableDrugs(drugsResult.data)
         }
 
         if (notificationsResult.success && notificationsResult.data) {
@@ -136,6 +166,18 @@ export default function DoctorDashboard() {
       setLoading(false)
     }
   }
+
+  const loadAvailableDrugs = async (query?: string) => {
+    try {
+      const result = await getAllDrugsForSelectionAction(query)
+      if (result.success && result.data) {
+        setAvailableDrugs(result.data)
+      }
+    } catch (error) {
+      console.error("Error loading available drugs:", error)
+    }
+  }
+
   
   const handlePatientSearch = async (query: string) => {
     setPatientSearch(query)
@@ -153,6 +195,7 @@ export default function DoctorDashboard() {
       console.error("Error searching patients:", error)
     }
   }
+
   
   const addMedication = () => {
     const newMedication: Medication = {
@@ -162,17 +205,25 @@ export default function DoctorDashboard() {
       frequency: "",
       duration: "",
       instructions: "",
+      isCustom: false,
     }
     setMedications([...medications, newMedication])
   }
 
-  const updateMedication = (id: string, field: keyof Medication, value: string) => {
+  const updateMedication = (id: string, field: keyof Medication, value: string | boolean) => {
     setMedications(medications.map((med) => (med.id === id ? { ...med, [field]: value } : med)))
   }
 
   const removeMedication = (id: string) => {
     setMedications(medications.filter((med) => med.id !== id))
   }
+
+  const handleDrugSelection = (medicationId: string, drugName: string) => {
+    const isCustom = drugName === "OTHER"
+    updateMedication(medicationId, "drugName", isCustom ? "" : drugName)
+    updateMedication(medicationId, "isCustom", isCustom)
+  }
+
   
   const handleSubmitPrescription = async () => {
     if (!selectedPatient || !user?.id) {
@@ -188,6 +239,17 @@ export default function DoctorDashboard() {
       toast({
         title: "Error",
         description: "Please add at least one medication",
+        variant: "destructive",
+      })
+      return
+    }
+
+    
+    const invalidMedications = medications.filter((med) => !med.drugName.trim())
+    if (invalidMedications.length > 0) {
+      toast({
+        title: "Error",
+        description: "Please provide names for all medications",
         variant: "destructive",
       })
       return
@@ -217,6 +279,7 @@ export default function DoctorDashboard() {
             title: "Success",
             description: `Prescription created for ${selectedPatient.name}`,
           })
+
           
           setSelectedPatient(null)
           setMedications([])
@@ -226,6 +289,7 @@ export default function DoctorDashboard() {
           setPatientSearch("")
           setSearchResults([])
           setDialogOpen(false)
+
           
           loadDashboardData()
         } else {
@@ -245,6 +309,7 @@ export default function DoctorDashboard() {
       })
     }
   }
+
   
   const handleUpdateAppointmentStatus = async (appointmentId: string, status: string) => {
     try {
@@ -268,6 +333,7 @@ export default function DoctorDashboard() {
       console.error("Error updating appointment:", error)
     }
   }
+
   
   const handleMarkNotificationRead = async (notificationId: string) => {
     try {
@@ -314,6 +380,28 @@ export default function DoctorDashboard() {
         return "bg-green-50 border-green-200"
       default:
         return "bg-gray-50 border-gray-200"
+    }
+  }
+
+  const getDrugStockBadge = (drug: DrugOption) => {
+    if (drug.currentStock <= 0) {
+      return (
+        <Badge variant="destructive" className="text-xs">
+          Out of Stock
+        </Badge>
+      )
+    } else if (drug.currentStock <= drug.minStock) {
+      return (
+        <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+          Low Stock ({drug.currentStock})
+        </Badge>
+      )
+    } else {
+      return (
+        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+          In Stock ({drug.currentStock})
+        </Badge>
+      )
     }
   }
 
@@ -470,23 +558,112 @@ export default function DoctorDashboard() {
                               </div>
 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                                <div className="space-y-2 md:col-span-2">
                                   <Label>Medication Name</Label>
-                                  <Select
-                                    value={medication.drugName}
-                                    onValueChange={(value) => updateMedication(medication.id, "drugName", value)}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select medication" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {availableDrugs.map((drug) => (
-                                        <SelectItem key={drug.id} value={drug.drugName}>
-                                          {drug.drugName}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                  {!medication.isCustom ? (
+                                    <div className="space-y-2">
+                                      <Select
+                                        value={medication.drugName}
+                                        onValueChange={(value) => handleDrugSelection(medication.id, value)}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select medication from inventory" />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-60">
+                                          <div className="p-2 border-b">
+                                            <div className="relative">
+                                              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
+                                              <Input
+                                                placeholder="Search drugs..."
+                                                className="pl-7 h-8 text-sm"
+                                                value={drugSearchQuery}
+                                                onChange={(e) => setDrugSearchQuery(e.target.value)}
+                                              />
+                                            </div>
+                                          </div>
+
+                                          {availableDrugs.length > 0 ? (
+                                            <>
+                                              {availableDrugs.map((drug) => (
+                                                <SelectItem key={drug.id} value={drug.drugName}>
+                                                  <div className="flex items-center justify-between w-full">
+                                                    <div className="flex items-center space-x-2">
+                                                      <Package className="h-3 w-3" />
+                                                      <span>{drug.drugName}</span>
+                                                    </div>
+                                                    <div className="flex items-center space-x-1 ml-2">
+                                                      {getDrugStockBadge(drug)}
+                                                      {drug.category && (
+                                                        <Badge variant="outline" className="text-xs">
+                                                          {drug.category}
+                                                        </Badge>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                </SelectItem>
+                                              ))}
+                                              <SelectItem value="OTHER" className="border-t">
+                                                <div className="flex items-center space-x-2 text-orange-600">
+                                                  <AlertCircle className="h-3 w-3" />
+                                                  <span>Other (Enter manually)</span>
+                                                </div>
+                                              </SelectItem>
+                                            </>
+                                          ) : (
+                                            <SelectItem value="OTHER">
+                                              <div className="flex items-center space-x-2 text-orange-600">
+                                                <AlertCircle className="h-3 w-3" />
+                                                <span>No drugs found - Enter manually</span>
+                                              </div>
+                                            </SelectItem>
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+
+                                      {medication.drugName &&
+                                        availableDrugs.find((d) => d.drugName === medication.drugName) && (
+                                          <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                                            <div className="flex items-center justify-between">
+                                              <span>
+                                                Stock:{" "}
+                                                {
+                                                  availableDrugs.find((d) => d.drugName === medication.drugName)
+                                                    ?.currentStock
+                                                }{" "}
+                                                units
+                                              </span>
+                                              <span>
+                                                Location:{" "}
+                                                {
+                                                  availableDrugs.find((d) => d.drugName === medication.drugName)
+                                                    ?.location
+                                                }
+                                              </span>
+                                            </div>
+                                          </div>
+                                        )}
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center space-x-2 text-orange-600 text-sm">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <span>Custom medication (not in inventory)</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleDrugSelection(medication.id, "")}
+                                          className="text-blue-600 hover:text-blue-700 p-0 h-auto"
+                                        >
+                                          Back to inventory
+                                        </Button>
+                                      </div>
+                                      <Input
+                                        placeholder="Enter medication name"
+                                        value={medication.drugName}
+                                        onChange={(e) => updateMedication(medication.id, "drugName", e.target.value)}
+                                      />
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="space-y-2">
@@ -537,15 +714,15 @@ export default function DoctorDashboard() {
                                     </SelectContent>
                                   </Select>
                                 </div>
-                              </div>
 
-                              <div className="mt-4 space-y-2">
-                                <Label>Special Instructions</Label>
-                                <Input
-                                  placeholder="e.g., Take with food, Before meals"
-                                  value={medication.instructions}
-                                  onChange={(e) => updateMedication(medication.id, "instructions", e.target.value)}
-                                />
+                                <div className="space-y-2">
+                                  <Label>Special Instructions</Label>
+                                  <Input
+                                    placeholder="e.g., Take with food, Before meals"
+                                    value={medication.instructions}
+                                    onChange={(e) => updateMedication(medication.id, "instructions", e.target.value)}
+                                  />
+                                </div>
                               </div>
                             </CardContent>
                           </Card>
@@ -605,19 +782,8 @@ export default function DoctorDashboard() {
               </DialogContent>
             </Dialog>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
-                <Calendar className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats?.todayAppointments || 0}</div>
-                <p className="text-xs text-muted-foreground">{stats?.completedAppointments || 0} completed</p>
-              </CardContent>
-            </Card>
-
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
@@ -625,7 +791,7 @@ export default function DoctorDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats?.totalPatients || 0}</div>
-                <p className="text-xs text-muted-foreground">Under your care</p>
+                <p className="text-xs text-muted-foreground">In the system</p>
               </CardContent>
             </Card>
 
@@ -639,107 +805,13 @@ export default function DoctorDashboard() {
                 <p className="text-xs text-muted-foreground">Awaiting pharmacy</p>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Current Patient</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {appointments.find((a) => a.status === "In Progress")?.patient.name || "None"}
-                </div>
-                <p className="text-xs text-muted-foreground">Currently in consultation</p>
-              </CardContent>
-            </Card>
           </div>
 
-          <Tabs defaultValue="schedule" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-white">
-              <TabsTrigger value="schedule">Today's Schedule</TabsTrigger>
+          <Tabs defaultValue="patients" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 bg-white">
               <TabsTrigger value="patients">Recent Patients</TabsTrigger>
               <TabsTrigger value="alerts">Alerts & Notifications</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="schedule" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Clock className="h-5 w-5 text-blue-600" />
-                    <span>Appointments</span>
-                  </CardTitle>
-                  <CardDescription>Your schedule for today</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {appointments.length > 0 ? (
-                      appointments.map((appointment) => (
-                        <div
-                          key={appointment.id}
-                          className={`flex items-center justify-between p-4 border rounded-lg ${appointment.status === "In Progress"
-                              ? "bg-blue-50 border-blue-200"
-                              : appointment.status === "Completed"
-                                ? "bg-gray-50 border-gray-200"
-                                : "bg-white"
-                            }`}
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div className="text-center w-16">
-                              <p className="font-medium text-gray-900">{appointment.time}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">{appointment.patient.name}</p>
-                              <p className="text-sm text-gray-600">{appointment.type}</p>
-                              {appointment.notes && <p className="text-sm text-gray-500">{appointment.notes}</p>}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge
-                              variant={
-                                appointment.status === "Completed"
-                                  ? "outline"
-                                  : appointment.status === "In Progress"
-                                    ? "default"
-                                    : appointment.status === "Waiting"
-                                      ? "secondary"
-                                      : "outline"
-                              }
-                              className={appointment.status === "In Progress" ? "bg-green-500" : ""}
-                            >
-                              {appointment.status}
-                            </Badge>
-                            {appointment.status === "Scheduled" && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleUpdateAppointmentStatus(appointment.id, "In Progress")}
-                                disabled={isPending}
-                              >
-                                Start
-                              </Button>
-                            )}
-                            {appointment.status === "In Progress" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleUpdateAppointmentStatus(appointment.id, "Completed")}
-                                disabled={isPending}
-                              >
-                                Complete
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                        <p>No appointments scheduled for today</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="patients" className="space-y-6">
               <Card>
@@ -748,7 +820,7 @@ export default function DoctorDashboard() {
                     <Users className="h-5 w-5 text-blue-600" />
                     <span>Recent Patients</span>
                   </CardTitle>
-                  <CardDescription>Patients you've recently treated</CardDescription>
+                  <CardDescription>All patients in the system</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
