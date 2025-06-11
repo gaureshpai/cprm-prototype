@@ -20,7 +20,9 @@ export interface Announcement {
     text: string
     createdAt: string
     createdBy: string
+    updatedAt: string
     active: boolean
+    resolved?: boolean
 }
 
 export interface EmergencyAlert {
@@ -90,6 +92,7 @@ export async function getAllAnnouncementsAction(): Promise<ContentResponse<Annou
             id: alert.id,
             text: alert.message,
             createdAt: alert.createdAt.toISOString(),
+            updatedAt: alert.updatedAt.toISOString(),
             createdBy: "admin",
             active: !alert.resolved,
         }))
@@ -130,6 +133,7 @@ export async function createAnnouncementAction(formData: FormData): Promise<Cont
                 id: alert.id,
                 text: alert.message,
                 createdAt: alert.createdAt.toISOString(),
+                updatedAt: alert.createdAt.toISOString(),
                 createdBy: createdBy || "admin",
                 active: !alert.resolved,
             },
@@ -155,6 +159,27 @@ export async function deleteAnnouncementAction(id: string): Promise<ContentRespo
         console.error("Error deleting announcement:", error)
         await prisma.$disconnect()
         return { success: false, error: "Failed to delete announcement" }
+    }
+}
+
+export async function resolveAnnouncementAction(alertId: string) {
+    try {
+        await prisma.systemAlert.update({
+            where: { id: alertId },
+            data: {
+                resolved: true,
+                updatedAt: new Date(),
+            },
+        })
+
+        await prisma.$disconnect()
+        revalidatePath("/admin")
+
+        return { success: true, data: true }
+    } catch (error) {
+        console.error("Error resolving emergency alert:", error)
+        await prisma.$disconnect()
+        return { success: false, error: "Failed to resolve emergency alert" }
     }
 }
 

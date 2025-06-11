@@ -21,6 +21,7 @@ import {
   getAllAnnouncementsAction,
   createAnnouncementAction,
   deleteAnnouncementAction,
+  resolveAnnouncementAction, // Add this new action
   createEmergencyAlertAction,
   getRecentEmergencyAlertsAction,
   resolveEmergencyAlertAction,
@@ -38,7 +39,7 @@ export default function AdminPanel() {
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([])
   const [analytics, setAnalytics] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  
+
   const [announcementsLoading, setAnnouncementsLoading] = useState(true)
   const [contentLoading, setContentLoading] = useState(true)
   const [emergencyAlertsLoading, setEmergencyAlertsLoading] = useState(true)
@@ -46,7 +47,7 @@ export default function AdminPanel() {
   const [isPending, startTransition] = useTransition()
   const { user } = useAuth()
   const { toast } = useToast()
-  
+
   const [emergencyAlert, setEmergencyAlert] = useState({
     type: "",
     location: "",
@@ -54,49 +55,48 @@ export default function AdminPanel() {
   })
   const [newAnnouncement, setNewAnnouncement] = useState("")
   const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] = useState(false)
-  
+
   useEffect(() => {
     fetchInitialData()
-    
+
     const interval = setInterval(() => {
       fetchRealTimeData()
-    }, 10000) 
+    }, 100000)
 
     return () => clearInterval(interval)
   }, [])
-  
+
   const fetchInitialData = async () => {
     try {
       setLoading(true)
 
       startTransition(async () => {
-        
         const displaysResult = await getAllDisplaysAction()
         if (displaysResult.success && displaysResult.data) {
           setDisplays(displaysResult.data)
         }
-        
+
         setContentLoading(true)
         const contentResult = await getAllContentAction()
         if (contentResult.success && contentResult.data) {
           setContentItems(contentResult.data)
         }
         setContentLoading(false)
-        
+
         setAnnouncementsLoading(true)
         const announcementsResult = await getAllAnnouncementsAction()
         if (announcementsResult.success && announcementsResult.data) {
           setAnnouncements(announcementsResult.data)
         }
         setAnnouncementsLoading(false)
-        
+
         setEmergencyAlertsLoading(true)
         const alertsResult = await getRecentEmergencyAlertsAction()
         if (alertsResult.success && alertsResult.data) {
           setEmergencyAlerts(alertsResult.data)
         }
         setEmergencyAlertsLoading(false)
-        
+
         const analyticsResult = await getSystemAnalyticsAction()
         if (analyticsResult.success && analyticsResult.data) {
           setAnalytics(analyticsResult.data)
@@ -113,21 +113,20 @@ export default function AdminPanel() {
       setLoading(false)
     }
   }
-  
+
   const fetchRealTimeData = async () => {
     try {
       startTransition(async () => {
-        
         const alertsResult = await getRecentEmergencyAlertsAction()
         if (alertsResult.success && alertsResult.data) {
           setEmergencyAlerts(alertsResult.data)
         }
-        
+
         const analyticsResult = await getSystemAnalyticsAction()
         if (analyticsResult.success && analyticsResult.data) {
           setAnalytics(analyticsResult.data)
         }
-        
+
         const displaysResult = await getAllDisplaysAction()
         if (displaysResult.success && displaysResult.data) {
           setDisplays(displaysResult.data)
@@ -137,7 +136,7 @@ export default function AdminPanel() {
       console.error("Error fetching real-time data:", error)
     }
   }
-  
+
   const fetchAnnouncements = async () => {
     try {
       setAnnouncementsLoading(true)
@@ -151,7 +150,7 @@ export default function AdminPanel() {
       setAnnouncementsLoading(false)
     }
   }
-  
+
   const handleEmergencyAlert = async (e: React.FormEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -180,7 +179,7 @@ export default function AdminPanel() {
           variant: "default",
         })
         setEmergencyAlert({ type: "", location: "", description: "" })
-        
+
         fetchRealTimeData()
       } else {
         toast({
@@ -191,7 +190,7 @@ export default function AdminPanel() {
       }
     })
   }
-  
+
   const handlePublishAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -220,7 +219,7 @@ export default function AdminPanel() {
         })
         setNewAnnouncement("")
         setIsAnnouncementDialogOpen(false)
-        
+
         fetchAnnouncements()
       } else {
         toast({
@@ -231,7 +230,7 @@ export default function AdminPanel() {
       }
     })
   }
-  
+
   const handleDeleteAnnouncement = async (id: string) => {
     if (!confirm("Are you sure you want to delete this announcement?")) return
 
@@ -244,7 +243,7 @@ export default function AdminPanel() {
           description: "The announcement has been removed",
           variant: "default",
         })
-        
+
         fetchAnnouncements()
       } else {
         toast({
@@ -255,7 +254,29 @@ export default function AdminPanel() {
       }
     })
   }
-  
+
+  const handleResolveAnnouncement = async (id: string) => {
+    startTransition(async () => {
+      const result = await resolveAnnouncementAction(id)
+
+      if (result.success) {
+        toast({
+          title: "Announcement Resolved",
+          description: "The announcement has been marked as resolved",
+          variant: "default",
+        })
+
+        fetchAnnouncements()
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to resolve announcement",
+          variant: "destructive",
+        })
+      }
+    })
+  }
+
   const handleResolveAlert = async (id: string) => {
     startTransition(async () => {
       const result = await resolveEmergencyAlertAction(id)
@@ -266,7 +287,7 @@ export default function AdminPanel() {
           description: "The emergency alert has been marked as resolved",
           variant: "default",
         })
-        
+
         fetchRealTimeData()
       } else {
         toast({
@@ -277,7 +298,7 @@ export default function AdminPanel() {
       }
     })
   }
-  
+
   const LoadingSpinner = () => (
     <div className="flex items-center justify-center py-8">
       <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
@@ -323,8 +344,7 @@ export default function AdminPanel() {
                           value={newAnnouncement}
                           onChange={(e) => setNewAnnouncement(e.target.value)}
                           onKeyDown={(e) => {
-                            
-                            if (e.key === 'Enter' && !e.shiftKey) {
+                            if (e.key === "Enter" && !e.shiftKey) {
                               e.preventDefault()
                               return false
                             }
@@ -347,7 +367,6 @@ export default function AdminPanel() {
                           type="submit"
                           disabled={isPending || !newAnnouncement.trim()}
                           onClick={(e) => {
-                            
                             handlePublishAnnouncement(e)
                           }}
                         >
@@ -381,28 +400,46 @@ export default function AdminPanel() {
                       announcements.map((announcement) => (
                         <div
                           key={announcement.id}
-                          className="flex justify-between items-center p-3 bg-blue-50 rounded-lg"
+                          className={`flex justify-between items-start p-4 rounded-lg border transition-colors hover:bg-gray-50`}
                         >
-                          <div className="flex-1">
-                            <p className="font-medium">{announcement.text}</p>
-                            <p className="text-sm text-gray-600">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium">{announcement.text}</p>
+                            </div>
+                            <p className="text-xs text-gray-500">
                               Created by {announcement.createdBy} on{" "}
                               {new Date(announcement.createdAt).toLocaleDateString()}
                             </p>
                           </div>
                           <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteAnnouncement(announcement.id)}
-                              disabled={isPending}
-                            >
-                              {isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
+                            {!announcement.resolved ? (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleResolveAnnouncement(announcement.id)}
+                                  className="border-green-600 text-green-600 hover:bg-green-50"
+                                >
+                                Resolve <CheckCircle className="h-2 w-2" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteAnnouncement(announcement.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-600" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteAnnouncement(announcement.id)}
+                                disabled={isPending}
+                              >
                                 <Trash2 className="h-4 w-4 text-red-600" />
-                              )}
-                            </Button>
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))
@@ -571,8 +608,7 @@ export default function AdminPanel() {
                       value={emergencyAlert.description}
                       onChange={(e) => setEmergencyAlert({ ...emergencyAlert, description: e.target.value })}
                       onKeyDown={(e) => {
-                        
-                        if (e.key === 'Enter' && !e.shiftKey) {
+                        if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault()
                           return false
                         }
@@ -626,14 +662,14 @@ export default function AdminPanel() {
                             <div className="flex items-center">
                               <Badge
                                 className={`mr-2 ${alert.codeType === "Code Blue"
-                                  ? "bg-blue-600"
-                                  : alert.codeType === "Code Red"
-                                    ? "bg-red-600"
-                                    : alert.codeType === "Code Black"
-                                      ? "bg-black"
-                                      : alert.codeType === "Code Orange"
-                                        ? "bg-orange-600"
-                                        : "bg-gray-600"
+                                    ? "bg-blue-600"
+                                    : alert.codeType === "Code Red"
+                                      ? "bg-red-600"
+                                      : alert.codeType === "Code Black"
+                                        ? "bg-black"
+                                        : alert.codeType === "Code Orange"
+                                          ? "bg-orange-600"
+                                          : "bg-gray-600"
                                   }`}
                               >
                                 {alert.codeType}
@@ -652,11 +688,7 @@ export default function AdminPanel() {
                                 disabled={isPending}
                                 className="border-green-600 text-green-600 hover:bg-green-50"
                               >
-                                {isPending ? (
-                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                ) : (
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                )}
+                                <CheckCircle className="h-4 w-4 mr-1" />
                                 Resolve
                               </Button>
                             ) : (
