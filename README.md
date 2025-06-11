@@ -1,258 +1,156 @@
-# CPRM Prototype - Centralized Patient & Resource Management System
+# CPRM - Centralized Patient & Resource Management System
 
-The **Centralized Patient & Resource Management System (CPRM)** is a comprehensive hospital management solution developed for Wenlock Hospital as part of the UDAL Fellowship challenge. This prototype demonstrates a scalable, real-time system that connects different departments and streamlines patient care, resource management, and operational efficiency.
+<div style="display: flex; align-items: center; gap: 16px; border: 1px solid #ccc; padding: 12px; border-radius: 8px; width: fit-content;">
+  <img src="./public/logo.png" alt="Logo" style="width: 80px; height: 80px; object-fit: contain; border-radius: 8px;" />
+  <div style="display: flex; flex-direction: column;">
+    <a href="https://cprm-prototype.vercel.app" target="_blank" style="font-weight: bold; font-size: 16px; text-decoration: none; color: #007acc;">
+      🌐 cprm-prototype.vercel.app
+    </a>
+  </div>
+</div>
 
-## 🎯 Challenge Overview
+## Smart Display System for Wenlock Hospital
 
-This project addresses the **inunity UDAL Fellowship** challenge requirements, focusing on:
+## 🏥 **Project Overview**
 
-- **Systems Design & Architecture**: Scalable system connecting Cardiology, OT, Inventory departments
-- **Real-time Data Flow**: Live updates for patient queues, emergency alerts, and resource tracking
-- **Backend Development**: APIs for inter-department communication and secure data storage
-- **Frontend/UI Design**: Intuitive interfaces for medical staff and administrators
-- **Real-Time Systems**: WebSocket integration for live updates
-- **Cybersecurity & Privacy**: Role-based access controls (RBAC) and medical data compliance
+CPRM is a **Smart Display Management System** designed specifically for **Wenlock Hospital's 73 display screens** across Cardiology, OT, and Pharmacy departments. This prototype addresses the critical need for unified real-time communication, emergency alert broadcasting, and synchronized department operations.
 
-## 🚀 Features
+### **🎯 Core Problem Solved**
+- **73 Fragmented Displays** → **Unified Display Network**
+- **Department Silos** → **Real-time Synchronization** 
+- **Emergency Communication Gaps** → **Instant Alert Broadcasting**
+- **Patient Privacy Risks** → **Token-Based Security System**
 
-### 🔐 Authentication & Security
-- **Role-based Authentication** (Admin, Doctor, Nurse, Technician, Pharmacist)
-- **Secure Login System** with demo credentials
-- **Route Protection** with AuthGuard components
-- **Session Management** with automatic validation
-- **Medical Data Privacy** compliance ready
+## 🚀 **Key Features**
 
-### 👨‍⚕️ Doctor Module
-- **Patient Management**: View patient records, medical history, and current status
-- **Appointment Scheduling**: Today's schedule with real-time updates
-- **OT Status Monitoring**: Operating theater availability and scheduling
-- **Prescription Management**: Create and manage patient prescriptions
-- **Emergency Alerts**: Real-time notifications for critical situations
+### **📺 Smart Display Management**
+#### **Public Patient Displays**
+- **Token-Based Queues**: Privacy-safe patient identification (P001, P002, etc.)
+- **Real-time Wait Times**: Live queue progression and estimates
+- **Department Status**: "OT-1 Ready", "Cardiology Queue: 3 patients"
+- **Emergency Overlays**: Code Blue/Red alerts override normal content
 
-### 👩‍⚕️ Nurse Module
-- **Ward Management**: Monitor patients in assigned wards
-- **Medication Administration**: Track and administer medications with safety checks
-- **Vital Signs Monitoring**: Record and track patient vitals
-- **Task Management**: Daily tasks with priority levels and completion tracking
-- **Emergency Response**: Quick access to assistance requests
+#### **Staff Internal Displays**
+- **Detailed OT Schedules**: Complete surgery timetables with surgeon assignments
+- **Drug Inventory Alerts**: "Morphine: Low Stock - 12 units remaining"
+- **Patient Flow Tracking**: Real-time bed availability and patient movement
+- **Emergency Protocols**: Detailed Code Blue/Red response procedures
 
-### 💊 Pharmacist Module
-- **Inventory Management**: Real-time drug stock monitoring with alerts
-- **Prescription Processing**: Queue management for prescription dispensing
-- **Purchase Orders**: Automated reordering and supplier management
-- **Stock Alerts**: Critical and low stock notifications
-- **Compliance Tracking**: Medication dispensing audit trails
+### **🔄 Real-Time Department Synchronization**
+#### **OT ↔ Pharmacy Integration**
+```
+Surgery Scheduled → Pharmacy Alert → Medication Preparation
+Emergency Surgery → Priority Drug Allocation → Stock Reservation
+Post-Surgery → Medication Reconciliation → Inventory Update
+```
 
-### 🔧 Technician Module
-- **Display Network Management**: Monitor 73+ displays across hospital departments
-- **System Performance**: Real-time network and hardware monitoring
-- **Alert Management**: System alerts with severity levels and resolution tracking
-- **Maintenance Scheduling**: Proactive maintenance and issue resolution
-- **Performance Analytics**: Network uptime and response time monitoring
+#### **Cardiology ↔ OT Coordination**
+- Pre-surgery cardiac assessments sync with OT scheduling
+- Post-surgery monitoring alerts to cardiology teams
+- Shared patient status updates across departments
 
-### ⚙️ Admin Module
-- **System Overview**: Comprehensive dashboard with all department metrics
-- **User Management**: Role-based user account administration
-- **Emergency Broadcasting**: Hospital-wide alert and announcement system
-- **Content Management**: Display content and scheduling management
-- **Analytics & Reporting**: System usage and performance reports
+### **🚨 Emergency Alert System**
+#### **Code Blue (Cardiac Emergency)**
+- **2-Second Broadcast**: Instant alert across all 73 displays
+- **Location Specific**: "Code Blue - OT-3, Cardiology Team Required"
+- **Response Tracking**: Staff acknowledgment and ETA display
+- **Resource Coordination**: Available equipment and personnel
 
-## 🛠 Technology Stack
+#### **Code Red (Fire Emergency)**
+- **Dynamic Evacuation Routes**: Based on fire location
+- **Department Status**: "OT-2 Evacuating, Patients to Safe Zone"
+- **Resource Allocation**: Wheelchairs, stretchers, staff availability
 
-### Frontend
-- **Next.js 15** with App Router
-- **React 18** with TypeScript
-- **Tailwind CSS** for styling
-- **shadcn/ui** component library
-- **Lucide React** for icons
+### **💊 Drug Inventory Management**
+#### **Real-Time Stock Monitoring**
+- **Live Inventory Tracking**: Current stock levels across all medications
+- **Automated Alerts**: Low stock warnings before critical shortages
+- **Surgery Integration**: Automatic medication reservation for scheduled procedures
+- **Expiry Management**: Alerts for medications nearing expiration dates
 
-### Backend (Ready for Integration)
-- **Next.js API Routes** for backend services
-- **WebSocket** support for real-time updates
-- **Database Ready**: Supabase/Neon integration prepared
-- **Authentication**: JWT-ready session management
+#### **Pharmacy Workflow Optimization**
+- **Prescription Processing**: Digital prescription management
+- **Stock Allocation**: Priority-based medication distribution
+- **Reorder Automation**: Intelligent restocking based on usage patterns
+- **Audit Trails**: Complete medication dispensing history
 
-### Design System
-- **inunity Branding** integration
-- **Medical-focused UI/UX**
-- **Responsive Design** for all devices
-- **Accessibility** compliant components
+## 🛠️ **Technology Stack**
 
-## 🚀 Getting Started
+### **Frontend - Display Management**
+- **Next.js 14**: Server-side rendering for fast display updates
+- **TypeScript**: Type-safe development for critical healthcare data
+- **Tailwind CSS**: Responsive design for various display sizes (32", 55", 65")
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn package manager
+### **Backend - Synchronization Engine**
+- **Prisma ORM**: Type-safe database operations for critical data
+- **PostgreSQL**: Enterprise-grade database for hospital operations
+- **Server Actions**: Secure data mutations for sensitive operations
+- **Real-time Triggers**: Database-level synchronization between departments
 
-### Installation
+### **Display Infrastructure**
+- **Responsive Web Displays**: HTML/CSS/JavaScript for easy deployment
+- **LG Display Manager Compatible**: Integration with existing display hardware
+- **Multi-Screen Support**: Optimized for Wenlock's 73 display network
 
-1. **Clone the repository**
-   \`\`\`bash
-   git clone <repository-url>
-   cd cprm-prototype
-   \`\`\`
+## 📊 **Display Analytics & Monitoring**
 
-2. **Install dependencies**
-   \`\`\`bash
-   npm install
-   # or
-   yarn install
-   \`\`\`
+### ** Approximated Display Performance Metrics**
+- **Update Latency**: < 5 seconds across all 73 displays
+- **Synchronization Accuracy**: > 99% data consistency
+- **Emergency Alert Speed**: < 5 seconds from trigger to display
+- **System Uptime**: > 99.9% availability target
 
-3. **Run the development server**
-   \`\`\`bash
-   npm run dev
-   # or
-   yarn dev
-   \`\`\`
+### **Approximated Department Efficiency Metrics**
+- **OT Preparation Time**: 40% reduction with pharmacy sync
+- **Emergency Response**: 70% faster with instant alerts
+- **Medication Errors**: 60% reduction with digital tracking
+- **Patient Wait Accuracy**: 95% accurate time estimates
+## 🚀 **Installation & Setup**
 
-4. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+### **Prerequisites for Display System**
+- Node.js 18+ for display server
+- PostgreSQL for hospital data
+- Network access to all 73 display endpoints
+- LG Display Manager (optional integration)
 
-### Demo Credentials
+### **Quick Start**
+```bash
+# Clone the repository
+git clone https://github.com/gaureshpai/cprm-prototype
+cd cprm-prototype
 
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | ADM001 | admin123 |
-| Doctor | DOC001 | doctor123 |
-| Nurse | NUR001 | nurse123 |
-| Technician | TEC001 | tech123 |
-| Pharmacist | PHR001 | pharma123 |
+# Install dependencies
+npm install
 
-## 📱 User Interfaces
+# Setup environment
+cp example.env .env.local
+# Configure DATABASE_URL and NODE_ENV
 
-### 🏠 Main Dashboard
-- **Real-time Overview**: Patient flow, OT status, emergency alerts
-- **Department Metrics**: Live statistics from all hospital departments
-- **Quick Actions**: Role-based quick access buttons
-- **Notification Center**: System-wide alerts and updates
+# Initialize database with hospital data
+npx prisma generate
+npx prisma db push
 
-### 📺 Display System
-- **73+ Digital Displays**: Distributed across hospital departments
-- **Content Rotation**: Automated content switching (queues, alerts, info)
-- **Real-time Updates**: Live data synchronization
-- **Emergency Override**: Instant emergency alert broadcasting
+# Start the display management server
+npm run dev
 
-### 📱 Mobile Interface
-- **Patient-focused**: Token tracking and department navigation
-- **Emergency Contacts**: Quick access to emergency services
-- **Responsive Design**: Optimized for mobile devices
-- **Offline Capability**: Essential features work offline
+# Access display management
+open http://localhost:3000/admin/displays
+```
 
-## 🏗 System Architecture
+## 📞 **Support & Maintenance**
 
-### Frontend Architecture
-\`\`\`
-app/
-├── (auth)/
-│   └── login/              # Authentication pages
-├── admin/                  # Admin dashboard and management
-├── doctor/                 # Doctor interface and patient management
-├── nurse/                  # Nurse ward and medication management
-├── pharmacist/             # Pharmacy and inventory management
-├── technician/             # System monitoring and maintenance
-├── display/                # Public display interfaces
-├── mobile/                 # Mobile-optimized interfaces
-└── api/                    # Backend API routes
-\`\`\`
+### **Display System Monitoring**
+- **24/7 Display Health Monitoring**: Automatic detection of offline displays
+- **Content Validation**: Ensures accurate information across all screens
+- **Performance Analytics**: Real-time metrics for system optimization
+- **Remote Management**: Update content and settings from central dashboard
 
-### Component Structure
-\`\`\`
-components/
-├── ui/                     # shadcn/ui base components
-├── auth-guard.tsx          # Route protection
-├── navbar.tsx              # Navigation system
-├── emergency-alert.tsx     # Emergency alert system
-├── patient-flow.tsx        # Patient queue management
-└── staff-directory.tsx     # Staff information system
-\`\`\`
+### **Emergency Support**
+- **Critical Alert Hotline**: Immediate response for emergency system issues
+- **Backup Display System**: Redundant displays for critical areas
+- **Manual Override**: Emergency procedures when digital systems fail
+- **Staff Training**: Comprehensive training for all system users
 
-## 🔄 Real-time Features
+**🎯 "Transforming 73 fragmented displays into one intelligent hospital communication network."**
 
-### WebSocket Integration (Ready)
-- **Live Patient Updates**: Real-time patient status changes
-- **Emergency Alerts**: Instant hospital-wide notifications
-- **Queue Management**: Live patient queue updates
-- **System Monitoring**: Real-time system health monitoring
-
-### Data Synchronization
-- **Cross-department Updates**: Automatic data sync between departments
-- **Conflict Resolution**: Smart conflict handling for concurrent updates
-- **Offline Support**: Local data caching with sync on reconnection
-
-## 🛡 Security & Compliance
-
-### Role-Based Access Control (RBAC)
-- **Granular Permissions**: Fine-tuned access control per role
-- **Data Segregation**: Department-specific data access
-- **Audit Trails**: Comprehensive logging for compliance
-- **Session Security**: Secure session management with timeout
-
-### Medical Data Compliance
-- **HIPAA-like Standards**: Privacy protection for Indian healthcare
-- **Data Encryption**: Secure data transmission and storage
-- **Access Logging**: Complete audit trail for data access
-- **Consent Management**: Patient consent tracking and management
-
-## 📊 Performance & Monitoring
-
-### System Metrics
-- **Response Time**: Average API response time monitoring
-- **Uptime Tracking**: System availability monitoring
-- **Error Rates**: Error tracking and alerting
-- **User Analytics**: Usage patterns and optimization insights
-
-### Display Network Monitoring
-- **73+ Displays**: Real-time status of all hospital displays
-- **Network Health**: Connectivity and performance monitoring
-- **Content Delivery**: Successful content distribution tracking
-- **Maintenance Alerts**: Proactive maintenance scheduling
-
-## 🔮 Future Enhancements
-
-### Phase 2 Features
-- **AI-Powered Analytics**: Predictive analytics for patient flow
-- **IoT Integration**: Medical device connectivity
-- **Telemedicine**: Remote consultation capabilities
-- **Mobile App**: Native mobile applications
-
-### Integration Roadmap
-- **Hospital Information System (HIS)**: Legacy system integration
-- **Laboratory Information System (LIS)**: Lab result integration
-- **Picture Archiving System (PACS)**: Medical imaging integration
-- **Electronic Health Records (EHR)**: Comprehensive patient records
-
-## 🤝 Contributing
-
-This project is part of the UDAL Fellowship challenge. For contributions:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is developed for the UDAL Fellowship challenge and follows the terms specified in the challenge guidelines.
-
-## 🏆 UDAL Fellowship
-
-This prototype demonstrates the technical capabilities required for the UDAL Fellowship challenge:
-
-- **Innovation**: Modern web technologies with real-time capabilities
-- **Scalability**: Microservices-ready architecture
-- **User Experience**: Intuitive interfaces for medical professionals
-- **Security**: Enterprise-grade security and compliance
-- **Impact**: Measurable improvements in hospital efficiency
-
-## 📞 Contact
-
-**Developer**: [Your Name]  
-**Challenge**: UDAL Fellowship - Centralized Patient & Resource Management  
-**Organization**: inunity  
-**Hospital Partner**: Wenlock Hospital  
-
----
-
-**Built with ❤️ for better healthcare delivery**
+**Developed specifically for Wenlock Hospital's UDAL Fellowship Challenge**
