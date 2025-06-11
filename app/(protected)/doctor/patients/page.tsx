@@ -61,6 +61,7 @@ export default function DoctorPatientsPage() {
   const [isPending, startTransition] = useTransition()
   const { user } = useAuth()
   const { toast } = useToast()
+
   
   useEffect(() => {
     loadPatients()
@@ -408,7 +409,18 @@ export default function DoctorPatientsPage() {
                                         dosage: string
                                         frequency: string
                                         duration: string
-                                        instructions?: string
+                                        instructions?: string | null
+                                        drugInfo: {
+                                          id: string
+                                          currentStock: number
+                                          minStock: number
+                                          status: string
+                                          category?: string | null
+                                          batchNumber?: string | null
+                                          expiryDate?: Date | null
+                                          location: string
+                                        }
+                                        prescriptionDate: Date
                                       },
                                       index: number,
                                     ) => (
@@ -419,16 +431,48 @@ export default function DoctorPatientsPage() {
                                         <div className="flex-1">
                                           <div className="flex items-center justify-between">
                                             <span className="font-medium text-gray-900">{medication.name}</span>
-                                            <Badge variant="outline">Active</Badge>
+                                            <div className="flex gap-2">
+                                              <Badge variant="outline">Active</Badge>
+                                              {medication.drugInfo && (
+                                                <Badge
+                                                  variant={
+                                                    medication.drugInfo.currentStock <= medication.drugInfo.minStock
+                                                      ? "destructive"
+                                                      : "secondary"
+                                                  }
+                                                >
+                                                  Stock: {medication.drugInfo.currentStock}
+                                                </Badge>
+                                              )}
+                                            </div>
                                           </div>
                                           <div className="mt-1 text-sm text-gray-600">
                                             <span className="mr-4">Dosage: {medication.dosage}</span>
                                             <span className="mr-4">Frequency: {medication.frequency}</span>
                                             <span>Duration: {medication.duration}</span>
                                           </div>
+                                          {medication.drugInfo && (
+                                            <div className="mt-1 text-xs text-gray-500">
+                                              <span className="mr-4">
+                                                Category: {medication.drugInfo.category || "N/A"}
+                                              </span>
+                                              <span className="mr-4">Location: {medication.drugInfo.location}</span>
+                                              {medication.drugInfo.expiryDate && (
+                                                <span>
+                                                  Expires:{" "}
+                                                  {new Date(medication.drugInfo.expiryDate).toLocaleDateString()}
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
                                           {medication.instructions && (
                                             <p className="mt-1 text-sm text-gray-500 italic">
                                               {medication.instructions}
+                                            </p>
+                                          )}
+                                          {medication.prescriptionDate && (
+                                            <p className="mt-1 text-xs text-gray-400">
+                                              Prescribed: {new Date(medication.prescriptionDate).toLocaleDateString()}
                                             </p>
                                           )}
                                         </div>
