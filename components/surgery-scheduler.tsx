@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, User, MapPin, FileText, AlertTriangle } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Calendar, User, MapPin, FileText, AlertTriangle, X, Users } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { scheduleSurgeryAction } from "@/lib/ot-actions"
+import { useAuth } from "@/hooks/use-auth"
 
 interface Patient {
     id: string
@@ -20,6 +22,13 @@ interface Patient {
     age?: number
     condition: string
     priority: "low" | "medium" | "high" | "critical"
+}
+
+interface Doctor {
+    id: string
+    name: string
+    department?: string
+    email?: string
 }
 
 interface Theater {
@@ -39,20 +48,23 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
     const [loading, setLoading] = useState(false)
     const [patients, setPatients] = useState<Patient[]>([])
     const [searchTerm, setSearchTerm] = useState("")
+    const [doctors, setDoctors] = useState<Doctor[]>([])
+    const [selectedDoctors, setSelectedDoctors] = useState<string[]>([])
+    const [doctorSearchTerm, setDoctorSearchTerm] = useState("")
     const [formData, setFormData] = useState({
         patientId: "",
         theaterId: "",
         date: "",
         time: "",
         procedure: "",
-        surgeonId: "",
         estimatedDuration: "",
         priority: "normal",
         notes: "",
     })
 
     const { toast } = useToast()
-    
+    const { user } = useAuth()
+
     useEffect(() => {
         const fetchPatients = async () => {
             try {
@@ -96,8 +108,42 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
             }
         }
 
+        const fetchDoctors = async () => {
+            try {
+                const response = await fetch("/api/doctors")
+                if (response.ok) {
+                    const doctorsData = await response.json()
+                    setDoctors(doctorsData)
+
+                    // Auto-select current user if they are a doctor
+                    if (user?.role === "doctor") {
+                        const currentDoctor = doctorsData.find((doc: Doctor) => doc.name === user.name)
+                        if (currentDoctor) {
+                            setSelectedDoctors([currentDoctor.id])
+                        }
+                    }
+                } else {
+                    throw new Error("Failed to fetch doctors")
+                }
+            } catch (error) {
+                console.error("Error fetching doctors:", error)
+                toast({
+                    title: "Warning",
+                    description: "Could not load doctor data.",
+                    variant: "destructive",
+                })
+                // Fallback doctors
+                setDoctors([
+                    { id: "doctor-1", name: "Dr. Smith", department: "Surgery" },
+                    { id: "doctor-2", name: "Dr. Johnson", department: "Cardiology" },
+                    { id: "doctor-3", name: "Dr. Williams", department: "Orthopedics" },
+                ])
+            }
+        }
+
         fetchPatients()
-    }, [toast])
+        fetchDoctors()
+    }, [toast, user])
 
     const filteredPatients = patients.filter(
         (patient) =>
@@ -105,16 +151,37 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
             patient.condition.toLowerCase().includes(searchTerm.toLowerCase()),
     )
 
+    const filteredDoctors = doctors.filter(
+        (doctor) =>
+            doctor.name.toLowerCase().includes(doctorSearchTerm.toLowerCase()) ||
+            (doctor.department && doctor.department.toLowerCase().includes(doctorSearchTerm.toLowerCase())),
+    )
+
     const selectedPatient = patients.find((p) => p.id === formData.patientId)
     const selectedTheater = availableTheaters.find((t) => t.id === formData.theaterId)
+
+    const handleDoctorToggle = (doctorId: string) => {
+        setSelectedDoctors((prev) => (prev.includes(doctorId) ? prev.filter((id) => id !== doctorId) : [...prev, doctorId]))
+    }
+
+    const removeDoctorSelection = (doctorId: string) => {
+        setSelectedDoctors((prev) => prev.filter((id) => id !== doctorId))
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!formData.patientId || !formData.theaterId || !formData.date || !formData.time || !formData.procedure) {
+        if (
+            !formData.patientId ||
+            selectedDoctors.length === 0 ||
+            !formData.theaterId ||
+            !formData.date ||
+            !formData.time ||
+            !formData.procedure
+        ) {
             toast({
                 title: "Error",
-                description: "Please fill in all required fields",
+                description: "Please fill in all required fields including at least one doctor",
                 variant: "destructive",
             })
             return
@@ -139,10 +206,12 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
             formDataToSubmit.append("patientId", formData.patientId)
             formDataToSubmit.append("theaterId", formData.theaterId)
             formDataToSubmit.append("procedure", formData.procedure)
-            formDataToSubmit.append("surgeonId", formData.surgeonId || "current-doctor")
+            formDataToSubmit.append("surgeonId", selectedDoctors[0]) // Primary surgeon
+            formDataToSubmit.append("surgeonIds", JSON.stringify(selectedDoctors)) // All selected doctors
             formDataToSubmit.append("scheduledTime", scheduledDateTime.toISOString())
             formDataToSubmit.append("estimatedDuration", formData.estimatedDuration)
             formDataToSubmit.append("priority", formData.priority)
+            formDataToSubmit.append("notes", formData.notes)
 
             const result = await scheduleSurgeryAction(formDataToSubmit)
 
@@ -190,6 +259,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Patient Selection */}
                     <div className="space-y-3">
                         <Label htmlFor="patient-search">Select Patient *</Label>
                         <Input
@@ -229,6 +299,76 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         )}
                     </div>
 
+                    {/* Doctor Selection */}
+                    <div className="space-y-3">
+                        <Label htmlFor="doctor-search">Select Doctors/Surgeons *</Label>
+
+                        {/* Selected Doctors Display */}
+                        {selectedDoctors.length > 0 && (
+                            <div className="flex flex-wrap gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                {selectedDoctors.map((doctorId) => {
+                                    const doctor = doctors.find((d) => d.id === doctorId)
+                                    return doctor ? (
+                                        <div key={doctorId} className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full">
+                                            <User className="h-3 w-3" />
+                                            <span className="text-sm font-medium">{doctor.name}</span>
+                                            {doctor.department && <span className="text-xs text-gray-600">({doctor.department})</span>}
+                                            <button
+                                                title="Remove"
+                                                type="button"
+                                                onClick={() => removeDoctorSelection(doctorId)}
+                                                className="ml-1 text-gray-500 hover:text-red-500"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ) : null
+                                })}
+                            </div>
+                        )}
+
+                        <Input
+                            id="doctor-search"
+                            placeholder="Search doctors by name or department..."
+                            value={doctorSearchTerm}
+                            onChange={(e) => setDoctorSearchTerm(e.target.value)}
+                        />
+
+                        {doctorSearchTerm && (
+                            <div className="max-h-60 overflow-y-auto border rounded-md">
+                                {filteredDoctors.map((doctor) => (
+                                    <div key={doctor.id} className="p-3 border-b hover:bg-gray-50 flex items-center space-x-3">
+                                        <Checkbox
+                                            id={`doctor-${doctor.id}`}
+                                            checked={selectedDoctors.includes(doctor.id)}
+                                            onCheckedChange={() => handleDoctorToggle(doctor.id)}
+                                        />
+                                        <label htmlFor={`doctor-${doctor.id}`} className="flex-1 cursor-pointer">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="font-medium">{doctor.name}</p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {doctor.department && `Department: ${doctor.department}`}
+                                                        {doctor.email && ` • ${doctor.email}`}
+                                                    </p>
+                                                </div>
+                                                {selectedDoctors.includes(doctor.id) && (
+                                                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                                        Selected
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </label>
+                                    </div>
+                                ))}
+                                {filteredDoctors.length === 0 && (
+                                    <div className="p-3 text-center text-gray-500">No doctors found matching your search</div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Theater Selection */}
                     <div className="space-y-2">
                         <Label htmlFor="theater">Operating Theater *</Label>
                         <Select
@@ -265,6 +405,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         )}
                     </div>
 
+                    {/* Date and Time */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="date">Date *</Label>
@@ -287,6 +428,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         </div>
                     </div>
 
+                    {/* Procedure */}
                     <div className="space-y-2">
                         <Label htmlFor="procedure">Procedure *</Label>
                         <Input
@@ -297,6 +439,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         />
                     </div>
 
+                    {/* Duration and Priority */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="duration">Estimated Duration</Label>
@@ -336,6 +479,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         </div>
                     </div>
 
+                    {/* Notes */}
                     <div className="space-y-2">
                         <Label htmlFor="notes">Additional Notes</Label>
                         <Textarea
@@ -347,13 +491,14 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                         />
                     </div>
 
+                    {/* Submit Buttons */}
                     <div className="flex justify-end space-x-3">
                         <Button type="button" variant="outline" onClick={onCancel}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
-                            disabled={loading || availableTheaters.length === 0}
+                            disabled={loading || availableTheaters.length === 0 || selectedDoctors.length === 0}
                             className="bg-blue-600 hover:bg-blue-700"
                         >
                             {loading ? "Scheduling..." : "Schedule Surgery"}
@@ -362,6 +507,7 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                 </form>
             </div>
 
+            {/* Surgery Summary Panel */}
             <div className="space-y-4">
                 <Card>
                     <CardHeader>
@@ -378,9 +524,28 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
                                 <div>
                                     <p className="font-medium">{selectedPatient.name}</p>
                                     <p className="text-sm text-gray-600">{selectedPatient.condition}</p>
-                                    <Badge className={getPriorityColor(selectedPatient.priority)}>
-                                        {selectedPatient.priority}
-                                    </Badge>
+                                    <Badge className={getPriorityColor(selectedPatient.priority)}>{selectedPatient.priority}</Badge>
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedDoctors.length > 0 && (
+                            <div className="flex items-start space-x-3">
+                                <Users className="h-4 w-4 text-gray-500 mt-1" />
+                                <div className="flex-1">
+                                    <p className="font-medium">Medical Team ({selectedDoctors.length})</p>
+                                    <div className="space-y-1">
+                                        {selectedDoctors.map((doctorId, index) => {
+                                            const doctor = doctors.find((d) => d.id === doctorId)
+                                            return doctor ? (
+                                                <div key={doctorId} className="text-sm text-gray-600">
+                                                    <span className="font-medium">{index === 0 ? "Primary Surgeon: " : "Assistant: "}</span>
+                                                    {doctor.name}
+                                                    {doctor.department && ` (${doctor.department})`}
+                                                </div>
+                                            ) : null
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         )}
