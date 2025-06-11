@@ -20,8 +20,6 @@ export default async function DisplayPage({ params }: DisplayPageProps) {
       await prisma.$disconnect()
       notFound()
     }
-
-    console.log(`Display ${id} found:`, display)
     
     const displayData = {
       id: display.id,
