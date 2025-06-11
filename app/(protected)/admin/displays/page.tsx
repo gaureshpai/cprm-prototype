@@ -30,6 +30,7 @@ const CONTENT_TYPES = [
   { value: "Mixed Dashboard", label: "Mixed Dashboard", icon: Monitor, description: "Combined information display" },
   { value: "Patient Dashboard", label: "Patient Dashboard", icon: Monitor, description: "Combined information display for patients" },
   { value: "Staff Dashboard", label: "Staff Dashboard", icon: Monitor, description: "Combined information display for Staffs" },
+  { value: "OT Status", label: "OT Status", icon: Monitor, description: "OT status and scheduling" },
 ]
 
 const STATUS_OPTIONS = [

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Users, Activity, AlertTriangle, Heart, Pill } from "lucide-react"
 import { getDisplayDataAction } from "@/lib/display-actions"
+import { getOTStatus, type OTData } from "@/lib/ot-service"
 
 interface PublicDisplayProps {
     displayId: string
@@ -51,6 +52,7 @@ interface DisplayData {
         min_stock: number
         status: string
     }>
+    otStatus?: OTData
     contentType?: string
 }
 
@@ -78,11 +80,11 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     const getDashboardSections = (contentType: string): string[] => {
         switch (contentType) {
             case "Mixed Dashboard":
-                return ["tokenQueue", "departments", "drugInventory", "hospitalInfo"]
+                return ["tokenQueue", "departments", "otStatus", "drugInventory", "hospitalInfo"]
             case "Patient Dashboard":
                 return ["tokenQueue", "departments", "hospitalInfo"]
             case "Staff Dashboard":
-                return ["tokenQueue", "departments", "drugInventory"]
+                return ["tokenQueue", "departments", "otStatus", "drugInventory"]
             default:
                 return ["tokenQueue", "departments", "drugInventory", "hospitalInfo"]
         }
@@ -275,8 +277,12 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             if (showLoading) setIsLoading(true)
 
             startTransition(async () => {
-                const displayData = await getDisplayDataAction(displayId)
-                setData(displayData)
+                const [displayData, otData] = await Promise.all([getDisplayDataAction(displayId), getOTStatus()])
+
+                setData({
+                    ...displayData,
+                    otStatus: otData,
+                })
                 setLastUpdate(new Date())
             })
         } catch (error) {
@@ -318,6 +324,15 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
         if (contentType === "Staff Dashboard") return false
         if (isDashboardType(contentType)) {
             return activeSection === "hospitalInfo"
+        }
+        return false
+    }
+
+    const shouldShowOTStatus = () => {
+        if (contentType === "OT Status") return true
+        if (contentType === "Patient Dashboard") return false
+        if (isDashboardType(contentType)) {
+            return activeSection === "otStatus"
         }
         return false
     }
@@ -537,6 +552,130 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                         <h3 className="text-2xl font-semibold mb-2">No Critical Stock Alerts</h3>
                                         <p className="text-lg">All medications are currently well stocked.</p>
                                         <p className="text-sm mt-2">Critical alerts will appear here when stock is low.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+
+                {shouldShowOTStatus() && (
+                    <Card className="shadow-lg lg:col-span-2 min-h-[400px]">
+                        <CardHeader className="bg-purple-600 text-white">
+                            <CardTitle className="flex items-center space-x-2 text-2xl">
+                                <Activity className="h-6 w-6" />
+                                <span>Operating Theater Status</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            {data.otStatus?.theaters && data.otStatus.theaters.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {data.otStatus.theaters.map((theater) => (
+                                        <div
+                                            key={theater.id}
+                                            className={`p-4 rounded-lg border-2 ${theater.status === "occupied"
+                                                    ? "bg-red-50 border-red-200"
+                                                    : theater.status === "available"
+                                                        ? "bg-green-50 border-green-200"
+                                                        : theater.status === "maintenance"
+                                                            ? "bg-yellow-50 border-yellow-200"
+                                                            : theater.status === "booked"
+                                                                ? "bg-blue-50 border-blue-200"
+                                                                : "bg-gray-50 border-gray-200"
+                                                }`}
+                                        >
+                                            <div className="flex justify-between items-start mb-3">
+                                                <h3 className="font-semibold text-lg">{theater.name}</h3>
+                                                <Badge
+                                                    className={`${theater.status === "occupied"
+                                                            ? "bg-red-500"
+                                                            : theater.status === "available"
+                                                                ? "bg-green-500"
+                                                                : theater.status === "maintenance"
+                                                                    ? "bg-yellow-500"
+                                                                    : theater.status === "booked"
+                                                                        ? "bg-blue-500"
+                                                                        : "bg-gray-500"
+                                                        }`}
+                                                >
+                                                    {theater.status === "occupied"
+                                                        ? "In Use"
+                                                        : theater.status === "available"
+                                                            ? "Available"
+                                                            : theater.status === "maintenance"
+                                                                ? "Maintenance"
+                                                                : theater.status === "booked"
+                                                                    ? "Scheduled"
+                                                                    : theater.status === "cleaning"
+                                                                        ? "Cleaning"
+                                                                        : theater.status}
+                                                </Badge>
+                                            </div>
+
+                                            {theater.currentSurgery && (
+                                                <div className="space-y-2">
+                                                    <div className="text-sm">
+                                                        <strong>Current Surgery:</strong>
+                                                        <p className="text-gray-700">{theater.currentSurgery.procedure}</p>
+                                                        <p className="text-gray-600">Patient: {theater.currentSurgery.patient}</p>
+                                                        <p className="text-gray-600">Surgeon: {theater.currentSurgery.surgeon}</p>
+                                                    </div>
+                                                    <div className="flex justify-between text-sm text-gray-600">
+                                                        <span>Started: {theater.currentSurgery.startTime}</span>
+                                                        <span>Elapsed: {theater.currentSurgery.elapsed}</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                                        <div
+                                                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                                            style={{ width: `${theater.currentSurgery.progress}%` }}
+                                                        ></div>
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 text-center">
+                                                        Progress: {theater.currentSurgery.progress}%
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {theater.nextSurgery && (
+                                                <div className="space-y-2">
+                                                    <div className="text-sm">
+                                                        <strong>Next Surgery:</strong>
+                                                        <p className="text-gray-700">{theater.nextSurgery.procedure}</p>
+                                                        <p className="text-gray-600">Patient: {theater.nextSurgery.patient}</p>
+                                                        <p className="text-gray-600">Scheduled: {theater.nextSurgery.scheduledTime}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {theater.status === "available" && theater.lastCleaned && (
+                                                <div className="text-sm text-green-600">
+                                                    <p>✓ {theater.lastCleaned}</p>
+                                                </div>
+                                            )}
+
+                                            {theater.status === "maintenance" && theater.maintenanceType && (
+                                                <div className="text-sm text-yellow-600">
+                                                    <p>🔧 {theater.maintenanceType}</p>
+                                                    {theater.estimatedCompletion && <p>Est. completion: {theater.estimatedCompletion}</p>}
+                                                </div>
+                                            )}
+
+                                            {theater.status === "cleaning" && theater.estimatedCompletion && (
+                                                <div className="text-sm text-blue-600">
+                                                    <p>🧹 Cleaning in progress</p>
+                                                    <p>Est. completion: {theater.estimatedCompletion}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center h-64">
+                                    <div className="text-center text-gray-500">
+                                        <Activity className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                                        <h3 className="text-2xl font-semibold mb-2">No OT Data Available</h3>
+                                        <p className="text-lg">Operating theater information is currently unavailable.</p>
+                                        <p className="text-sm mt-2">Status will be displayed when data is available.</p>
                                     </div>
                                 </div>
                             )}
