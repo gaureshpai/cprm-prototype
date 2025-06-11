@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dialog"
 import {
   Calendar,
-  Clock,
   FileText,
   Users,
   AlertTriangle,
@@ -34,6 +33,12 @@ import {
   X,
   Package,
   AlertCircle,
+  Thermometer,
+  Activity,
+  Heart,
+  Clock,
+  Phone,
+  MapPin,
 } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
@@ -55,6 +60,7 @@ import {
   markNotificationReadAction,
   type NotificationData,
 } from "@/lib/notification-actions"
+import { getStatusColor } from "@/lib/functions"
 
 interface Medication {
   id: string
@@ -63,7 +69,7 @@ interface Medication {
   frequency: string
   duration: string
   instructions: string
-  isCustom: boolean 
+  isCustom: boolean
 }
 
 interface DrugOption {
@@ -84,14 +90,12 @@ export default function DoctorDashboard() {
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
 
-  
   const [appointments, setAppointments] = useState<AppointmentData[]>([])
   const [patients, setPatients] = useState<PatientData[]>([])
   const [stats, setStats] = useState<any>(null)
   const [notifications, setNotifications] = useState<NotificationData[]>([])
   const [loading, setLoading] = useState(true)
 
-  
   const [selectedPatient, setSelectedPatient] = useState<PatientData | null>(null)
   const [patientSearch, setPatientSearch] = useState("")
   const [searchResults, setSearchResults] = useState<PatientData[]>([])
@@ -103,21 +107,18 @@ export default function DoctorDashboard() {
   const [availableDrugs, setAvailableDrugs] = useState<DrugOption[]>([])
   const [drugSearchQuery, setDrugSearchQuery] = useState("")
 
-  
   useEffect(() => {
-    if (user?.id) {
+    if (user?.name) {
       loadDashboardData()
     }
   }, [user])
 
-  
   useEffect(() => {
     if (dialogOpen) {
       loadAvailableDrugs()
     }
   }, [dialogOpen])
 
-  
   useEffect(() => {
     if (drugSearchQuery.length >= 2) {
       loadAvailableDrugs(drugSearchQuery)
@@ -127,16 +128,16 @@ export default function DoctorDashboard() {
   }, [drugSearchQuery])
 
   const loadDashboardData = async () => {
-    if (!user?.id) return
+    if (!user?.name) return 
 
     try {
       setLoading(true)
       startTransition(async () => {
         const [appointmentsResult, patientsResult, statsResult, notificationsResult] = await Promise.all([
-          getDoctorAppointmentsAction(user.id),
-          getDoctorPatientsAction(user.id, 10),
-          getDoctorStatsAction(user.id),
-          getDoctorNotificationsAction(user.id),
+          getDoctorAppointmentsAction(user.name), 
+          getDoctorPatientsAction(user.name, 10), 
+          getDoctorStatsAction(user.name), 
+          getDoctorNotificationsAction(user.id), 
         ])
 
         if (appointmentsResult.success && appointmentsResult.data) {
@@ -178,7 +179,6 @@ export default function DoctorDashboard() {
     }
   }
 
-  
   const handlePatientSearch = async (query: string) => {
     setPatientSearch(query)
     if (query.length < 2) {
@@ -196,7 +196,6 @@ export default function DoctorDashboard() {
     }
   }
 
-  
   const addMedication = () => {
     const newMedication: Medication = {
       id: Date.now().toString(),
@@ -224,9 +223,8 @@ export default function DoctorDashboard() {
     updateMedication(medicationId, "isCustom", isCustom)
   }
 
-  
   const handleSubmitPrescription = async () => {
-    if (!selectedPatient || !user?.id) {
+    if (!selectedPatient || !user?.name) {
       toast({
         title: "Error",
         description: "Please select a patient",
@@ -244,7 +242,6 @@ export default function DoctorDashboard() {
       return
     }
 
-    
     const invalidMedications = medications.filter((med) => !med.drugName.trim())
     if (invalidMedications.length > 0) {
       toast({
@@ -259,7 +256,7 @@ export default function DoctorDashboard() {
       startTransition(async () => {
         const formData = new FormData()
         formData.append("patientId", selectedPatient.id)
-        formData.append("doctorId", user.id)
+        formData.append("doctorId", user.name) 
         formData.append("diagnosis", diagnosis)
         formData.append("notes", notes)
         formData.append("followUpDate", followUpDate)
@@ -280,7 +277,6 @@ export default function DoctorDashboard() {
             description: `Prescription created for ${selectedPatient.name}`,
           })
 
-          
           setSelectedPatient(null)
           setMedications([])
           setDiagnosis("")
@@ -290,7 +286,6 @@ export default function DoctorDashboard() {
           setSearchResults([])
           setDialogOpen(false)
 
-          
           loadDashboardData()
         } else {
           toast({
@@ -310,7 +305,6 @@ export default function DoctorDashboard() {
     }
   }
 
-  
   const handleUpdateAppointmentStatus = async (appointmentId: string, status: string) => {
     try {
       startTransition(async () => {
@@ -334,7 +328,6 @@ export default function DoctorDashboard() {
     }
   }
 
-  
   const handleMarkNotificationRead = async (notificationId: string) => {
     try {
       const result = await markNotificationReadAction(notificationId)
@@ -782,7 +775,7 @@ export default function DoctorDashboard() {
               </DialogContent>
             </Dialog>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -853,9 +846,211 @@ export default function DoctorDashboard() {
                             <span className="text-sm text-gray-500">
                               Last visit: {patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString() : "N/A"}
                             </span>
-                            <Button size="sm" variant="outline">
-                              View Records
-                            </Button>
+                            <div className="flex space-x-2 pt-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={() => setSelectedPatient(patient)}
+                                  >
+                                    <FileText className="h-3 w-3 mr-1" />
+                                    View Records
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center space-x-2">
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarFallback className="bg-blue-100 text-blue-600">
+                                          {patient.name
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <span>{patient.name} - Medical Records</span>
+                                    </DialogTitle>
+                                    <DialogDescription>Complete medical history and current status</DialogDescription>
+                                  </DialogHeader>
+
+                                  <Tabs defaultValue="overview" className="w-full">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                      <TabsTrigger value="overview">Overview</TabsTrigger>
+                                      <TabsTrigger value="medications">Medications</TabsTrigger>
+                                    </TabsList>
+
+                                    <TabsContent value="overview" className="space-y-4">
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <Card>
+                                          <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm">Patient Information</CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="space-y-2">
+                                            <div className="flex items-center">
+                                              <User className="h-4 w-4 mr-2 text-gray-500" />
+                                              <span className="text-sm">
+                                                {patient.age} years, {patient.gender}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                              <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                                              <span className="text-sm">{patient.phone || "N/A"}</span>
+                                            </div>
+                                            <div className="flex items-center">
+                                              <MapPin className="h-4 w-4 mr-2 text-gray-500" />
+                                              <span className="text-sm">{patient.address || "N/A"}</span>
+                                            </div>
+                                          </CardContent>
+                                        </Card>
+
+                                        <Card>
+                                          <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm">Current Status</CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="space-y-2">
+                                            <div>
+                                              <span className="text-sm text-gray-500">Condition:</span>
+                                              <p className="font-medium">{patient.condition || "N/A"}</p>
+                                            </div>
+                                            <div>
+                                              <span className="text-sm text-gray-500">Status:</span>
+                                              <Badge className={`ml-2 ${getStatusColor(patient.status)}`}>{patient.status}</Badge>
+                                            </div>
+                                            <div className="flex items-center">
+                                              <Clock className="h-4 w-4 mr-2 text-gray-500" />
+                                              <span className="text-sm">
+                                                Next:{" "}
+                                                {patient.nextAppointment
+                                                  ? new Date(patient.nextAppointment).toLocaleDateString()
+                                                  : "N/A"}
+                                              </span>
+                                            </div>
+                                          </CardContent>
+                                        </Card>
+                                      </div>
+
+                                      <Card>
+                                        <CardHeader className="pb-2">
+                                          <CardTitle className="text-sm">Allergies</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="flex flex-wrap gap-2">
+                                            {patient.allergies.length > 0 ? (
+                                              patient.allergies.map((allergy, index) => (
+                                                <Badge
+                                                  key={index}
+                                                  variant="outline"
+                                                  className="bg-red-50 text-red-700 border-red-200"
+                                                >
+                                                  {allergy}
+                                                </Badge>
+                                              ))
+                                            ) : (
+                                              <span className="text-gray-500">No known allergies</span>
+                                            )}
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    </TabsContent>
+
+                                    <TabsContent value="medications" className="space-y-4">
+                                      <Card>
+                                        <CardHeader>
+                                          <CardTitle className="text-sm">Current Medications</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="space-y-2">
+                                            {(patient.medications || []).map(
+                                              (
+                                                medication: {
+                                                  id: string
+                                                  name: string
+                                                  dosage: string
+                                                  frequency: string
+                                                  duration: string
+                                                  instructions?: string | null
+                                                  drugInfo: {
+                                                    id: string
+                                                    currentStock: number
+                                                    minStock: number
+                                                    status: string
+                                                    category?: string | null
+                                                    batchNumber?: string | null
+                                                    expiryDate?: Date | null
+                                                    location: string
+                                                  }
+                                                  prescriptionDate: Date
+                                                },
+                                                index: number,
+                                              ) => (
+                                                <div
+                                                  key={medication.id || index}
+                                                  className="flex items-center justify-between p-3 bg-gray-50 rounded border"
+                                                >
+                                                  <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                      <span className="font-medium text-gray-900">{medication.name}</span>
+                                                      <div className="flex gap-2">
+                                                        <Badge variant="outline">Active</Badge>
+                                                        {medication.drugInfo && (
+                                                          <Badge
+                                                            variant={
+                                                              medication.drugInfo.currentStock <= medication.drugInfo.minStock
+                                                                ? "destructive"
+                                                                : "secondary"
+                                                            }
+                                                          >
+                                                            Stock: {medication.drugInfo.currentStock}
+                                                          </Badge>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                    <div className="mt-1 text-sm text-gray-600">
+                                                      <span className="mr-4">Dosage: {medication.dosage}</span>
+                                                      <span className="mr-4">Frequency: {medication.frequency}</span>
+                                                      <span>Duration: {medication.duration}</span>
+                                                    </div>
+                                                    {medication.drugInfo && (
+                                                      <div className="mt-1 text-xs text-gray-500">
+                                                        <span className="mr-4">
+                                                          Category: {medication.drugInfo.category || "N/A"}
+                                                        </span>
+                                                        <span className="mr-4">Location: {medication.drugInfo.location}</span>
+                                                        {medication.drugInfo.expiryDate && (
+                                                          <span>
+                                                            Expires:{" "}
+                                                            {new Date(medication.drugInfo.expiryDate).toLocaleDateString()}
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                    )}
+                                                    {medication.instructions && (
+                                                      <p className="mt-1 text-sm text-gray-500 italic">
+                                                        {medication.instructions}
+                                                      </p>
+                                                    )}
+                                                    {medication.prescriptionDate && (
+                                                      <p className="mt-1 text-xs text-gray-400">
+                                                        Prescribed: {new Date(medication.prescriptionDate).toLocaleDateString()}
+                                                      </p>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ),
+                                            )}
+                                            {(!patient.medications || patient.medications.length === 0) && (
+                                              <div className="text-center py-4 text-gray-500">No current medications</div>
+                                            )}
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    </TabsContent>
+                                  </Tabs>
+                                </DialogContent>
+                              </Dialog>
+                            </div>
                           </div>
                         </div>
                       ))
