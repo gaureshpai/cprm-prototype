@@ -1,152 +1,177 @@
 "use server"
+
+import { revalidatePath } from "next/cache"
 import {
-    createPatient,
-    updatePatient,
-    deletePatient,
-    getAllPatients,
-    createAppointment,
-    type CreatePatientData,
-    type UpdatePatientData,
+    getPatientById,
+    searchPatientById,
+    getPatientAppointments,
+    getPatientMedications,
+    getPatientStats,
+    updatePatientVitals,
+    type PatientDetailsData,
 } from "./patient-service"
 
-export interface ActionResponse<T> {
-    success: boolean
-    data?: T
-    error?: string
-}
+export type { PatientDetailsData }
 
-export async function createPatientAction(formData: FormData): Promise<ActionResponse<any>> {
+export async function getPatientByIdAction(patientId: string) {
     try {
-        const allergiesString = formData.get("allergies") as string
-        const allergies = allergiesString
-            ? allergiesString
-                .split(",")
-                .map((a) => a.trim())
-                .filter(Boolean)
-            : []
+        const patient = await getPatientById(patientId)
 
-        const patientData: CreatePatientData = {
-            name: formData.get("name") as string,
-            age: Number.parseInt(formData.get("age") as string),
-            gender: formData.get("gender") as string,
-            phone: (formData.get("phone") as string) || undefined,
-            address: (formData.get("address") as string) || undefined,
-            condition: (formData.get("condition") as string) || undefined,
-            bloodType: (formData.get("bloodType") as string) || undefined,
-            allergies,
-            emergencyContact: (formData.get("emergencyContact") as string) || undefined,
-            emergencyPhone: (formData.get("emergencyPhone") as string) || undefined,
-            vitals: {
-                bp: (formData.get("bp") as string) || "",
-                pulse: (formData.get("pulse") as string) || "",
-                temp: (formData.get("temp") as string) || "",
-                weight: (formData.get("weight") as string) || "",
-                height: (formData.get("height") as string) || "",
-            },
+        if (!patient) {
+            return {
+                success: false,
+                error: "Patient not found",
+                data: null,
+            }
         }
 
-        if (!patientData.name || !patientData.age || !patientData.gender) {
-            return { success: false, error: "Name, age, and gender are required" }
+        return {
+            success: true,
+            data: patient,
+            error: null,
         }
-
-        const patient = await createPatient(patientData)
-        return { success: true, data: patient }
     } catch (error) {
-        console.error("Error in createPatientAction:", error)
-        return { success: false, error: "Failed to create patient" }
+        console.error("Error in getPatientByIdAction:", error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to fetch patient",
+            data: null,
+        }
     }
 }
 
-export async function updatePatientAction(formData: FormData): Promise<ActionResponse<any>> {
+export async function searchPatientByIdAction(patientId: string) {
     try {
-        const id = formData.get("id") as string
-        const allergiesString = formData.get("allergies") as string
-        const allergies = allergiesString
-            ? allergiesString
-                .split(",")
-                .map((a) => a.trim())
-                .filter(Boolean)
-            : []
-
-        const patientData: UpdatePatientData = {
-            id,
-            name: formData.get("name") as string,
-            age: Number.parseInt(formData.get("age") as string),
-            gender: formData.get("gender") as string,
-            phone: (formData.get("phone") as string) || undefined,
-            address: (formData.get("address") as string) || undefined,
-            condition: (formData.get("condition") as string) || undefined,
-            bloodType: (formData.get("bloodType") as string) || undefined,
-            allergies,
-            emergencyContact: (formData.get("emergencyContact") as string) || undefined,
-            emergencyPhone: (formData.get("emergencyPhone") as string) || undefined,
-            status: (formData.get("status") as string) || undefined,
-            vitals: {
-                bp: (formData.get("bp") as string) || "",
-                pulse: (formData.get("pulse") as string) || "",
-                temp: (formData.get("temp") as string) || "",
-                weight: (formData.get("weight") as string) || "",
-                height: (formData.get("height") as string) || "",
-            },
+        if (!patientId || patientId.trim().length === 0) {
+            return {
+                success: false,
+                error: "Patient ID is required",
+                data: null,
+            }
         }
 
-        if (!id) {
-            return { success: false, error: "Patient ID is required" }
+        const patient = await searchPatientById(patientId.trim())
+
+        if (!patient) {
+            return {
+                success: false,
+                error: "No patient found with the provided ID",
+                data: null,
+            }
         }
 
-        const patient = await updatePatient(patientData)
-        return { success: true, data: patient }
+        return {
+            success: true,
+            data: patient,
+            error: null,
+        }
     } catch (error) {
-        console.error("Error in updatePatientAction:", error)
-        return { success: false, error: "Failed to update patient" }
+        console.error("Error in searchPatientByIdAction:", error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to search patient",
+            data: null,
+        }
     }
 }
 
-export async function deletePatientAction(patientId: string): Promise<ActionResponse<any>> {
+export async function getPatientAppointmentsAction(patientId: string, limit = 20) {
     try {
+        const appointments = await getPatientAppointments(patientId, limit)
+
+        return {
+            success: true,
+            data: appointments,
+            error: null,
+        }
+    } catch (error) {
+        console.error("Error in getPatientAppointmentsAction:", error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to fetch appointments",
+            data: [],
+        }
+    }
+}
+
+export async function getPatientMedicationsAction(patientId: string, limit = 20) {
+    try {
+        const medications = await getPatientMedications(patientId, limit)
+
+        return {
+            success: true,
+            data: medications,
+            error: null,
+        }
+    } catch (error) {
+        console.error("Error in getPatientMedicationsAction:", error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to fetch medications",
+            data: [],
+        }
+    }
+}
+
+export async function getPatientStatsAction(patientId: string) {
+    try {
+        const stats = await getPatientStats(patientId)
+
+        return {
+            success: true,
+            data: stats,
+            error: null,
+        }
+    } catch (error) {
+        console.error("Error in getPatientStatsAction:", error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to fetch patient statistics",
+            data: null,
+        }
+    }
+}
+
+export async function updatePatientVitalsAction(formData: FormData) {
+    try {
+        const patientId = formData.get("patientId") as string
+        const bp = formData.get("bp") as string
+        const pulse = formData.get("pulse") as string
+        const temp = formData.get("temp") as string
+        const weight = formData.get("weight") as string
+        const height = formData.get("height") as string
+
         if (!patientId) {
-            return { success: false, error: "Patient ID is required" }
+            return {
+                success: false,
+                error: "Patient ID is required",
+                data: null,
+            }
         }
 
-        const patient = await deletePatient(patientId)
-        return { success: true, data: patient }
-    } catch (error) {
-        console.error("Error in deletePatientAction:", error)
-        return { success: false, error: "Failed to delete patient" }
-    }
-}
-
-export async function getAllPatientsAction(page = 1, limit = 50, search?: string): Promise<ActionResponse<any>> {
-    try {
-        const result = await getAllPatients(page, limit, search)
-        return { success: true, data: result }
-    } catch (error) {
-        console.error("Error in getAllPatientsAction:", error)
-        return { success: false, error: "Failed to fetch patients" }
-    }
-}
-
-export async function createAppointmentAction(formData: FormData): Promise<ActionResponse<any>> {
-    try {
-        const appointmentData = {
-            patientId: formData.get("patientId") as string,
-            doctorId: formData.get("doctorId") as string,
-            date: new Date(formData.get("date") as string),
-            time: formData.get("time") as string,
-            type: formData.get("type") as string,
-            notes: (formData.get("notes") as string) || undefined,
+        const vitals = {
+            bp: bp || undefined,
+            pulse: pulse || undefined,
+            temp: temp || undefined,
+            weight: weight || undefined,
+            height: height || undefined,
         }
 
-        if (!appointmentData.patientId || !appointmentData.doctorId || !appointmentData.date || !appointmentData.time) {
-            return { success: false, error: "Patient, doctor, date, and time are required" }
-        }
+        const updatedPatient = await updatePatientVitals(patientId, vitals)
 
-        const appointment = await createAppointment(appointmentData)
-        return { success: true, data: appointment }
+        revalidatePath("/")
+
+        return {
+            success: true,
+            data: updatedPatient,
+            error: null,
+        }
     } catch (error) {
-        console.error("Error in createAppointmentAction:", error)
-        return { success: false, error: "Failed to create appointment" }
+        console.error("Error in updatePatientVitalsAction:", error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to update patient vitals",
+            data: null,
+        }
     }
 }
-
-export type { CreatePatientData, UpdatePatientData }

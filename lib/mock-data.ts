@@ -163,7 +163,23 @@ export const mockPatients = [
       weight: "75 kg",
       height: "170 cm",
     },
-    medications: ["Amlodipine 5mg", "Metoprolol 25mg"],
+    medications: [{
+      id: "med1",
+      name: "Paracetamol",
+      dosage: "500mg",
+      frequency: "Twice a day",
+      duration: "5 days",
+      instructions: "After food",
+      drugInfo: {
+        id: "drug1",
+        currentStock: 100,
+        minStock: 20,
+        status: "available",
+        category: "analgesic",
+        batchNumber: "B12345",
+        expiryDate: new Date("2025-12-31"),
+      }
+    },],
     allergies: ["Penicillin"],
     medicalHistory: [
       { date: "2025-06-03", diagnosis: "Hypertension follow-up", treatment: "Medication adjustment" },

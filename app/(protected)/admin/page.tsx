@@ -21,7 +21,7 @@ import {
   getAllAnnouncementsAction,
   createAnnouncementAction,
   deleteAnnouncementAction,
-  resolveAnnouncementAction, // Add this new action
+  resolveAnnouncementAction, 
   createEmergencyAlertAction,
   getRecentEmergencyAlertsAction,
   resolveEmergencyAlertAction,
