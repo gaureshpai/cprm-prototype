@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma"
 export interface OTTheater {
     id: string
     name: string
-    status: "occupied" | "available" | "maintenance" | "cleaning"
+    status: "occupied" | "available" | "maintenance" | "cleaning" | "booked"
     currentSurgery?: {
         patient: string
         procedure: string
@@ -139,15 +139,41 @@ export async function getOTStatus(): Promise<OTData> {
             const startTime = new Date(ot.startTime)
             const estimatedEnd = new Date(ot.estimatedEnd)
 
-            let actualStatus: "occupied" | "available" | "maintenance" | "cleaning" = "available"
-
-            if (ot.status === "In Progress" && now >= startTime && now <= estimatedEnd) {
-                actualStatus = "occupied"
-            } else if (ot.status === "Maintenance") {
+            let actualStatus: "occupied" | "available" | "maintenance" | "cleaning" | "booked" = "available"
+            
+            if (ot.status === "Maintenance") {
                 actualStatus = now <= estimatedEnd ? "maintenance" : "available"
-            } else if (ot.status === "Cleaning") {
+            }
+            
+            else if (ot.status === "Cleaning") {
                 actualStatus = now <= estimatedEnd ? "cleaning" : "available"
-            } else if (ot.status === "Available" || ot.status === "Completed" || now > estimatedEnd) {
+            }
+            
+            else if (
+                (ot.status === "In Progress" || ot.status === "Scheduled") &&
+                now >= startTime &&
+                now <= estimatedEnd &&
+                ot.patientName &&
+                ot.procedure !== "Available"
+            ) {
+                actualStatus = "occupied"
+                
+                if (ot.status === "Scheduled") {
+                    updateTheaterStatusInDB(ot.id, "In Progress")
+                }
+            }
+            
+            else if (ot.status === "Scheduled" && now < startTime && ot.patientName && ot.procedure !== "Available") {
+                actualStatus = "booked"
+            }
+            
+            else if ((ot.status === "In Progress" || ot.status === "Scheduled") && now > estimatedEnd && ot.patientName) {
+                actualStatus = "available"
+                
+                updateTheaterStatusInDB(ot.id, "Available")
+            }
+            
+            else {
                 actualStatus = "available"
             }
 
@@ -173,6 +199,19 @@ export async function getOTStatus(): Promise<OTData> {
                             progress: progress,
                         }
                         : undefined,
+                nextSurgery:
+                    actualStatus === "booked" && ot.patientName
+                        ? {
+                            patient: ot.patientName,
+                            procedure: ot.procedure,
+                            scheduledTime: startTime.toLocaleTimeString("en-IN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                day: "2-digit",
+                                month: "short",
+                            }),
+                        }
+                        : undefined,
                 lastCleaned: actualStatus === "available" ? "Recently cleaned" : undefined,
                 maintenanceType: actualStatus === "maintenance" ? "Equipment Check" : undefined,
                 estimatedCompletion:
@@ -184,16 +223,29 @@ export async function getOTStatus(): Promise<OTData> {
 
         const todaySchedule: OTSchedule[] = otStatuses
             .filter((ot: any) => ot.patientName && ot.procedure !== "Available")
-            .map((ot: any) => ({
-                id: ot.id,
-                time: new Date(ot.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
-                duration: `${Math.floor((new Date(ot.estimatedEnd).getTime() - new Date(ot.startTime).getTime()) / (1000 * 60 * 60))}h`,
-                patient: ot.patientName,
-                procedure: ot.procedure,
-                surgeon: ot.surgeon,
-                theater: ot.id,
-                status: ot.status === "In Progress" ? "in-progress" : ot.status === "Completed" ? "completed" : "scheduled",
-            }))
+            .map((ot: any) => {
+                const now = new Date()
+                const startTime = new Date(ot.startTime)
+                const estimatedEnd = new Date(ot.estimatedEnd)
+
+                let status: "scheduled" | "in-progress" | "completed" = "scheduled"
+                if (now >= startTime && now <= estimatedEnd) {
+                    status = "in-progress"
+                } else if (now > estimatedEnd) {
+                    status = "completed"
+                }
+
+                return {
+                    id: ot.id,
+                    time: startTime.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+                    duration: `${Math.floor((estimatedEnd.getTime() - startTime.getTime()) / (1000 * 60 * 60))}h`,
+                    patient: ot.patientName,
+                    procedure: ot.procedure,
+                    surgeon: ot.surgeon,
+                    theater: ot.id,
+                    status: status,
+                }
+            })
 
         const emergencyQueue: EmergencyCase[] = []
 
@@ -251,6 +303,40 @@ export async function getOTStatus(): Promise<OTData> {
             todaySchedule: [],
             emergencyQueue: [],
         }
+    }
+}
+
+export async function checkSchedulingConflict(
+    theaterId: string,
+    scheduledTime: Date,
+    estimatedDuration: string,
+): Promise<boolean> {
+    try {
+        const durationHours = Number.parseFloat(estimatedDuration.split(" ")[0]) || 2
+        const proposedEndTime = new Date(scheduledTime.getTime() + durationHours * 60 * 60 * 1000)
+
+        const existingBooking = await prisma.oTStatus.findFirst({
+            where: {
+                id: theaterId,
+                patientName: { not: "null" },
+                OR: [
+                    {
+                        AND: [{ startTime: { lte: scheduledTime } }, { estimatedEnd: { gte: scheduledTime } }],
+                    },
+                    {
+                        AND: [{ startTime: { lte: proposedEndTime } }, { estimatedEnd: { gte: proposedEndTime } }],
+                    },
+                    {
+                        AND: [{ startTime: { gte: scheduledTime } }, { estimatedEnd: { lte: proposedEndTime } }],
+                    },
+                ],
+            },
+        })
+
+        return !!existingBooking
+    } catch (error) {
+        console.error("Error checking scheduling conflict:", error)
+        return false
     }
 }
 
@@ -479,5 +565,100 @@ export async function addEmergencyCase(emergencyData: {
     } catch (error) {
         console.error("Error adding emergency case:", error)
         throw new Error("Failed to add emergency case")
+    }
+}
+
+export async function createTheater(theaterData: {
+    id: string
+    name: string
+    location?: string
+    equipment?: string[]
+}) {
+    try {
+        await prisma.oTStatus.create({
+            data: {
+                id: theaterData.id,
+                procedure: "Available",
+                status: "Available",
+                progress: 0,
+                surgeon: "",
+                patientName: "",
+                startTime: new Date(),
+                estimatedEnd: new Date(),
+            },
+        })
+
+        return { success: true, id: theaterData.id }
+    } catch (error) {
+        console.error("Error creating theater:", error)
+        throw new Error("Failed to create theater")
+    }
+}
+
+export async function updateTheater(
+    theaterId: string,
+    theaterData: {
+        name?: string
+        status?: string
+        location?: string
+        equipment?: string[]
+    },
+) {
+    try {
+        const updateData: any = {}
+
+        if (theaterData.status) {
+            updateData.status = theaterData.status
+            if (theaterData.status === "Maintenance") {
+                updateData.estimatedEnd = new Date(Date.now() + 2 * 60 * 60 * 1000) 
+            }
+        }
+
+        await prisma.oTStatus.update({
+            where: { id: theaterId },
+            data: {
+                ...updateData,
+                updatedAt: new Date(),
+            },
+        })
+
+        return { success: true }
+    } catch (error) {
+        console.error("Error updating theater:", error)
+        throw new Error("Failed to update theater")
+    }
+}
+
+export async function deleteTheater(theaterId: string) {
+    try {
+        await prisma.oTStatus.delete({
+            where: { id: theaterId },
+        })
+
+        return { success: true }
+    } catch (error) {
+        console.error("Error deleting theater:", error)
+        throw new Error("Failed to delete theater")
+    }
+}
+
+async function updateTheaterStatusInDB(theaterId: string, status: string) {
+    try {
+        await prisma.oTStatus.update({
+            where: { id: theaterId },
+            data: {
+                status: status,
+                updatedAt: new Date(),
+                
+                ...(status === "Available" && {
+                    patientName: "",
+                    procedure: "Available",
+                    surgeon: "",
+                    progress: 0,
+                }),
+            },
+        })
+    } catch (error) {
+        console.error("Error updating theater status in DB:", error)
     }
 }

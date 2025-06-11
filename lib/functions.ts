@@ -147,8 +147,6 @@ export const getStatusColor = (status: string) => {
       return "bg-green-100 text-green-800 border-green-200"
     case "maintenance":
       return "bg-yellow-100 text-yellow-800 border-yellow-200"
-    case "cleaning":
-      return "bg-blue-100 text-blue-800 border-blue-200"
     case "critical":
       return "bg-red-100 text-red-800 border-red-200"
     case "stable":
@@ -167,6 +165,16 @@ export const getStatusColor = (status: string) => {
       return "text-red-600 bg-red-50 border-red-200"
     case "warning":
       return "text-yellow-600 bg-yellow-50 border-yellow-200"
+    case "occupied":
+    case "in progress":
+      return "bg-red-600 text-white"
+    case "available":
+      return "bg-green-600 text-white"
+    case "booked":
+    case "scheduled":
+      return "bg-blue-600 text-white"
+    case "cleaning":
+      return "bg-purple-600 text-white"
     default:
       return "bg-gray-100 text-gray-800 border-gray-200"
   }

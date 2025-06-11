@@ -1,4 +1,5 @@
-import { ReactNode } from "react"
+import type React from "react"
+import type { ReactNode } from "react"
 
 export interface DrugInventory {
     drug_id: string
@@ -64,7 +65,6 @@ export interface HospitalData {
     otStatus: OTStatus[]
 }
 
-
 export interface Medication {
     id: string
     name: string
@@ -125,7 +125,7 @@ export interface User {
     name: string
     email?: string
     password?: string
-    role: "admin" | "doctor" | "nurse" | "technician" | "pharmacist"
+    role: "admin" | "doctor" | "nurse" | "technician" | "pharmacist" | "patient"
     username?: string
     permissions: string[]
     department?: string
@@ -168,4 +168,27 @@ export interface EmergencyAlert1 {
 export interface EmergencyAlertProps1 {
     alerts: EmergencyAlert1[]
     onDismiss: (id: number) => void
+}
+
+export interface OTTheater {
+    id: string
+    name: string
+    status: "occupied" | "available" | "maintenance" | "cleaning" | "booked"
+    currentSurgery?: {
+        patient: string
+        procedure: string
+        surgeon: string
+        startTime: string
+        estimatedDuration: string
+        elapsed: string
+        progress: number
+    }
+    nextSurgery?: {
+        patient: string
+        procedure: string
+        scheduledTime: string
+    }
+    lastCleaned?: string
+    maintenanceType?: string
+    estimatedCompletion?: string
 }
