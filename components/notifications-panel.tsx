@@ -29,9 +29,14 @@ export function NotificationsPanel() {
   const [error, setError] = useState<string | null>(null)
 
   const unreadCount = notifications.filter((n) => !n.read).length
-
+  const totalCount = notifications.length
+  
   useEffect(() => {
-    if (isOpen) {
+    fetchAnnouncements()
+  }, [])
+  
+  useEffect(() => {
+    if (isOpen && notifications.length > 0) {
       fetchAnnouncements()
     }
   }, [isOpen])
@@ -92,18 +97,6 @@ export function NotificationsPanel() {
     }
   }
 
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map((n) => (n.id === id ? { ...n, read: true } : n)))
-  }
-
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })))
-  }
-
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter((n) => n.id !== id))
-  }
-
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -123,7 +116,12 @@ export function NotificationsPanel() {
               <div>
                 <CardTitle className="text-lg">Announcements</CardTitle>
                 <CardDescription>
-                  {unreadCount > 0 ? `${unreadCount} unread Announcements` : "All caught up!"}
+                  {totalCount === 0
+                    ? "No announcements"
+                    : unreadCount > 0
+                      ? `${unreadCount} unread of ${totalCount} announcements`
+                      : `All ${totalCount} announcements read`
+                  }
                 </CardDescription>
               </div>
               <div className="flex space-x-2">
@@ -160,8 +158,7 @@ export function NotificationsPanel() {
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 hover:bg-gray-50 cursor-pointer ${getNotificationColor(notification.type, notification.read)}`}
-                      onClick={() => !notification.read && markAsRead(notification.id)}
+                      className={`p-4 hover:bg-gray-50 ${getNotificationColor(notification.type, notification.read)}`}
                     >
                       <div className="flex items-start space-x-3">
                         <div className="flex-shrink-0 mt-1">{getNotificationIcon(notification.type)}</div>
