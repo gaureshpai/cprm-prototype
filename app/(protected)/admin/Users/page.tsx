@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,27 +41,7 @@ import type { Role } from "@prisma/client"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import { useToast } from "@/hooks/use-toast"
-
-interface UserFormData {
-  username: string
-  name: string
-  password?: string
-  email: string
-  role: Role | ""
-  department: string
-}
-
-const roles: Role[] = ["ADMIN", "DOCTOR", "NURSE", "TECHNICIAN", "PHARMACIST"]
-const departments = [
-  "Administration",
-  "Cardiology",
-  "Emergency",
-  "Pharmacy",
-  "Laboratory",
-  "Radiology",
-  "ICU",
-  "Surgery",
-]
+import { departments, roles, UserFormData } from "@/lib/helpers"
 
 const UserCRUDPage = () => {
   const [users, setUsers] = useState<UserWithStats[]>([])
@@ -386,8 +365,7 @@ const UserCRUDPage = () => {
       DOCTOR: "bg-blue-100 text-blue-800",
       NURSE: "bg-green-100 text-green-800",
       TECHNICIAN: "bg-yellow-100 text-yellow-800",
-      PHARMACIST: "bg-purple-100 text-purple-800",
-      PATIENT: "bg-gray-200 text-gray-800",
+      PHARMACIST: "bg-purple-100 text-purple-800"
     }
     return colors[role] || "bg-gray-100 text-gray-800"
   }

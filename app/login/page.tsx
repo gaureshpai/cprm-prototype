@@ -22,7 +22,14 @@ import { Eye, EyeOff, AlertTriangle, Users, Copy, TestTube, Loader2 } from "luci
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { validateUserCredentialsAction } from "@/lib/user-actions"
-import { demoCredentials } from "@/lib/mock-data"
+
+export const demoCredentials = {
+  admin: { username: "admin", password: "admin123" },
+  doctor: { username: "dr.smith", password: "doctor123" },
+  nurse: { username: "nurse.jane", password: "nurse123" },
+  technician: { username: "tech.mike", password: "tech123" },
+  pharmacist: { username: "pharm.sarah", password: "pharma123" },
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -85,7 +92,6 @@ export default function LoginPage() {
             email: `${username}@wenlock.hospital`,
             role: demoRole?.toUpperCase(),
             status: "ACTIVE",
-            permissions: getDefaultPermissions(demoRole?.toUpperCase() as any),
           },
         }
       }
@@ -107,7 +113,6 @@ export default function LoginPage() {
           email: user.email,
           role: user.role,
           status: user.status,
-          permissions: user.permissions,
         },
       }
     } catch (error) {
@@ -142,8 +147,7 @@ export default function LoginPage() {
         id: user.id,
         name: user.username,
         email: user.email || `${user.username}@wenlock.hospital`,
-        role: userRole,
-        permissions: user.permissions || ["all"],
+        role: userRole
       })
 
       toast({
@@ -340,24 +344,4 @@ export default function LoginPage() {
       </Card>
     </div>
   )
-}
-
-function getDefaultPermissions(role: string): string[] {
-  const permissions = {
-    ADMIN: [
-      "user_management",
-      "display_management",
-      "content_management",
-      "emergency_alerts",
-      "system_settings",
-      "analytics",
-    ],
-    DOCTOR: ["patient_management", "appointments", "prescriptions", "medical_records"],
-    NURSE: ["patient_care", "appointments", "medication_administration"],
-    TECHNICIAN: ["equipment_management", "maintenance", "technical_support"],
-    PHARMACIST: ["drug_inventory", "prescriptions", "medication_dispensing"],
-    PATIENT: ["view_appointments", "view_prescriptions", "personal_records"],
-  }
-
-  return permissions[role as keyof typeof permissions] || []
 }

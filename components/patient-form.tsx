@@ -11,13 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createPatientAction, updatePatientAction } from "@/lib/patient-actions"
-import type { PatientData } from "@/lib/doctor-actions"
-
-interface PatientFormProps {
-    patient?: PatientData
-    onSuccess?: () => void
-    onCancel?: () => void
-}
+import { PatientFormProps } from "@/lib/helpers"
 
 export function PatientForm({ patient, onSuccess, onCancel }: PatientFormProps) {
     const [loading, setLoading] = useState(false)

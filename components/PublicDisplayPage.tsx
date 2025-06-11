@@ -6,55 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Users, Activity, AlertTriangle, Heart, Pill } from "lucide-react"
 import { getDisplayDataAction } from "@/lib/display-actions"
-import { getOTStatus, type OTData } from "@/lib/ot-service"
-
-interface PublicDisplayProps {
-    displayId: string
-    displayData?: {
-        id: string
-        location: string
-        status: string
-        content: string
-        uptime: string
-        lastUpdate: string
-        isActive: boolean
-        config?: any
-    }
-}
-
-interface DisplayData {
-    tokenQueue: Array<{
-        token_id: string
-        patient_name: string
-        display_name?: string | null
-        status: string
-        department: string
-        priority: number
-        estimated_time?: string | null
-    }>
-    departments: Array<{
-        dept_id: string
-        department_name: string
-        location: string
-        current_tokens: number
-    }>
-    emergencyAlerts: Array<{
-        id: string
-        codeType: string
-        location: string
-        message: string
-        priority: number
-    }>
-    drugInventory: Array<{
-        drug_id: string
-        drug_name: string
-        current_stock: number
-        min_stock: number
-        status: string
-    }>
-    otStatus?: OTData
-    contentType?: string
-}
+import { getOTStatus } from "@/lib/ot-service"
+import { DisplayData, PublicDisplayProps } from "@/lib/helpers"
 
 export default function PublicDisplayPage({ displayId, displayData }: PublicDisplayProps) {
     const [data, setData] = useState<DisplayData>({

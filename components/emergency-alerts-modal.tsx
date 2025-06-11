@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useTransition } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -20,6 +19,7 @@ import {
     deleteEmergencyAlertAction,
     getEmergencyAlertsAction,
 } from "@/lib/nurse-actions"
+import { getAlertColor, getPriorityLabel } from "@/lib/functions"
 
 interface EmergencyAlert {
     id: string
@@ -180,44 +180,6 @@ export function EmergencyAlertsModal({ isOpen, onClose }: EmergencyAlertsModalPr
                 })
             }
         })
-    }
-
-    const getAlertColor = (codeType: string) => {
-        switch (codeType) {
-            case "Code Blue":
-                return "bg-blue-500"
-            case "Code Red":
-                return "bg-red-500"
-            case "Code Black":
-                return "bg-gray-800"
-            case "Code Orange":
-                return "bg-orange-500"
-            case "Code Silver":
-                return "bg-gray-500"
-            case "Code Yellow":
-                return "bg-yellow-500"
-            case "Code Pink":
-                return "bg-pink-500"
-            default:
-                return "bg-gray-500"
-        }
-    }
-
-    const getPriorityLabel = (priority: number) => {
-        switch (priority) {
-            case 5:
-                return "Critical"
-            case 4:
-                return "High"
-            case 3:
-                return "Medium"
-            case 2:
-                return "Low"
-            case 1:
-                return "Info"
-            default:
-                return "Medium"
-        }
     }
 
     return (

@@ -5,7 +5,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, X, MapPin, Clock } from "lucide-react"
-import { EmergencyAlertProps1 } from "@/lib/interfaces"
+import { EmergencyAlertProps1 } from "@/lib/helpers"
+import { getAlertColor, getAlertDescription } from "@/lib/functions"
 
 export function EmergencyAlert({ alerts, onDismiss }: EmergencyAlertProps1) {
   const [visibleAlerts, setVisibleAlerts] = useState(alerts)
@@ -13,36 +14,6 @@ export function EmergencyAlert({ alerts, onDismiss }: EmergencyAlertProps1) {
   useEffect(() => {
     setVisibleAlerts(alerts)
   }, [alerts])
-
-  const getAlertColor = (type: string) => {
-    switch (type) {
-      case "Code Blue":
-        return "bg-blue-500"
-      case "Code Red":
-        return "bg-red-500"
-      case "Code Pink":
-        return "bg-pink-500"
-      case "Code Yellow":
-        return "bg-yellow-500"
-      default:
-        return "bg-gray-500"
-    }
-  }
-
-  const getAlertDescription = (type: string) => {
-    switch (type) {
-      case "Code Blue":
-        return "Cardiac Emergency"
-      case "Code Red":
-        return "Fire Emergency"
-      case "Code Pink":
-        return "Infant/Child Abduction"
-      case "Code Yellow":
-        return "Bomb Threat"
-      default:
-        return "Emergency Alert"
-    }
-  }
 
   if (visibleAlerts.length === 0) return null
 

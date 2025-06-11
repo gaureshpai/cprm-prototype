@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -18,11 +17,6 @@ import {
   Calendar,
   Clock,
   Pill,
-  Heart,
-  Shield,
-  Award,
-  Mail,
-  Stethoscope,
   Activity,
   AlertCircle,
   Copy,

@@ -4,7 +4,7 @@ import type React from "react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { AuthGuardProps } from "@/lib/interfaces"
+import { AuthGuardProps } from "@/lib/helpers"
 
 export function AuthGuard({ children, allowedRoles, className }: AuthGuardProps) {
   const { user, isLoading } = useAuth()
@@ -33,5 +33,4 @@ export function AuthGuard({ children, allowedRoles, className }: AuthGuardProps)
       {children}
     </div>
   )
-
 }

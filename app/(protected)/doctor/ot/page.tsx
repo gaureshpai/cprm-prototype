@@ -18,7 +18,6 @@ import { Clock, Calendar, AlertTriangle, CheckCircle, Activity, Heart } from "lu
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import { SurgeryScheduler } from "@/components/surgery-scheduler"
-import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { getOTStatusAction, type OTData } from "@/lib/ot-actions"
 import { getPriorityColor, getScheduleStatusColor, getStatusColor } from "@/lib/functions"
@@ -31,7 +30,6 @@ export default function DoctorOTPage() {
   const [loading, setLoading] = useState(true)
   const [showScheduleDialog, setShowScheduleDialog] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const { user } = useAuth()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -213,12 +211,9 @@ export default function DoctorOTPage() {
 
   const occupiedTheaters = otData.theaters.filter((t) => t.status === "occupied").length
   const availableTheaters = otData.theaters.filter((t) => t.status === "available").length
-  const maintenanceTheaters = otData.theaters.filter(
-    (t) => t.status === "maintenance" || t.status === "cleaning",
-  ).length
 
   return (
-    <AuthGuard allowedRoles={["doctor"]} className="container mx-auto p-6 space-y-6">
+    <AuthGuard allowedRoles={["doctor", "admin"]} className="container mx-auto p-6 space-y-6">
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 

@@ -1,14 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import {
   Monitor,
   AlertTriangle,
   CheckCircle,
-  RefreshCw,
-  Settings,
   Activity,
   Zap,
   Wrench,
@@ -20,39 +17,8 @@ import { Navbar } from "@/components/navbar"
 import { getSystemAnalyticsAction, getRecentEmergencyAlertsAction } from "@/lib/content-actions"
 import { getAllDisplaysAction } from "@/lib/display-actions"
 import { getOTStatus } from "@/lib/ot-service"
-
-interface OTTheater {
-  id: string
-  name: string
-  status: "occupied" | "available" | "maintenance" | "cleaning" | "booked"
-  currentSurgery?: {
-    patient: string
-    procedure: string
-    surgeon: string
-    startTime: string
-    estimatedDuration: string
-    elapsed: string
-    progress: number
-  }
-  nextSurgery?: {
-    patient: string
-    procedure: string
-    scheduledTime: string
-  }
-  lastCleaned?: string
-  maintenanceType?: string
-  estimatedCompletion?: string
-}
-
-interface EmergencyAlert {
-  id: string
-  codeType: string
-  message: string
-  location: string
-  priority: number
-  active: boolean
-  createdAt: string
-}
+import { EmergencyAlert, OTTheater } from "@/lib/helpers"
+import { getAlertSeverityColor } from "@/lib/functions"
 
 async function getTechnicianData() {
   try {
@@ -80,35 +46,6 @@ async function getTechnicianData() {
   }
 }
 
-function getAlertSeverityColor(severity: string) {
-  switch (severity) {
-    case "high":
-    case "critical":
-      return "border-red-200 bg-red-50"
-    case "medium":
-      return "border-yellow-200 bg-yellow-50"
-    case "low":
-      return "border-blue-200 bg-blue-50"
-    default:
-      return "border-green-200 bg-green-50"
-  }
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case "online":
-      return "bg-green-100 text-green-800"
-    case "offline":
-      return "bg-red-100 text-red-800"
-    case "warning":
-      return "bg-yellow-100 text-yellow-800"
-    case "maintenance":
-      return "bg-blue-100 text-blue-800"
-    default:
-      return "bg-gray-100 text-gray-800"
-  }
-}
-
 export default async function TechnicianDashboard() {
   const { analytics, alerts, displays, otData } = await getTechnicianData()
   const currentDate = new Date()
@@ -116,7 +53,7 @@ export default async function TechnicianDashboard() {
   const maintenanceTheaters = otData.theaters.filter((theater: OTTheater) => theater.status === "maintenance")
 
   return (
-    <AuthGuard allowedRoles={["technician"]} className="container mx-auto p-6 space-y-6">
+    <AuthGuard allowedRoles={["technician", "admin"]} className="container mx-auto p-6 space-y-6">
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 

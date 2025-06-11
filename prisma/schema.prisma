@@ -15,7 +15,6 @@ model User {
   password      String         @db.VarChar(255)
   role          Role
   department    String?
-  permissions   Json           @default("[]")
   status        String         @default("ACTIVE")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

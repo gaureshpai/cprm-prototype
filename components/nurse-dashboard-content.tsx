@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -18,10 +17,7 @@ import {
     Activity,
     Thermometer,
     Heart,
-    Clipboard,
     AlertTriangle,
-    CheckCircle,
-    Pill,
     Users,
     Calendar,
     Edit,
@@ -38,6 +34,7 @@ import {
     refreshDashboardAction,
 } from "@/lib/nurse-actions"
 import { EmergencyAlertsModal } from "./emergency-alerts-modal"
+import { getConditionColor, getSurgeryStatusColor } from "@/lib/functions"
 
 export default function NurseDashboardContent({ initialData }: { initialData: NurseDashboardData }) {
     const { toast } = useToast()
@@ -187,73 +184,6 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
         }
     }
 
-    const handleAdministerMedication = async (patientId: string, medicationName: string) => {
-        try {
-            const result = await administerMedicationAction(patientId, medicationName)
-
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: "Medication administered successfully",
-                })
-                
-                setPatients(
-                    patients.map((p) =>
-                        p.id === patientId
-                            ? {
-                                ...p,
-                                medications: p.medications.map((m) =>
-                                    m.name === medicationName ? { ...m, status: "administered" as const } : m,
-                                ),
-                            }
-                            : p,
-                    ),
-                )
-            } else {
-                toast({
-                    title: "Error",
-                    description: result.message || "Failed to administer medication",
-                    variant: "destructive",
-                })
-            }
-        } catch (error) {
-            console.error("Error administering medication:", error)
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred",
-                variant: "destructive",
-            })
-        }
-    }
-
-    const handleCompleteTask = async (taskId: string) => {
-        try {
-            const result = await completeTaskAction(taskId)
-
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: "Task completed successfully",
-                })
-                
-                setTasks(tasks.map((t) => (t.id === taskId ? { ...t, completed: true } : t)))
-            } else {
-                toast({
-                    title: "Error",
-                    description: result.message || "Failed to complete task",
-                    variant: "destructive",
-                })
-            }
-        } catch (error) {
-            console.error("Error completing task:", error)
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred",
-                variant: "destructive",
-            })
-        }
-    }
-
     const openPatientDialog = (patient: Patient) => {
         setSelectedPatient(patient)
         setPatientForm({
@@ -278,52 +208,7 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
         setIsVitalsDialogOpen(true)
     }
 
-    const getConditionColor = (condition: string) => {
-        switch (condition.toLowerCase()) {
-            case "critical":
-                return "bg-red-100 text-red-800 border-red-200"
-            case "stable":
-                return "bg-green-100 text-green-800 border-green-200"
-            case "improving":
-                return "bg-blue-100 text-blue-800 border-blue-200"
-            default:
-                return "bg-gray-100 text-gray-800 border-gray-200"
-        }
-    }
-
-    const getSurgeryStatusColor = (status: string) => {
-        switch (status) {
-            case "scheduled":
-                return "bg-blue-100 text-blue-800"
-            case "in-progress":
-                return "bg-yellow-100 text-yellow-800"
-            case "completed":
-                return "bg-green-100 text-green-800"
-            case "cancelled":
-                return "bg-red-100 text-red-800"
-            default:
-                return "bg-gray-100 text-gray-800"
-        }
-    }
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case "high":
-                return "bg-red-500 text-white"
-            case "medium":
-                return "bg-yellow-500 text-white"
-            case "low":
-                return "bg-blue-500 text-white"
-            default:
-                return "bg-gray-500 text-white"
-        }
-    }
-
     const criticalPatients = patients.filter((p) => p.condition.toLowerCase() === "critical")
-    const dueMedications = patients.flatMap((p) =>
-        p.medications.filter((m) => m.status === "due").map((m) => ({ ...m, patientName: p.name, patientId: p.id })),
-    )
-    const pendingTasks = tasks.filter((t) => !t.completed)
     const todaySurgeries = surgeries.filter((s) => s.status !== "cancelled")
 
     return (

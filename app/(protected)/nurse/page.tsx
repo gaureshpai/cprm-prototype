@@ -8,7 +8,7 @@ export default async function NurseDashboard() {
   const dashboardData = await getNurseDashboardData()
 
   return (
-    <AuthGuard allowedRoles={["nurse"]} className="container mx-auto p-6 space-y-6">
+    <AuthGuard allowedRoles={["nurse", "admin"]} className="container mx-auto p-6 space-y-6">
       <Navbar />
       <Suspense fallback={<DashboardSkeleton />}>
         <NurseDashboardContent initialData={dashboardData} />

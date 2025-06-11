@@ -18,23 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pill, Search, ShoppingCart, Plus, Edit } from "lucide-react"
 import { addDrugToInventoryAction, updateDrugInventoryAction, createReorderAction } from "@/lib/pharmacist-actions"
 import { useToast } from "@/hooks/use-toast"
-
-interface DrugInventoryItem {
-    id: string
-    drugName: string
-    currentStock: number
-    minStock: number
-    status: string
-    category: string
-    updatedAt: string
-    location?: string
-    batchNumber?: string
-    expiryDate?: string
-}
-
-interface InventoryClientProps {
-    inventory: DrugInventoryItem[]
-}
+import { DrugInventoryItem, InventoryClientProps } from "@/lib/helpers"
+import { getStatusColor } from "@/lib/functions"
 
 export default function InventoryClient({ inventory }: InventoryClientProps) {
     const [searchTerm, setSearchTerm] = useState("")
@@ -153,17 +138,6 @@ export default function InventoryClient({ inventory }: InventoryClientProps) {
                 description: "An unexpected error occurred.",
                 variant: "destructive",
             })
-        }
-    }
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "critical":
-                return "bg-red-100 text-red-800 border-red-200"
-            case "low":
-                return "bg-yellow-100 text-yellow-800 border-yellow-200"
-            default:
-                return "bg-green-100 text-green-800 border-green-200"
         }
     }
 

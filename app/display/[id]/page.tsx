@@ -1,10 +1,7 @@
 import PublicDisplayPage from "@/components/PublicDisplayPage"
+import { DisplayPageProps } from "@/lib/helpers"
 import { PrismaClient } from "@prisma/client"
 import { notFound } from "next/navigation"
-
-interface DisplayPageProps {
-  params: Promise<{ id: string }>
-}
 
 export default async function DisplayPage({ params }: DisplayPageProps) {
   const { id } = await params

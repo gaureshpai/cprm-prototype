@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,34 +14,8 @@ import { Calendar, User, MapPin, FileText, AlertTriangle, X, Users } from "lucid
 import { useToast } from "@/hooks/use-toast"
 import { scheduleSurgeryAction } from "@/lib/ot-actions"
 import { useAuth } from "@/hooks/use-auth"
-
-interface Patient {
-    id: string
-    name: string
-    age?: number
-    condition: string
-    priority: "low" | "medium" | "high" | "critical"
-}
-
-interface Doctor {
-    id: string
-    name: string
-    department?: string
-    email?: string
-}
-
-interface Theater {
-    id: string
-    name: string
-    status: string
-    lastCleaned?: string
-}
-
-interface SurgerySchedulerProps {
-    onSuccess: () => void
-    onCancel: () => void
-    availableTheaters: Theater[]
-}
+import { Doctor, Patient, SurgerySchedulerProps } from "@/lib/helpers"
+import { getPriorityColor } from "@/lib/functions"
 
 export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: SurgerySchedulerProps) {
     const [loading, setLoading] = useState(false)
@@ -260,21 +233,6 @@ export function SurgeryScheduler({ onSuccess, onCancel, availableTheaters }: Sur
             })
         } finally {
             setLoading(false)
-        }
-    }
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case "critical":
-                return "bg-red-600 text-white"
-            case "high":
-                return "bg-orange-500 text-white"
-            case "medium":
-                return "bg-yellow-500 text-white"
-            case "low":
-                return "bg-green-500 text-white"
-            default:
-                return "bg-gray-500 text-white"
         }
     }
 

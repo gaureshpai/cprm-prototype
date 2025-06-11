@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,12 +18,8 @@ import {
 } from "@/components/ui/dialog"
 import { Settings, Plus, Edit, Trash2, Wrench } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import type { OTTheater } from "@/lib/interfaces"
-
-interface TheaterManagementModalProps {
-    theaters: OTTheater[]
-    onRefresh: () => void
-}
+import type { OTTheater, TheaterManagementModalProps } from "@/lib/helpers"
+import { getStatusColor } from "@/lib/functions"
 
 export function TheaterManagementModal({ theaters, onRefresh }: TheaterManagementModalProps) {
     const [isOpen, setIsOpen] = useState(false)
@@ -131,23 +126,6 @@ export function TheaterManagementModal({ theaters, onRefresh }: TheaterManagemen
                 description: "Failed to update theater status",
                 variant: "destructive",
             })
-        }
-    }
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "occupied":
-                return "bg-red-600 text-white"
-            case "available":
-                return "bg-green-600 text-white"
-            case "booked":
-                return "bg-blue-600 text-white"
-            case "maintenance":
-                return "bg-yellow-600 text-white"
-            case "cleaning":
-                return "bg-purple-600 text-white"
-            default:
-                return "bg-gray-600 text-white"
         }
     }
 

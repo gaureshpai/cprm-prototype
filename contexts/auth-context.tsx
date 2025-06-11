@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import { AuthContextType, User } from "@/lib/interfaces"
+import { AuthContextType, User } from "@/lib/helpers"
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -35,17 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login")
   }
 
-  const hasPermission = (permission: string) => {
-    if (!user || !user.permissions) return false
-    if (user.permissions.includes("all")) return true
-    return user.permissions.includes(permission)
-  }
-
   const value = {
     user,
     login,
     logout,
-    hasPermission,
     isAuthenticated: !!user,
     isLoading,
   }

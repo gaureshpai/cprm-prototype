@@ -1,22 +1,16 @@
 "use client"
 
-import { useState, useTransition } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { User, Shield, Loader2 } from "lucide-react"
+import { User } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { useToast } from "@/hooks/use-toast"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
-import { useRouter } from "next/navigation"
 
 export default function ProfileSettings() {
     const { user } = useAuth()
-    const { toast } = useToast()
 
     if (!user) {
         return (
@@ -90,21 +84,6 @@ export default function ProfileSettings() {
                                             <Badge className="bg-blue-100 text-blue-800 border-blue-200 capitalize">{user.role}</Badge>
                                         </div>
                                     </div>
-
-                                {user.permissions && user.permissions.length > 0 && (
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-medium text-gray-700">Permissions</Label>
-                                        <div className="p-3 bg-gray-50 rounded-md border">
-                                            <div className="flex flex-wrap gap-2">
-                                                {user.permissions.map((permission, index) => (
-                                                    <Badge key={index} variant="outline" className="text-xs">
-                                                        {permission}
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
 
                                 <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                     <p className="text-sm text-blue-800">

@@ -49,34 +49,12 @@ import {
   createPrescriptionAction,
   getDoctorStatsAction,
   getAllDrugsForSelectionAction,
-  updateAppointmentStatusAction,
   type PatientData,
   type AppointmentData,
 } from "@/lib/doctor-actions"
 import { getDoctorNotificationsAction, type NotificationData } from "@/lib/notification-actions"
-import { getStatusColor } from "@/lib/functions"
-
-interface Medication {
-  id: string
-  drugName: string
-  dosage: string
-  frequency: string
-  duration: string
-  instructions: string
-  isCustom: boolean
-}
-
-interface DrugOption {
-  id: string
-  drugName: string
-  currentStock: number
-  minStock: number
-  status: string
-  category?: string | null
-  expiryDate?: Date | null
-  location: string
-  isAvailable: boolean
-}
+import { getNotificationBgColor, getStatusColor } from "@/lib/functions"
+import { Medication, DrugOption } from "@/lib/helpers"
 
 export default function DoctorDashboard() {
   const [currentDate] = useState(new Date())
@@ -247,10 +225,6 @@ export default function DoctorDashboard() {
     setMedications(medications.filter((med) => med.id !== id))
   }
 
-  const handleDrugSelection = (medicationId: string, drugName: string) => {
-    updateMedication(medicationId, "drugName", drugName)
-  }
-
   const handleSubmitPrescription = async () => {
     if (!selectedPatient || !user?.name) {
       toast({
@@ -333,29 +307,6 @@ export default function DoctorDashboard() {
     }
   }
 
-  const handleUpdateAppointmentStatus = async (appointmentId: string, status: string) => {
-    try {
-      startTransition(async () => {
-        const result = await updateAppointmentStatusAction(appointmentId, status)
-        if (result.success) {
-          toast({
-            title: "Success",
-            description: "Appointment status updated",
-          })
-          loadDashboardData()
-        } else {
-          toast({
-            title: "Error",
-            description: result.error || "Failed to update appointment",
-            variant: "destructive",
-          })
-        }
-      })
-    } catch (error) {
-      console.error("Error updating appointment:", error)
-    }
-  }
-
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "emergency":
@@ -368,24 +319,6 @@ export default function DoctorDashboard() {
         return <Pill className="h-4 w-4 text-green-500" />
       default:
         return <Bell className="h-4 w-4 text-gray-500" />
-    }
-  }
-
-  const getNotificationBgColor = (type: string, priority: string) => {
-    if (priority === "high") {
-      return "bg-red-50 border-red-200"
-    }
-    switch (type) {
-      case "emergency":
-        return "bg-red-50 border-red-200"
-      case "warning":
-        return "bg-yellow-50 border-yellow-200"
-      case "appointment":
-        return "bg-blue-50 border-blue-200"
-      case "prescription":
-        return "bg-green-50 border-green-200"
-      default:
-        return "bg-gray-50 border-gray-200"
     }
   }
 
@@ -412,7 +345,7 @@ export default function DoctorDashboard() {
   }
 
   return (
-    <AuthGuard allowedRoles={["doctor"]} className="container mx-auto p-6 space-y-6">
+    <AuthGuard allowedRoles={["doctor", "admin"]} className="container mx-auto p-6 space-y-6">
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 

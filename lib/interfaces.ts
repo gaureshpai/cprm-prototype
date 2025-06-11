@@ -120,26 +120,7 @@ export interface StaffMember {
     image?: string
 }
 
-export interface User {
-    id: string
-    name: string
-    email?: string
-    password?: string
-    role: "admin" | "doctor" | "nurse" | "technician" | "pharmacist" | "patient"
-    username?: string
-    permissions: string[]
-    department?: string
-    specialization?: string
-}
 
-export interface AuthContextType {
-    user: User | null
-    login: (userData: User) => void
-    logout: () => void
-    hasPermission?: (permission: string) => boolean
-    isAuthenticated?: boolean
-    isLoading: boolean
-}
 
 export interface Props {
     children: ReactNode
@@ -150,45 +131,7 @@ export interface State {
     hasError: boolean
 }
 
-export interface AuthGuardProps {
-    children: React.ReactNode
-    allowedRoles?: string[]
-    className?: string
-}
 
-export interface EmergencyAlert1 {
-    id: number
-    type: "Code Blue" | "Code Red" | "Code Pink" | "Code Yellow"
-    location: string
-    time: string
-    severity: "critical" | "high" | "medium"
-    description?: string
-}
 
-export interface EmergencyAlertProps1 {
-    alerts: EmergencyAlert1[]
-    onDismiss: (id: number) => void
-}
 
-export interface OTTheater {
-    id: string
-    name: string
-    status: "occupied" | "available" | "maintenance" | "cleaning" | "booked"
-    currentSurgery?: {
-        patient: string
-        procedure: string
-        surgeon: string
-        startTime: string
-        estimatedDuration: string
-        elapsed: string
-        progress: number
-    }
-    nextSurgery?: {
-        patient: string
-        procedure: string
-        scheduledTime: string
-    }
-    lastCleaned?: string
-    maintenanceType?: string
-    estimatedCompletion?: string
-}
+

@@ -10,19 +10,9 @@ import { Bell, AlertTriangle, Info, CheckCircle, Clock, X, Loader2, RefreshCw } 
 import { useAuth } from "@/hooks/use-auth"
 import { getAllAnnouncementsAction, type Announcement } from "@/lib/content-actions"
 import { getNotificationColor } from "@/lib/functions"
-
-interface Notification {
-  id: string
-  title: string
-  message: string
-  type: string
-  time: string
-  read: boolean
-  priority?: string
-}
+import { Notification } from "@/lib/helpers"
 
 export function NotificationsPanel() {
-  const { user } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)

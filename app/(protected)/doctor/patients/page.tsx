@@ -44,7 +44,6 @@ import {
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import { PatientForm } from "@/components/patient-form"
-import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { getAllPatientsAction, deletePatientAction } from "@/lib/patient-actions"
 import type { PatientData } from "@/lib/doctor-actions"
@@ -59,7 +58,6 @@ export default function DoctorPatientsPage() {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const { user } = useAuth()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -131,7 +129,7 @@ export default function DoctorPatientsPage() {
   }
 
   return (
-    <AuthGuard allowedRoles={["doctor"]} className="container mx-auto p-6 space-y-6">
+    <AuthGuard allowedRoles={["doctor", "admin"]} className="container mx-auto p-6 space-y-6">
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 

@@ -7,20 +7,20 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Monitor, Power, Edit, Plus, Users, Activity, AlertTriangle, Pill, Trash2, RefreshCw } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Monitor, Edit, Plus, Users, Activity, Pill, RefreshCw } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import {
     getAllDisplaysAction,
     createDisplayAction,
     updateDisplayAction,
-    deleteDisplayAction,
     seedDisplaysAction,
     type DisplayData,
 } from "@/lib/display-actions"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import Link from "next/link"
+import { getStatusColor, getStatusText } from "@/lib/functions"
 
 const CONTENT_TYPES = [
     { value: "Token Queue", label: "Token Queue", icon: Users, description: "Patient queue and waiting times" },
@@ -34,7 +34,7 @@ const CONTENT_TYPES = [
 
 const STATUS_OPTIONS = [
     { value: "offline", label: "Offline" }
-]
+  ]
 
 export default function DisplayManagement() {
     const [displays, setDisplays] = useState<DisplayData[]>([])
@@ -94,32 +94,6 @@ export default function DisplayManagement() {
             })
         } finally {
             if (showLoading) setLoading(false)
-        }
-    }
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "online":
-                return "bg-green-500"
-            case "offline":
-                return "bg-red-500"
-            case "warning":
-                return "bg-yellow-500"
-            default:
-                return "bg-gray-500"
-        }
-    }
-
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case "online":
-                return "Online"
-            case "offline":
-                return "Offline"
-            case "warning":
-                return "Warning"
-            default:
-                return "Unknown"
         }
     }
 
@@ -206,7 +180,7 @@ export default function DisplayManagement() {
     const warningDisplays = displays.filter((d) => d.status === "warning").length
 
     return (
-        <AuthGuard allowedRoles={["technician"]} className="p-6 space-y-6">
+        <AuthGuard allowedRoles={["technician","admin"]} className="p-6 space-y-6">
             <Navbar />
             <div className="flex justify-between items-center">
                 <div>

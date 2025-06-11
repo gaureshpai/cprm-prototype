@@ -1,9 +1,5 @@
-"use client"
-
-import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -11,48 +7,18 @@ import {
   AlertTriangle,
   Package,
   FileText,
-  ShoppingCart,
   CheckCircle,
   BarChart3,
   TrendingUp,
   Activity,
 } from "lucide-react"
-import Link from "next/link"
-
-interface PharmacyStatistics {
-  totalDrugs: number
-  lowStockCount: number
-  criticalStockCount: number
-  pendingPrescriptions: number
-  processingPrescriptions: number
-  completedPrescriptionsToday: number
-  availableStock: number
-}
-
-interface TopMedication {
-  name: string
-  count: number
-}
-
-interface PrescriptionTrend {
-  date: string
-  pending: number
-  processing: number
-  completed: number
-}
-
-interface PharmacyDashboardClientProps {
-  statistics: PharmacyStatistics
-  topMedications: TopMedication[]
-  prescriptionTrends: PrescriptionTrend[]
-}
+import { PharmacyDashboardClientProps } from "@/lib/helpers"
 
 export default function PharmacyDashboardClient({
   statistics,
   topMedications,
   prescriptionTrends,
 }: PharmacyDashboardClientProps) {
-  const [currentDate] = useState(new Date())
   
   const totalStock = statistics.totalDrugs || 1 
   const availablePercentage = Math.round((statistics.availableStock / totalStock) * 100)
@@ -102,7 +68,7 @@ export default function PharmacyDashboardClient({
       </div>
 
       <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full cursor-none grid-cols-1 bg-white hidden">
+        <TabsList className="w-full cursor-none grid-cols-1 bg-white hidden">
           <TabsTrigger value="analytics" className="cursor-default">Analytics</TabsTrigger>
         </TabsList>
 
