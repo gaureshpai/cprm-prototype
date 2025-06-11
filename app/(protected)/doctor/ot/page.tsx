@@ -22,6 +22,8 @@ import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { getOTStatusAction, type OTData } from "@/lib/ot-actions"
 import { getPriorityColor, getScheduleStatusColor, getStatusColor } from "@/lib/functions"
+import { TheaterManagementModal } from "@/components/theater-management-modal"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function DoctorOTPage() {
   const [currentDate] = useState(new Date())
@@ -31,7 +33,7 @@ export default function DoctorOTPage() {
   const [isPending, startTransition] = useTransition()
   const { user } = useAuth()
   const { toast } = useToast()
-  
+
   useEffect(() => {
     loadOTData()
   }, [])
@@ -65,14 +67,149 @@ export default function DoctorOTPage() {
 
   const handleScheduleSuccess = () => {
     setShowScheduleDialog(false)
-    loadOTData() 
+    loadOTData()
     toast({
       title: "Success",
       description: "Surgery scheduled successfully",
     })
   }
 
-  if (!otData) return
+  if (!otData) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="min-h-screen bg-gray-50">
+          <div className="h-16 bg-white border-b flex items-center px-4 sm:px-6 lg:px-8">
+            <Skeleton className="h-8 w-32" />
+            <div className="ml-auto flex space-x-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+          </div>
+
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex justify-between items-center mb-6">
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+              <Skeleton className="h-10 w-40" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-12 mb-1" />
+                    <Skeleton className="h-3 w-32" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="space-y-6">
+              <Skeleton className="h-10 w-full" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i}>
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <Skeleton className="h-5 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <Skeleton className="h-3 w-16" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                        <Skeleton className="h-2 w-full" />
+                      </div>
+                      <Skeleton className="h-3 w-40" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-48" />
+                    <Skeleton className="h-3 w-64" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="space-y-1 w-20">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-3 w-full" />
+                          </div>
+                          <div className="space-y-1">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-48" />
+                            <Skeleton className="h-3 w-64" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-6 w-24 rounded-full" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-56" />
+                    <Skeleton className="h-3 w-72" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="space-y-1 w-20">
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-3 w-full" />
+                          </div>
+                          <div className="space-y-1">
+                            <Skeleton className="h-3 w-32" />
+                            <Skeleton className="h-3 w-48" />
+                            <Skeleton className="h-3 w-64" />
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                          <Skeleton className="h-9 w-28" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
 
   const occupiedTheaters = otData.theaters.filter((t) => t.status === "occupied").length
   const availableTheaters = otData.theaters.filter((t) => t.status === "available").length
@@ -98,27 +235,30 @@ export default function DoctorOTPage() {
                 })}
               </p>
             </div>
-            <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Schedule Surgery
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Schedule New Surgery</DialogTitle>
-                  <DialogDescription>
-                    Schedule a new surgery by selecting patient, theater, and time slot.
-                  </DialogDescription>
-                </DialogHeader>
-                <SurgeryScheduler
-                  onSuccess={handleScheduleSuccess}
-                  onCancel={() => setShowScheduleDialog(false)}
-                  availableTheaters={otData.theaters.filter((t) => t.status === "available")}
-                />
-              </DialogContent>
-            </Dialog>
+            <div className="flex space-x-2">
+              <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Schedule Surgery
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Schedule New Surgery</DialogTitle>
+                    <DialogDescription>
+                      Schedule a new surgery by selecting patient, theater, and time slot.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <SurgeryScheduler
+                    onSuccess={handleScheduleSuccess}
+                    onCancel={() => setShowScheduleDialog(false)}
+                    availableTheaters={otData.theaters.filter((t) => t.status === "available")}
+                  />
+                </DialogContent>
+              </Dialog>
+              <TheaterManagementModal theaters={otData.theaters} onRefresh={loadOTData} />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -247,6 +387,23 @@ export default function DoctorOTPage() {
                           <div className="flex items-center text-sm text-gray-600">
                             <Clock className="h-3 w-3 mr-1" />
                             <span>Completion: {theater.estimatedCompletion}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {theater.status === "booked" && theater.nextSurgery && (
+                        <div className="space-y-2">
+                          <div className="flex items-center text-sm text-blue-600">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            <span>Surgery Scheduled</span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{theater.nextSurgery.patient}</p>
+                            <p className="text-sm text-gray-600">{theater.nextSurgery.procedure}</p>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Clock className="h-3 w-3 mr-1" />
+                              <span>Scheduled: {theater.nextSurgery.scheduledTime}</span>
+                            </div>
                           </div>
                         </div>
                       )}
