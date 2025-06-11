@@ -75,6 +75,19 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     const timeIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const rotationIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
+    const getDashboardSections = (contentType: string): string[] => {
+        switch (contentType) {
+            case "Mixed Dashboard":
+                return ["tokenQueue", "departments", "drugInventory", "hospitalInfo"]
+            case "Patient Dashboard":
+                return ["tokenQueue", "departments", "hospitalInfo"]
+            case "Staff Dashboard":
+                return ["tokenQueue", "departments", "drugInventory"]
+            default:
+                return ["tokenQueue", "departments", "drugInventory", "hospitalInfo"]
+        }
+    }
+
     const sendHeartbeat = async (status: "online" | "offline" = "online") => {
         try {
             const response = await fetch("/api/displays/heartbeat", {
@@ -126,7 +139,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 if (!dataIntervalRef.current) {
                     dataIntervalRef.current = setInterval(() => fetchDisplayData(false), 5000)
                 }
-                if (!rotationIntervalRef.current && data.contentType === "Mixed Dashboard") {
+                if (!rotationIntervalRef.current && isDashboardType(data.contentType)) {
                     startContentRotation()
                 }
             } else {
@@ -225,9 +238,13 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             }
         }
     }, [displayId])
-    
+
+    const isDashboardType = (contentType?: string): boolean => {
+        return contentType === "Mixed Dashboard" || contentType === "Patient Dashboard" || contentType === "Staff Dashboard"
+    }
+
     useEffect(() => {
-        if (data.contentType === "Mixed Dashboard") {
+        if (isDashboardType(data.contentType)) {
             startContentRotation()
         } else if (rotationIntervalRef.current) {
             clearInterval(rotationIntervalRef.current)
@@ -246,17 +263,20 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
         if (rotationIntervalRef.current) {
             clearInterval(rotationIntervalRef.current)
         }
-        
-        const sections = ["tokenQueue", "departments", "drugInventory", "hospitalInfo"]
+
+        const sections = getDashboardSections(data.contentType || "Mixed Dashboard")
         let currentIndex = sections.indexOf(activeSection)
         if (currentIndex === -1) currentIndex = 0
-        
+
         setActiveSection(sections[currentIndex])
-        
+
         rotationIntervalRef.current = setInterval(() => {
             currentIndex = (currentIndex + 1) % sections.length
             setActiveSection(sections[currentIndex])
+            console.log(`Rotated to section: ${sections[currentIndex]} for ${data.contentType}`)
         }, 15000)
+
+        console.log(`Content rotation started for ${data.contentType}`)
     }
 
     const fetchDisplayData = async (showLoading = true) => {
@@ -276,17 +296,55 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     }
 
     const contentType = data.contentType || displayData?.content || "Mixed Dashboard"
-    
-    const shouldShowTokenQueue =
-        contentType === "Token Queue" || (contentType === "Mixed Dashboard" && activeSection === "tokenQueue")
-    const shouldShowDepartments =
-        contentType === "Department Status" || (contentType === "Mixed Dashboard" && activeSection === "departments")
-    const shouldShowDrugInventory =
-        contentType === "Drug Inventory" || (contentType === "Mixed Dashboard" && activeSection === "drugInventory")
-    const shouldShowHospitalInfo =
-        contentType === "Hospital Info" || (contentType === "Mixed Dashboard" && activeSection === "hospitalInfo")
-    
+
+    const shouldShowTokenQueue = () => {
+        if (contentType === "Token Queue") return true
+        if (isDashboardType(contentType)) {
+            return activeSection === "tokenQueue"
+        }
+        return false
+    }
+
+    const shouldShowDepartments = () => {
+        if (contentType === "Department Status") return true
+        if (isDashboardType(contentType)) {
+            return activeSection === "departments"
+        }
+        return false
+    }
+
+    const shouldShowDrugInventory = () => {
+        if (contentType === "Drug Inventory") return true
+        if (contentType === "Patient Dashboard") return false
+        if (isDashboardType(contentType)) {
+            return activeSection === "drugInventory"
+        }
+        return false
+    }
+
+    const shouldShowHospitalInfo = () => {
+        if (contentType === "Hospital Info") return true
+        if (contentType === "Staff Dashboard") return false
+        if (isDashboardType(contentType)) {
+            return activeSection === "hospitalInfo"
+        }
+        return false
+    }
+
     const hasEmergencyAlerts = data.emergencyAlerts && data.emergencyAlerts.length > 0
+
+    const getDashboardDisplayName = (type: string): string => {
+        switch (type) {
+            case "Mixed Dashboard":
+                return "Mixed Dashboard"
+            case "Patient Dashboard":
+                return "Patient Dashboard"
+            case "Staff Dashboard":
+                return "Staff Dashboard"
+            default:
+                return type
+        }
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6 relative">
@@ -338,12 +396,18 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         <h1 className="text-4xl font-bold text-gray-900">Wenlock Hospital</h1>
                         <p className="text-xl text-gray-600">{displayData?.location || `Display ${displayId}`}</p>
                         <p className="text-sm text-gray-500">
-                            Display ID: {displayId} | Content: {contentType}
+                            Display ID: {displayId} | Content: {getDashboardDisplayName(contentType)}
                             {isPending && <span className="ml-2 text-blue-600">• Updating...</span>}
                         </p>
                         <p className="text-xs text-gray-400">
                             Last updated: {lastUpdate?.toLocaleTimeString("en-US")} • Auto-refresh every 5 seconds
                         </p>
+                        {isDashboardType(contentType) && (
+                            <p className="text-xs text-blue-600">
+                                Currently showing: {activeSection.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}{" "}
+                                • Auto-rotating every 15 seconds
+                            </p>
+                        )}
                     </div>
                     <div className="text-right">
                         <div className="text-3xl font-bold text-blue-600">{currentTime?.toLocaleTimeString("en-US")}</div>
@@ -356,7 +420,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {shouldShowTokenQueue && (
+                {shouldShowTokenQueue() && (
                     <Card className="shadow-lg lg:col-span-2 min-h-[400px]">
                         <CardHeader className="bg-blue-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
@@ -381,10 +445,10 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                             <div className="text-right">
                                                 <Badge
                                                     className={`text-lg px-3 py-1 ${token.status === "in_progress"
-                                                        ? "bg-blue-500"
-                                                        : token.status === "waiting"
-                                                            ? "bg-yellow-500"
-                                                            : "bg-gray-500"
+                                                            ? "bg-blue-500"
+                                                            : token.status === "waiting"
+                                                                ? "bg-yellow-500"
+                                                                : "bg-gray-500"
                                                         }`}
                                                 >
                                                     {token.status === "in_progress" ? "In Progress" : "Waiting"}
@@ -411,7 +475,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </Card>
                 )}
 
-                {shouldShowDepartments && (
+                {shouldShowDepartments() && (
                     <Card className="shadow-lg lg:col-span-2 min-h-[400px]">
                         <CardHeader className="bg-green-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
@@ -449,7 +513,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </Card>
                 )}
 
-                {shouldShowDrugInventory && (
+                {shouldShowDrugInventory() && (
                     <Card className="shadow-lg lg:col-span-2 min-h-[400px]">
                         <CardHeader className="bg-red-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
@@ -460,7 +524,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         <CardContent className="p-6">
                             {data.drugInventory.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {data.drugInventory.map((drug) => (
+                                    {data.drugInventory?.map((drug: any) => (
                                         <Alert key={drug.drug_id} className="border-red-200 bg-red-50">
                                             <AlertTriangle className="h-4 w-4 text-red-600" />
                                             <AlertDescription className="text-red-800">
@@ -489,7 +553,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                     </Card>
                 )}
 
-                {shouldShowHospitalInfo && (
+                {shouldShowHospitalInfo() && (
                     <Card className="shadow-lg lg:col-span-2 min-h-[400px]">
                         <CardHeader className="bg-gray-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
