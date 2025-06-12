@@ -6,7 +6,6 @@ import { useState, useEffect, useTransition } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -43,13 +42,17 @@ import {
     type TokenQueueStats,
 } from "@/lib/token-queue-actions"
 import { getAllDepartmentsAction, type DepartmentData } from "@/lib/department-actions"
+import { getAllPatientsAction } from "@/lib/patient-actions"
+import type { PatientData } from "@/lib/doctor-service"
 
 export default function TokenQueuePage() {
     const [tokens, setTokens] = useState<TokenQueueData[]>([])
     const [departments, setDepartments] = useState<DepartmentData[]>([])
+    const [patients, setPatients] = useState<PatientData[]>([])
     const [stats, setStats] = useState<TokenQueueStats | null>(null)
     const [loading, setLoading] = useState(true)
     const [selectedDepartment, setSelectedDepartment] = useState("all")
+    const [selectedPatient, setSelectedPatient] = useState("")
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
     const { toast } = useToast()
@@ -57,6 +60,7 @@ export default function TokenQueuePage() {
     useEffect(() => {
         loadTokenQueueData()
         loadDepartments()
+        loadPatients()
     }, [])
 
     useEffect(() => {
@@ -100,6 +104,25 @@ export default function TokenQueuePage() {
         }
     }
 
+    const loadPatients = async () => {
+        try {
+            const result = await getAllPatientsAction()
+            if (result.success && result.data && Array.isArray(result.data)) {
+                setPatients(result.data)
+            } else {
+                setPatients([])
+            }
+        } catch (error) {
+            console.error("Error loading patients:", error)
+            setPatients([])
+            toast({
+                title: "Warning",
+                description: "Failed to load patients list",
+                variant: "destructive",
+            })
+        }
+    }
+
     const loadTokensByDepartment = async () => {
         try {
             const result = await getTokenQueueByDepartmentAction(selectedDepartment)
@@ -118,6 +141,19 @@ export default function TokenQueuePage() {
     const handleCreateToken = async (e: React.FormEvent) => {
         e.preventDefault()
         const formData = new FormData(e.target as HTMLFormElement)
+        
+        const selectedPatientData = Array.isArray(patients) ? patients.find((p) => p.id === selectedPatient) : undefined
+        if (!selectedPatientData) {
+            toast({
+                title: "Error",
+                description: "Please select a valid patient",
+                variant: "destructive",
+            })
+            return
+        }
+        
+        formData.set("patientId", selectedPatientData.id)
+        formData.set("patientName", selectedPatientData.name)
 
         try {
             startTransition(async () => {
@@ -126,9 +162,10 @@ export default function TokenQueuePage() {
                 if (result.success) {
                     toast({
                         title: "Success",
-                        description: `Token ${result.data?.tokenNumber} created successfully`,
+                        description: `Token ${result.data?.tokenNumber} created successfully for ${selectedPatientData.name}`,
                     })
                     setIsCreateDialogOpen(false)
+                    setSelectedPatient("")
                     await loadTokenQueueData()
                     await loadTokensByDepartment()
                 } else {
@@ -239,6 +276,8 @@ export default function TokenQueuePage() {
         }
     }
 
+    const selectedPatientData = Array.isArray(patients) ? patients.find((p) => p.id === selectedPatient) : undefined
+
     return (
         <AuthGuard allowedRoles={["nurse", "admin"]} className="container mx-auto p-6 space-y-6">
             <Navbar />
@@ -266,21 +305,59 @@ export default function TokenQueuePage() {
                                 <DialogDescription>Generate a new token for patient queue management</DialogDescription>
                             </DialogHeader>
                             <form onSubmit={handleCreateToken} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="patientId">Patient ID</Label>
-                                        <Input id="patientId" name="patientId" placeholder="Enter patient ID" required />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="patientName">Patient Name</Label>
-                                        <Input id="patientName" name="patientName" placeholder="Enter patient name" required />
-                                    </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="patientSelect">Select Patient</Label>
+                                    <Select value={selectedPatient} onValueChange={setSelectedPatient} required>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Choose a patient" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Array.isArray(patients) && patients.length > 0 ? (
+                                                patients.map((patient) => (
+                                                    <SelectItem key={patient.id} value={patient.id}>
+                                                        {patient.name} (ID: {patient.id})
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className="px-2 py-1.5 text-sm text-gray-500">
+                                                    {loading ? "Loading patients..." : "No patients available"}
+                                                </div>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
+
+                                {selectedPatientData && (
+                                    <div className="p-3 bg-blue-50 rounded-lg border">
+                                        <h4 className="font-medium text-blue-900">Patient Details</h4>
+                                        <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                            <div>
+                                                <span className="text-blue-700">Name:</span> {selectedPatientData.name}
+                                            </div>
+                                            <div>
+                                                <span className="text-blue-700">ID:</span> {selectedPatientData.id}
+                                            </div>
+                                            <div>
+                                                <span className="text-blue-700">Age:</span> {selectedPatientData.age || "N/A"}
+                                            </div>
+                                            <div>
+                                                <span className="text-blue-700">Gender:</span> {selectedPatientData.gender || "N/A"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="departmentId">Department</Label>
-                                        <Select name="departmentId" required>
+                                        <Select
+                                            name="departmentId"
+                                            required
+                                            value={selectedDepartment !== "all" ? selectedDepartment : ""}
+                                            onValueChange={(value) => {
+                                                
+                                            }}
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select department" />
                                             </SelectTrigger>
@@ -292,7 +369,6 @@ export default function TokenQueuePage() {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <input type="hidden" name="departmentName" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="priority">Priority</Label>
@@ -310,10 +386,17 @@ export default function TokenQueuePage() {
                                 </div>
 
                                 <div className="flex justify-end space-x-2">
-                                    <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                            setIsCreateDialogOpen(false)
+                                            setSelectedPatient("")
+                                        }}
+                                    >
                                         Cancel
                                     </Button>
-                                    <Button type="submit" disabled={isPending}>
+                                    <Button type="submit" disabled={isPending || !selectedPatient}>
                                         {isPending ? "Creating..." : "Create Token"}
                                     </Button>
                                 </div>
@@ -404,7 +487,7 @@ export default function TokenQueuePage() {
                                     const priorityOrder = { Emergency: 3, Urgent: 2, Normal: 1 }
                                     const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority]
                                     if (priorityDiff !== 0) return priorityDiff
-                                    
+
                                     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
                                 })
                                 .map((token) => (
