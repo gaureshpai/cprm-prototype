@@ -1,11 +1,10 @@
 import PublicDisplayPage from "@/components/PublicDisplayPage"
 import { DisplayPageProps } from "@/lib/helpers"
-import { PrismaClient } from "@prisma/client"
+import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
 
 export default async function DisplayPage({ params }: DisplayPageProps) {
   const { id } = await params
-  const prisma = new PrismaClient()
 
   try {
     const display = await prisma.display.findUnique({
