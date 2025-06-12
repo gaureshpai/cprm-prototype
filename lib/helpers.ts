@@ -1,9 +1,11 @@
-import { Role } from "@prisma/client"
-import { PatientData } from "./doctor-service"
-import { OTData } from "./ot-service"
+import type React from "react"
+import type { Role } from "@prisma/client"
+import type { PatientData } from "./doctor-service"
+import type { OTData } from "./ot-service"
 
 export const roles: Role[] = ["ADMIN", "DOCTOR", "NURSE", "TECHNICIAN", "PHARMACIST"]
-export const departments = [
+
+export const fallbackDepartments = [
   "Administration",
   "Cardiology",
   "Emergency",
@@ -13,6 +15,20 @@ export const departments = [
   "ICU",
   "Surgery",
 ]
+
+export async function getDepartmentOptions(): Promise<string[]> {
+  try {
+    const { getAllDepartmentsAction } = await import("./department-actions")
+    const result = await getAllDepartmentsAction()
+    if (result.success && result.data && result.data.length > 0) {
+      return result.data.map((dept) => dept.name)
+    }
+    return fallbackDepartments
+  } catch (error) {
+    console.error("Error fetching departments:", error)
+    return fallbackDepartments
+  }
+}
 
 export interface UserFormData {
   username: string
@@ -130,9 +146,9 @@ export interface Notification {
 }
 
 export interface PatientFormProps {
-    patient?: PatientData
-    onSuccess?: () => void
-    onCancel?: () => void
+  patient?: PatientData
+  onSuccess?: () => void
+  onCancel?: () => void
 }
 
 export interface PharmacyStatistics {
@@ -164,51 +180,58 @@ export interface PharmacyDashboardClientProps {
 }
 
 export interface PublicDisplayProps {
-    displayId: string
-    displayData?: {
-        id: string
-        location: string
-        status: string
-        content: string
-        uptime: string
-        lastUpdate: string
-        isActive: boolean
-        config?: any
-    }
+  displayId: string
+  displayData?: {
+    id: string
+    location: string
+    status: string
+    content: string
+    lastUpdate: string
+    isActive: boolean
+    config?: any
+  }
 }
 
 export interface DisplayData {
-    tokenQueue: Array<{
-        token_id: string
-        patient_name: string
-        display_name?: string | null
-        status: string
-        department: string
-        priority: number
-        estimated_time?: string | null
-    }>
-    departments: Array<{
-        dept_id: string
-        department_name: string
-        location: string
-        current_tokens: number
-    }>
-    emergencyAlerts: Array<{
-        id: string
-        codeType: string
-        location: string
-        message: string
-        priority: number
-    }>
-    drugInventory: Array<{
-        drug_id: string
-        drug_name: string
-        current_stock: number
-        min_stock: number
-        status: string
-    }>
-    otStatus?: OTData
-    contentType?: string
+  tokenQueue: Array<{
+    token_id: string
+    patient_name: string
+    display_name?: string | null
+    status: string
+    department: string
+    priority: number
+    estimated_time?: string | null
+  }>
+  departments: Array<{
+    dept_id: string
+    department_name: string
+    location: string
+    current_tokens: number
+  }>
+  emergencyAlerts: Array<{
+    id: string
+    codeType: string
+    location: string
+    message: string
+    priority: number
+  }>
+  drugInventory: Array<{
+    drug_id: string
+    drug_name: string
+    current_stock: number
+    min_stock: number
+    status: string
+  }>
+  bloodBank: Array<{
+    blood_id: string
+    blood_type: string
+    units_available: number
+    critical_level: number
+    status: string
+    expiry_date: string
+  }>
+  otStatus?: OTData
+  contentType?: string
 }
 
 export interface Patient {
@@ -239,32 +262,9 @@ export interface SurgerySchedulerProps {
   availableTheaters: Theater[]
 }
 
-export interface OTTheater {
-  id: string
-  name: string
-  status: "occupied" | "available" | "maintenance" | "cleaning" | "booked"
-  currentSurgery?: {
-    patient: string
-    procedure: string
-    surgeon: string
-    startTime: string
-    estimatedDuration: string
-    elapsed: string
-    progress: number
-  }
-  nextSurgery?: {
-    patient: string
-    procedure: string
-    scheduledTime: string
-  }
-  lastCleaned?: string
-  maintenanceType?: string
-  estimatedCompletion?: string
-}
-
 export interface TheaterManagementModalProps {
-    theaters: OTTheater[]
-    onRefresh: () => void
+  theaters: OTTheater[]
+  onRefresh: () => void
 }
 
 export interface User {
@@ -284,4 +284,14 @@ export interface AuthContextType {
   logout: () => void
   isAuthenticated?: boolean
   isLoading: boolean
+}
+
+export function generateDisplayName(patientName: string, tokenNumber: string): string {
+  const nameParts = patientName.trim().split(" ")
+  if (nameParts.length === 1) {
+    return `${nameParts[0].charAt(0)}***`
+  } else if (nameParts.length >= 2) {
+    return `${nameParts[0].charAt(0)}*** ${nameParts[nameParts.length - 1].charAt(0)}***`
+  }
+  return `T${tokenNumber}`
 }
