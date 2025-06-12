@@ -17,13 +17,13 @@ export const getStatusColor = (status: string) => {
     case "controlled":
       return "bg-blue-100 text-blue-800 border-blue-200"
     case "low":
-      return "text-yellow-600 bg-yellow-50 border-yellow-200"
+      return "text-yellow-600 bg-yellow-500 border-yellow-200"
     case "online":
-      return "text-green-600 bg-green-50 border-green-200"
+      return "text-green-600 bg-green-500 border-green-200"
     case "offline":
       return "text-red-600 bg-red-500 border-red-200"
     case "warning":
-      return "text-yellow-600 bg-yellow-50 border-yellow-200"
+      return "text-yellow-600 bg-yellow-500 border-yellow-200"
     case "occupied":
     case "in progress":
       return "bg-red-600 text-white"

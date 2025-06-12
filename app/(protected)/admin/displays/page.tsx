@@ -16,8 +16,8 @@ import {
   updateDisplayAction,
   deleteDisplayAction,
   seedDisplaysAction,
-  type DisplayData,
 } from "@/lib/display-actions"
+import type { DisplayData } from "@/lib/display-service"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import Link from "next/link"
@@ -31,6 +31,7 @@ const CONTENT_TYPES = [
   { value: "Patient Dashboard", label: "Patient Dashboard", icon: Monitor, description: "Combined information display for patients" },
   { value: "Staff Dashboard", label: "Staff Dashboard", icon: Monitor, description: "Combined information display for Staffs" },
   { value: "OT Status", label: "OT Status", icon: Monitor, description: "OT status and scheduling" },
+  { value: "Blood Bank", label: "Blood Bank", icon: Monitor, description: "Blood bank inventory" },
 ]
 
 const STATUS_OPTIONS = [
