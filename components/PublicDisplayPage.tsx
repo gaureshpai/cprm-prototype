@@ -318,11 +318,33 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     }
 
     const getDisplayTokens = () => {
+        const statusPriority: Record<string, number> = {
+            "in progress": 1,
+            "called": 2,
+            "waiting": 3
+        };
+
+        const sortedTokens = [...data.tokenQueue].sort((a, b) => {
+            const statusA = String(a.status || '').toLowerCase();
+            const statusB = String(b.status || '').toLowerCase();
+
+            const priorityA = statusPriority[statusA] || 999;
+            const priorityB = statusPriority[statusB] || 999;
+
+            if (priorityA !== priorityB) {
+                return priorityA - priorityB;
+            }
+
+            const tokenIdA = Number(a.token_id) || 0;
+            const tokenIdB = Number(b.token_id) || 0;
+            return tokenIdA - tokenIdB;
+        });
+
         if (contentType === "Department Token Queue") {
-            return data.tokenQueue.slice(0, 4)
+            return sortedTokens.slice(0, 4);
         }
-        return data.tokenQueue
-    }
+        return sortedTokens;
+    };
 
     const displayTokens = getDisplayTokens()
 
