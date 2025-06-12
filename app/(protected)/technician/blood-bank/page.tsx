@@ -28,6 +28,7 @@ import {
     type BloodBankData,
     type BloodBankStats,
 } from "@/lib/blood-bank-actions"
+import { getStatusColor } from "@/lib/functions"
 
 export default function BloodBankPage() {
     const [bloodBank, setBloodBank] = useState<BloodBankData[]>([])
@@ -103,19 +104,6 @@ export default function BloodBankPage() {
                 description: "Failed to update blood bank inventory",
                 variant: "destructive",
             })
-        }
-    }
-
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case "critical":
-                return "bg-red-500 text-white"
-            case "low":
-                return "bg-yellow-500 text-white"
-            case "available":
-                return "bg-green-500 text-white"
-            default:
-                return "bg-gray-500 text-white"
         }
     }
 
@@ -376,6 +364,14 @@ export default function BloodBankPage() {
                     </Card>
                 ))}
             </div>
+
+            {(loading || filteredBloodBank.length === 0 )&& (
+                <div className="text-center py-12">
+                    <Droplets className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Loading blood inventory...</h3>
+                    <p className="text-gray-600">Please wait while we fetch the blood inventory.</p>
+                </div>
+            )}
 
             {filteredBloodBank.length === 0 && (
                 <div className="text-center py-12">

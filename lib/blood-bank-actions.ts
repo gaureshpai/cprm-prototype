@@ -35,136 +35,38 @@ export interface BloodBankResponse<T> {
 
 export async function getAllBloodBankAction(): Promise<BloodBankResponse<BloodBankData[]>> {
     try {
-        const bloodBankData: BloodBankData[] = [
-            {
-                id: "BB001",
-                bloodType: "A+",
-                unitsAvailable: 25,
-                criticalLevel: 10,
-                status: "Available",
-                expiryDate: new Date("2024-02-15"),
-                donorId: "D001",
-                collectionDate: new Date("2024-01-15"),
-                location: "Blood Bank - Refrigerator A1",
-                batchNumber: "BB2024001",
-                createdAt: new Date("2024-01-15"),
-                updatedAt: new Date("2024-01-20"),
-            },
-            {
-                id: "BB002",
-                bloodType: "A-",
-                unitsAvailable: 5,
-                criticalLevel: 5,
-                status: "Critical",
-                expiryDate: new Date("2024-02-10"),
-                donorId: "D002",
-                collectionDate: new Date("2024-01-10"),
-                location: "Blood Bank - Refrigerator A2",
-                batchNumber: "BB2024002",
-                createdAt: new Date("2024-01-10"),
-                updatedAt: new Date("2024-01-18"),
-            },
-            {
-                id: "BB003",
-                bloodType: "B+",
-                unitsAvailable: 18,
-                criticalLevel: 10,
-                status: "Available",
-                expiryDate: new Date("2024-02-20"),
-                donorId: "D003",
-                collectionDate: new Date("2024-01-20"),
-                location: "Blood Bank - Refrigerator B1",
-                batchNumber: "BB2024003",
-                createdAt: new Date("2024-01-20"),
-                updatedAt: new Date("2024-01-22"),
-            },
-            {
-                id: "BB004",
-                bloodType: "B-",
-                unitsAvailable: 2,
-                criticalLevel: 5,
-                status: "Critical",
-                expiryDate: new Date("2024-02-08"),
-                donorId: "D004",
-                collectionDate: new Date("2024-01-08"),
-                location: "Blood Bank - Refrigerator B2",
-                batchNumber: "BB2024004",
-                createdAt: new Date("2024-01-08"),
-                updatedAt: new Date("2024-01-16"),
-            },
-            {
-                id: "BB005",
-                bloodType: "AB+",
-                unitsAvailable: 10,
-                criticalLevel: 5,
-                status: "Available",
-                expiryDate: new Date("2024-02-25"),
-                donorId: "D005",
-                collectionDate: new Date("2024-01-25"),
-                location: "Blood Bank - Refrigerator AB1",
-                batchNumber: "BB2024005",
-                createdAt: new Date("2024-01-25"),
-                updatedAt: new Date("2024-01-26"),
-            },
-            {
-                id: "BB006",
-                bloodType: "AB-",
-                unitsAvailable: 1,
-                criticalLevel: 3,
-                status: "Critical",
-                expiryDate: new Date("2024-02-05"),
-                donorId: "D006",
-                collectionDate: new Date("2024-01-05"),
-                location: "Blood Bank - Refrigerator AB2",
-                batchNumber: "BB2024006",
-                createdAt: new Date("2024-01-05"),
-                updatedAt: new Date("2024-01-14"),
-            },
-            {
-                id: "BB007",
-                bloodType: "O+",
-                unitsAvailable: 30,
-                criticalLevel: 15,
-                status: "Available",
-                expiryDate: new Date("2024-03-01"),
-                donorId: "D007",
-                collectionDate: new Date("2024-02-01"),
-                location: "Blood Bank - Refrigerator O1",
-                batchNumber: "BB2024007",
-                createdAt: new Date("2024-02-01"),
-                updatedAt: new Date("2024-02-02"),
-            },
-            {
-                id: "BB008",
-                bloodType: "O-",
-                unitsAvailable: 4,
-                criticalLevel: 8,
-                status: "Critical",
-                expiryDate: new Date("2024-02-12"),
-                donorId: "D008",
-                collectionDate: new Date("2024-01-12"),
-                location: "Blood Bank - Refrigerator O2",
-                batchNumber: "BB2024008",
-                createdAt: new Date("2024-01-12"),
-                updatedAt: new Date("2024-01-19"),
-            },
-        ]
+        const bloodBankData = await prisma.bloodBank.findMany({
+            orderBy: { bloodType: "asc" },
+        })
 
-        return { success: true, data: bloodBankData }
+        const formattedData: BloodBankData[] = bloodBankData.map((item) => ({
+            id: item.id,
+            bloodType: item.bloodType,
+            unitsAvailable: item.unitsAvailable,
+            criticalLevel: item.criticalLevel,
+            status: item.status,
+            expiryDate: item.expiryDate,
+            donorId: item.donorId || undefined,
+            collectionDate: item.collectionDate,
+            location: item.location,
+            batchNumber: item.batchNumber,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+        }))
+
+        return { success: true, data: formattedData }
     } catch (error) {
         console.error("Error fetching blood bank data:", error)
         return { success: false, error: "Failed to fetch blood bank data" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
 export async function getBloodBankStatsAction(): Promise<BloodBankResponse<BloodBankStats>> {
     try {
-        const bloodBankResult = await getAllBloodBankAction()
-        if (!bloodBankResult.success || !bloodBankResult.data) {
-            return { success: false, error: "Failed to fetch blood bank data for stats" }
-        }
+        const bloodBank = await prisma.bloodBank.findMany()
 
-        const bloodBank = bloodBankResult.data
         const totalUnits = bloodBank.reduce((sum, item) => sum + item.unitsAvailable, 0)
         const criticalTypes = bloodBank.filter((item) => item.unitsAvailable <= item.criticalLevel).length
 
@@ -211,6 +113,8 @@ export async function getBloodBankStatsAction(): Promise<BloodBankResponse<Blood
     } catch (error) {
         console.error("Error calculating blood bank stats:", error)
         return { success: false, error: "Failed to calculate blood bank statistics" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
@@ -220,50 +124,40 @@ export async function updateBloodBankAction(id: string, formData: FormData): Pro
         const criticalLevel = Number.parseInt(formData.get("criticalLevel") as string)
         const status = formData.get("status") as string
         const location = formData.get("location") as string
-        
-        console.log(`Updating blood bank ${id}:`, { unitsAvailable, criticalLevel, status, location })
 
-        revalidatePath("/technician/blood-bank")
-        revalidatePath("/admin")
-
-        return {
-            success: true,
+        const bloodBank = await prisma.bloodBank.update({
+            where: { id },
             data: {
-                id,
-                bloodType: "A+", 
                 unitsAvailable,
                 criticalLevel,
                 status,
-                expiryDate: new Date(),
-                collectionDate: new Date(),
                 location,
-                batchNumber: "BB2024001",
-                createdAt: new Date(),
-                updatedAt: new Date(),
             },
+        })
+
+        const bloodBankData: BloodBankData = {
+            id: bloodBank.id,
+            bloodType: bloodBank.bloodType,
+            unitsAvailable: bloodBank.unitsAvailable,
+            criticalLevel: bloodBank.criticalLevel,
+            status: bloodBank.status,
+            expiryDate: bloodBank.expiryDate,
+            donorId: bloodBank.donorId || undefined,
+            collectionDate: bloodBank.collectionDate,
+            location: bloodBank.location,
+            batchNumber: bloodBank.batchNumber,
+            createdAt: bloodBank.createdAt,
+            updatedAt: bloodBank.updatedAt,
         }
+
+        revalidatePath("/technician/blood-bank")
+        revalidatePath("/display")
+
+        return { success: true, data: bloodBankData }
     } catch (error) {
         console.error("Error updating blood bank:", error)
         return { success: false, error: "Failed to update blood bank inventory" }
-    }
-}
-
-export async function requestBloodUnitsAction(formData: FormData): Promise<BloodBankResponse<boolean>> {
-    try {
-        const bloodType = formData.get("bloodType") as string
-        const unitsRequested = Number.parseInt(formData.get("unitsRequested") as string)
-        const patientId = formData.get("patientId") as string
-        const urgency = formData.get("urgency") as string
-        const requestedBy = formData.get("requestedBy") as string
-        
-        console.log("Blood request:", { bloodType, unitsRequested, patientId, urgency, requestedBy })
-
-        revalidatePath("/doctor")
-        revalidatePath("/technician/blood-bank")
-
-        return { success: true, data: true }
-    } catch (error) {
-        console.error("Error requesting blood units:", error)
-        return { success: false, error: "Failed to request blood units" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
