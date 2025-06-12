@@ -259,7 +259,6 @@ OT Schedule Update → Pharmacy Alert
 
 #### **Technical Performance**
 - **Display Sync Time**: < 5 seconds across all 73 displays
-- **System Uptime**: > 99.9% availability
 - **Emergency Alert Speed**: < 5 seconds from trigger to display
 - **Data Accuracy**: > 99% synchronization accuracy
 

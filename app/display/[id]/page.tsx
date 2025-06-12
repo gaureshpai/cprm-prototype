@@ -22,7 +22,6 @@ export default async function DisplayPage({ params }: DisplayPageProps) {
       location: display.location,
       status: display.status,
       content: display.content,
-      uptime: display.uptime,
       lastUpdate: display.lastUpdate.toISOString(),
       isActive: true, 
       config: {}, 

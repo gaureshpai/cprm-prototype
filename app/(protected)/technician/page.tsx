@@ -92,7 +92,6 @@ export default async function TechnicianDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600">{analytics.displays.online}</div>
-                  <p className="text-xs text-muted-foreground">{analytics.displays.uptimePercentage}% uptime</p>
                 </CardContent>
               </Card>
 

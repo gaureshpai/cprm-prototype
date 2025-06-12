@@ -15,7 +15,8 @@ import { Monitor, Users, AlertTriangle, Plus, Trash2, CheckCircle, Loader2 } fro
 import { useAuth } from "@/hooks/use-auth"
 import { Navbar } from "@/components/navbar"
 import { AuthGuard } from "@/components/auth-guard"
-import { getAllDisplaysAction, type DisplayData } from "@/lib/display-actions"
+import { getAllDisplaysAction } from "@/lib/display-actions"
+import type { DisplayData } from "@/lib/helpers"
 import {
   getAllContentAction,
   getAllAnnouncementsAction,
@@ -500,7 +501,6 @@ export default function AdminPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{analytics?.displays?.online || 0}</div>
-                  <p className="text-xs text-muted-foreground">{analytics?.displays?.uptimePercentage || 0}% uptime</p>
                 </CardContent>
               </Card>
 

@@ -209,8 +209,7 @@ export default function DepartmentsPage() {
     const filteredDepartments = departments.filter((dept) => {
         const matchesSearch =
             dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            dept.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            dept.headOfDepartment.toLowerCase().includes(searchTerm.toLowerCase())
+            dept.location.toLowerCase().includes(searchTerm.toLowerCase()) 
         const matchesStatus = statusFilter === "all" || dept.status === statusFilter
         return matchesSearch && matchesStatus
     })
@@ -246,10 +245,6 @@ export default function DepartmentsPage() {
                                     <div className="space-y-2">
                                         <Label htmlFor="name">Department Name *</Label>
                                         <Input id="name" name="name" placeholder="Enter department name" required />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="headOfDepartment">Head of Department *</Label>
-                                        <Input id="headOfDepartment" name="headOfDepartment" placeholder="Enter HOD name" required />
                                     </div>
                                 </div>
 
@@ -367,7 +362,7 @@ export default function DepartmentsPage() {
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                     <Input
-                        placeholder="Search departments by name, location, or HOD..."
+                        placeholder="Search departments by name, location..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-4"
@@ -404,10 +399,6 @@ export default function DepartmentsPage() {
                                 <div className="flex items-center space-x-2">
                                     <MapPin className="h-4 w-4 text-gray-500" />
                                     <span>{department.location}</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Users className="h-4 w-4 text-gray-500" />
-                                    <span>HOD: {department.headOfDepartment}</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Clock className="h-4 w-4 text-gray-500" />
@@ -486,15 +477,6 @@ export default function DepartmentsPage() {
                                                     <div className="space-y-2">
                                                         <Label htmlFor="edit-name">Department Name *</Label>
                                                         <Input id="edit-name" name="name" defaultValue={selectedDepartment.name} required />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="edit-headOfDepartment">Head of Department *</Label>
-                                                        <Input
-                                                            id="edit-headOfDepartment"
-                                                            name="headOfDepartment"
-                                                            defaultValue={selectedDepartment.headOfDepartment}
-                                                            required
-                                                        />
                                                     </div>
                                                 </div>
 
@@ -648,7 +630,13 @@ export default function DepartmentsPage() {
                 ))}
             </div>
 
-            {filteredDepartments.length === 0 && (
+            {(loading || filteredDepartments.length === 0) ? (
+                <div className="text-center py-12">
+                    <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Loading departments...</h3>
+                    <p className="text-gray-600">Please wait while we fetch the department data.</p>
+                </div>
+            ) : filteredDepartments.length === 0 && (
                 <div className="text-center py-12">
                     <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No departments found</h3>

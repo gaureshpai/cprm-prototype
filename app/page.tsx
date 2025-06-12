@@ -40,7 +40,7 @@ const DEMO_PATIENT_IDS = [
   },
   {
     id: "cmbseeoyn0000m2jc0wcbehbe",
-    name: "Giridhar Pai",
+    name: "Hrithik",
     condition: "Headache",
     status: "Active",
   }

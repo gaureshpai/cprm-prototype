@@ -98,7 +98,6 @@ Post-Surgery → Medication Reconciliation → Inventory Update
 - **Update Latency**: < 5 seconds across all 73 displays
 - **Synchronization Accuracy**: > 99% data consistency
 - **Emergency Alert Speed**: < 5 seconds from trigger to display
-- **System Uptime**: > 99.9% availability target
 
 ### **Approximated Department Efficiency Metrics**
 - **OT Preparation Time**: 40% reduction with pharmacy sync
