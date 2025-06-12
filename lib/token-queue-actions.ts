@@ -1,25 +1,25 @@
 "use server"
 
-import { PrismaClient } from "@prisma/client"
+import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-
-const prisma = new PrismaClient()
+import { generateDisplayName } from "@/lib/helpers"
 
 export interface TokenQueueData {
     id: string
     tokenNumber: string
     patientId: string
     patientName: string
+    displayName: string | null
     departmentId: string
     departmentName: string
     status: "Waiting" | "Called" | "In Progress" | "Completed" | "Cancelled"
     priority: "Normal" | "Urgent" | "Emergency"
     estimatedWaitTime: number
-    actualWaitTime?: number
+    actualWaitTime: number | null
     createdAt: Date
     updatedAt: Date
-    calledAt?: Date
-    completedAt?: Date
+    calledAt: Date | null
+    completedAt: Date | null
 }
 
 export interface TokenQueueStats {
@@ -29,7 +29,7 @@ export interface TokenQueueStats {
     completedTokens: number
     averageWaitTime: number
     byDepartment: Record<string, number>
-    byStatus: Record<string, number>
+    byPriority: Record<string, number>
 }
 
 export interface TokenQueueResponse<T> {
@@ -38,107 +38,88 @@ export interface TokenQueueResponse<T> {
     error?: string
 }
 
+export async function getAllActiveTokensAction(): Promise<TokenQueueResponse<TokenQueueData[]>> {
+    try {
+        const tokens = await prisma.tokenQueue.findMany({
+            where: {
+                status: { in: ["Waiting", "Called", "In Progress"] },
+            },
+            include: {
+                patient: true,
+                department: true,
+            },
+            orderBy: [{ priority: "desc" }, { createdAt: "asc" }],
+        })
+
+        const tokenData: TokenQueueData[] = tokens.map((token) => ({
+            id: token.id,
+            tokenNumber: token.tokenNumber,
+            patientId: token.patientId,
+            patientName: token.patientName,
+            displayName: token.displayName,
+            departmentId: token.departmentId,
+            departmentName: token.departmentName,
+            status: token.status as TokenQueueData["status"],
+            priority: token.priority as TokenQueueData["priority"],
+            estimatedWaitTime: token.estimatedWaitTime,
+            actualWaitTime: token.actualWaitTime,
+            createdAt: token.createdAt,
+            updatedAt: token.updatedAt,
+            calledAt: token.calledAt,
+            completedAt: token.completedAt,
+        }))
+
+        return { success: true, data: tokenData }
+    } catch (error) {
+        console.error("Error fetching active tokens:", error)
+        return { success: false, error: "Failed to fetch active tokens" }
+    } finally {
+        await prisma.$disconnect()
+    }
+}
+
 export async function getTokenQueueByDepartmentAction(
     departmentId: string,
 ): Promise<TokenQueueResponse<TokenQueueData[]>> {
     try {
-        const tokenQueue: TokenQueueData[] = [
-            {
-                id: "TQ001",
-                tokenNumber: "C001",
-                patientId: "P001",
-                patientName: "John Smith",
-                departmentId: "D001",
-                departmentName: "Cardiology",
-                status: "In Progress",
-                priority: "Normal",
-                estimatedWaitTime: 15,
-                actualWaitTime: 12,
-                createdAt: new Date("2024-01-20T09:00:00"),
-                updatedAt: new Date("2024-01-20T09:12:00"),
-                calledAt: new Date("2024-01-20T09:12:00"),
-            },
-            {
-                id: "TQ002",
-                tokenNumber: "C002",
-                patientId: "P002",
-                patientName: "Sarah Johnson",
-                departmentId: "D001",
-                departmentName: "Cardiology",
-                status: "Waiting",
-                priority: "Normal",
-                estimatedWaitTime: 25,
-                createdAt: new Date("2024-01-20T09:15:00"),
-                updatedAt: new Date("2024-01-20T09:15:00"),
-            },
-            {
-                id: "TQ003",
-                tokenNumber: "C003",
-                patientId: "P003",
-                patientName: "Michael Brown",
-                departmentId: "D001",
-                departmentName: "Cardiology",
-                status: "Waiting",
-                priority: "Urgent",
-                estimatedWaitTime: 10,
-                createdAt: new Date("2024-01-20T09:20:00"),
-                updatedAt: new Date("2024-01-20T09:20:00"),
-            },
-            {
-                id: "TQ004",
-                tokenNumber: "O001",
-                patientId: "P004",
-                patientName: "Emily Davis",
-                departmentId: "D002",
-                departmentName: "Orthopedics",
-                status: "Waiting",
-                priority: "Normal",
-                estimatedWaitTime: 30,
-                createdAt: new Date("2024-01-20T09:10:00"),
-                updatedAt: new Date("2024-01-20T09:10:00"),
-            },
-            {
-                id: "TQ005",
-                tokenNumber: "E001",
-                patientId: "P005",
-                patientName: "Robert Wilson",
-                departmentId: "D003",
-                departmentName: "Emergency",
-                status: "In Progress",
-                priority: "Emergency",
-                estimatedWaitTime: 0,
-                actualWaitTime: 2,
-                createdAt: new Date("2024-01-20T09:25:00"),
-                updatedAt: new Date("2024-01-20T09:27:00"),
-                calledAt: new Date("2024-01-20T09:27:00"),
-            },
-        ]
+        const whereClause = departmentId === "all" ? {} : { departmentId }
 
-        const filteredTokens =
-            departmentId === "all" ? tokenQueue : tokenQueue.filter((token) => token.departmentId === departmentId)
+        const tokens = await prisma.tokenQueue.findMany({
+            where: {
+                ...whereClause,
+                status: { in: ["Waiting", "Called", "In Progress"] },
+            },
+            include: {
+                patient: true,
+                department: true,
+            },
+            orderBy: [{ priority: "desc" }, { createdAt: "asc" }],
+        })
 
-        return { success: true, data: filteredTokens }
+        const tokenData: TokenQueueData[] = tokens.map((token) => ({
+            id: token.id,
+            tokenNumber: token.tokenNumber,
+            patientId: token.patientId,
+            patientName: token.patientName,
+            displayName: token.displayName,
+            departmentId: token.departmentId,
+            departmentName: token.departmentName,
+            status: token.status as TokenQueueData["status"],
+            priority: token.priority as TokenQueueData["priority"],
+            estimatedWaitTime: token.estimatedWaitTime,
+            actualWaitTime: token.actualWaitTime,
+            createdAt: token.createdAt,
+            updatedAt: token.updatedAt,
+            calledAt: token.calledAt,
+            completedAt: token.completedAt,
+        }))
+
+        return { success: true, data: tokenData }
     } catch (error) {
-        console.error("Error fetching token queue:", error)
-        return { success: false, error: "Failed to fetch token queue" }
-    }
-}
-
-export async function getAllActiveTokensAction(): Promise<TokenQueueResponse<TokenQueueData[]>> {
-    try {
-        const result = await getTokenQueueByDepartmentAction("all")
-        if (!result.success || !result.data) {
-            return { success: false, error: "Failed to fetch tokens" }
-        }
-
-        const activeTokens = result.data.filter(
-            (token) => token.status === "Waiting" || token.status === "Called" || token.status === "In Progress",
-        )
-
-        return { success: true, data: activeTokens }
-    } catch (error) {
-        console.error("Error fetching active tokens:", error)
-        return { success: false, error: "Failed to fetch active tokens" }
+        console.error("Error fetching tokens by department:", error)
+        return { success: false, error: "Failed to fetch tokens by department" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
@@ -147,84 +128,183 @@ export async function createTokenAction(formData: FormData): Promise<TokenQueueR
         const patientId = formData.get("patientId") as string
         const patientName = formData.get("patientName") as string
         const departmentId = formData.get("departmentId") as string
-        const departmentName = formData.get("departmentName") as string
-        const priority = formData.get("priority") as "Normal" | "Urgent" | "Emergency"
-        
-        const departmentPrefix = departmentName.charAt(0).toUpperCase()
-        const tokenNumber = `${departmentPrefix}${String(Math.floor(Math.random() * 999) + 1).padStart(3, "0")}`
-        
-        let estimatedWaitTime = 30 
-        if (priority === "Urgent") estimatedWaitTime = 15
-        if (priority === "Emergency") estimatedWaitTime = 0
+        const priority = (formData.get("priority") as string) || "Normal"
 
-        const newToken: TokenQueueData = {
-            id: `TQ${Date.now()}`,
-            tokenNumber,
-            patientId,
-            patientName,
-            departmentId,
-            departmentName,
-            status: "Waiting",
-            priority,
-            estimatedWaitTime,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+        if (!patientId || !patientName || !departmentId) {
+            return { success: false, error: "Required fields are missing" }
+        }
+        
+        const department = await prisma.department.findUnique({
+            where: { id: departmentId },
+        })
+
+        if (!department) {
+            return { success: false, error: "Department not found" }
+        }
+        
+        const today = new Date().toISOString().split("T")[0].replace(/-/g, "")
+        const tokenCount = await prisma.tokenQueue.count({
+            where: {
+                createdAt: {
+                    gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                },
+            },
+        })
+        const tokenNumber = `${department.name.substring(0, 3).toUpperCase()}${today}${String(tokenCount + 1).padStart(3, "0")}`
+        
+        const displayName = generateDisplayName(patientName, tokenNumber)
+        
+        const queueLength = await prisma.tokenQueue.count({
+            where: {
+                departmentId,
+                status: { in: ["Waiting", "Called", "In Progress"] },
+            },
+        })
+        const estimatedWaitTime = Math.max(15, queueLength * 15) 
+
+        const token = await prisma.tokenQueue.create({
+            data: {
+                tokenNumber,
+                patientId,
+                patientName,
+                displayName,
+                departmentId,
+                departmentName: department.name,
+                priority,
+                estimatedWaitTime,
+            },
+            include: {
+                patient: true,
+                department: true,
+            },
+        })
+
+        const tokenData: TokenQueueData = {
+            id: token.id,
+            tokenNumber: token.tokenNumber,
+            patientId: token.patientId,
+            patientName: token.patientName,
+            displayName: token.displayName,
+            departmentId: token.departmentId,
+            departmentName: token.departmentName,
+            status: token.status as TokenQueueData["status"],
+            priority: token.priority as TokenQueueData["priority"],
+            estimatedWaitTime: token.estimatedWaitTime,
+            actualWaitTime: token.actualWaitTime,
+            createdAt: token.createdAt,
+            updatedAt: token.updatedAt,
+            calledAt: token.calledAt,
+            completedAt: token.completedAt,
         }
 
-        console.log("Created new token:", newToken)
-
-        revalidatePath("/nurse")
+        revalidatePath("/nurse/token-queue")
         revalidatePath("/display")
 
-        return { success: true, data: newToken }
+        return { success: true, data: tokenData }
     } catch (error) {
         console.error("Error creating token:", error)
         return { success: false, error: "Failed to create token" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
 export async function updateTokenStatusAction(
     tokenId: string,
     status: TokenQueueData["status"],
-): Promise<TokenQueueResponse<boolean>> {
+): Promise<TokenQueueResponse<TokenQueueData>> {
     try {
-        const updateData: Partial<TokenQueueData> = {
-            status,
-            updatedAt: new Date(),
-        }
+        const updateData: any = { status }
 
         if (status === "Called") {
             updateData.calledAt = new Date()
-        } else if (status === "Completed") {
+        } else if (status === "Completed" || status === "Cancelled") {
             updateData.completedAt = new Date()
+            
+            const token = await prisma.tokenQueue.findUnique({
+                where: { id: tokenId },
+            })
+
+            if (token) {
+                const actualWaitTime = Math.floor((new Date().getTime() - token.createdAt.getTime()) / (1000 * 60))
+                updateData.actualWaitTime = actualWaitTime
+            }
         }
 
-        console.log(`Updating token ${tokenId} to status: ${status}`)
+        const token = await prisma.tokenQueue.update({
+            where: { id: tokenId },
+            data: updateData,
+            include: {
+                patient: true,
+                department: true,
+            },
+        })
 
-        revalidatePath("/nurse")
+        const tokenData: TokenQueueData = {
+            id: token.id,
+            tokenNumber: token.tokenNumber,
+            patientId: token.patientId,
+            patientName: token.patientName,
+            displayName: token.displayName,
+            departmentId: token.departmentId,
+            departmentName: token.departmentName,
+            status: token.status as TokenQueueData["status"],
+            priority: token.priority as TokenQueueData["priority"],
+            estimatedWaitTime: token.estimatedWaitTime,
+            actualWaitTime: token.actualWaitTime,
+            createdAt: token.createdAt,
+            updatedAt: token.updatedAt,
+            calledAt: token.calledAt,
+            completedAt: token.completedAt,
+        }
+
+        revalidatePath("/nurse/token-queue")
+        revalidatePath("/display")
+
+        return { success: true, data: tokenData }
+    } catch (error) {
+        console.error("Error updating token status:", error)
+        return { success: false, error: "Failed to update token status" }
+    } finally {
+        await prisma.$disconnect()
+    }
+}
+
+export async function cancelTokenAction(tokenId: string): Promise<TokenQueueResponse<boolean>> {
+    try {
+        await updateTokenStatusAction(tokenId, "Cancelled")
+
+        revalidatePath("/nurse/token-queue")
         revalidatePath("/display")
 
         return { success: true, data: true }
     } catch (error) {
-        console.error("Error updating token status:", error)
-        return { success: false, error: "Failed to update token status" }
+        console.error("Error cancelling token:", error)
+        return { success: false, error: "Failed to cancel token" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
 export async function getTokenQueueStatsAction(): Promise<TokenQueueResponse<TokenQueueStats>> {
     try {
-        const result = await getTokenQueueByDepartmentAction("all")
-        if (!result.success || !result.data) {
-            return { success: false, error: "Failed to fetch tokens for stats" }
-        }
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
 
-        const tokens = result.data
+        const tokens = await prisma.tokenQueue.findMany({
+            where: {
+                createdAt: {
+                    gte: today,
+                },
+            },
+        })
+
         const totalTokens = tokens.length
         const waitingTokens = tokens.filter((t) => t.status === "Waiting").length
         const inProgressTokens = tokens.filter((t) => t.status === "In Progress").length
         const completedTokens = tokens.filter((t) => t.status === "Completed").length
 
-        const completedWithWaitTime = tokens.filter((t) => t.status === "Completed" && t.actualWaitTime)
+        const completedWithWaitTime = tokens.filter((t) => t.status === "Completed" && t.actualWaitTime !== null)
         const averageWaitTime =
             completedWithWaitTime.length > 0
                 ? completedWithWaitTime.reduce((sum, t) => sum + (t.actualWaitTime || 0), 0) / completedWithWaitTime.length
@@ -238,9 +318,9 @@ export async function getTokenQueueStatsAction(): Promise<TokenQueueResponse<Tok
             {} as Record<string, number>,
         )
 
-        const byStatus = tokens.reduce(
+        const byPriority = tokens.reduce(
             (acc, token) => {
-                acc[token.status] = (acc[token.status] || 0) + 1
+                acc[token.priority] = (acc[token.priority] || 0) + 1
                 return acc
             },
             {} as Record<string, number>,
@@ -253,26 +333,14 @@ export async function getTokenQueueStatsAction(): Promise<TokenQueueResponse<Tok
             completedTokens,
             averageWaitTime,
             byDepartment,
-            byStatus,
+            byPriority,
         }
 
         return { success: true, data: stats }
     } catch (error) {
         console.error("Error calculating token queue stats:", error)
         return { success: false, error: "Failed to calculate token queue statistics" }
-    }
-}
-
-export async function cancelTokenAction(tokenId: string): Promise<TokenQueueResponse<boolean>> {
-    try {
-        console.log(`Cancelling token ${tokenId}`)
-
-        revalidatePath("/nurse")
-        revalidatePath("/display")
-
-        return { success: true, data: true }
-    } catch (error) {
-        console.error("Error cancelling token:", error)
-        return { success: false, error: "Failed to cancel token" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
