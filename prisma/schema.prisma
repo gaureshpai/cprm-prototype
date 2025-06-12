@@ -8,19 +8,18 @@ datasource db {
 }
 
 model User {
-  id                    String             @id @default(cuid())
-  username              String             @unique @db.VarChar(50)
-  email                 String?            @unique @db.VarChar(100)
-  name                  String
-  password              String             @db.VarChar(255)
-  role                  Role
-  department            String?
-  status                String             @default("ACTIVE")
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
-  appointments          Appointment[]
-  departmentMemberships DepartmentMember[]
-  prescriptions         Prescription[]
+  id            String         @id @default(cuid())
+  username      String         @unique @db.VarChar(50)
+  email         String?        @unique @db.VarChar(100)
+  name          String
+  password      String         @db.VarChar(255)
+  role          Role
+  department    String?
+  status        String         @default("ACTIVE")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  appointments  Appointment[]
+  prescriptions Prescription[]
 
   @@map("users")
 }
@@ -190,38 +189,23 @@ model TokenQueue {
 }
 
 model Department {
-  id               String             @id @default(cuid())
-  name             String             @unique
+  id               String       @id @default(cuid())
+  name             String       @unique
   description      String
   location         String
   contactNumber    String?
   email            String?
-  operatingHours   String             @default("24/7")
-  status           String             @default("Active")
-  capacity         Int                @default(50)
-  currentOccupancy Int                @default(0)
-  specializations  String[]           @default([])
-  equipment        String[]           @default([])
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  members          DepartmentMember[]
+  operatingHours   String       @default("24/7")
+  status           String       @default("Active")
+  capacity         Int          @default(50)
+  currentOccupancy Int          @default(0)
+  specializations  String[]     @default([])
+  equipment        String[]     @default([])
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
   tokenQueue       TokenQueue[]
 
   @@map("departments")
-}
-
-model DepartmentMember {
-  id           String     @id @default(cuid())
-  departmentId String
-  userId       String
-  role         String     @default("Member")
-  joinedAt     DateTime   @default(now())
-  isActive     Boolean    @default(true)
-  department   Department @relation(fields: [departmentId], references: [id])
-  user         User       @relation(fields: [userId], references: [id])
-
-  @@unique([departmentId, userId])
-  @@map("department_members")
 }
 
 model EmergencyAlert {
