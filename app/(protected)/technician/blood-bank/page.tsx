@@ -340,6 +340,21 @@ export default function BloodBankPage() {
                                                     <Input id="location" name="location" defaultValue={selectedBloodType.location} required />
                                                 </div>
 
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                                                    <Input
+                                                        id="expiryDate"
+                                                        name="expiryDate"
+                                                        type="date"
+                                                        defaultValue={
+                                                            selectedBloodType.expiryDate
+                                                                ? new Date(selectedBloodType.expiryDate).toISOString().split("T")[0]
+                                                                : ""
+                                                        }
+                                                        required
+                                                    />
+                                                </div>
+
                                                 <div className="flex justify-end space-x-2">
                                                     <Button
                                                         type="button"
@@ -365,7 +380,7 @@ export default function BloodBankPage() {
                 ))}
             </div>
 
-            {(loading || filteredBloodBank.length === 0 )&& (
+            {(loading || filteredBloodBank.length === 0) && (
                 <div className="text-center py-12">
                     <Droplets className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Loading blood inventory...</h3>

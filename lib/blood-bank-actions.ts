@@ -124,6 +124,7 @@ export async function updateBloodBankAction(id: string, formData: FormData): Pro
         const criticalLevel = Number.parseInt(formData.get("criticalLevel") as string)
         const status = formData.get("status") as string
         const location = formData.get("location") as string
+        const expiryDate = formData.get("expiryDate") as string
 
         const bloodBank = await prisma.bloodBank.update({
             where: { id },
@@ -132,6 +133,7 @@ export async function updateBloodBankAction(id: string, formData: FormData): Pro
                 criticalLevel,
                 status,
                 location,
+                expiryDate: expiryDate ? new Date(expiryDate) : undefined,
             },
         })
 
