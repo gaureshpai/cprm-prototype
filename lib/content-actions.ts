@@ -286,8 +286,6 @@ export async function getSystemAnalyticsAction() {
         const offlineDisplays = displays.filter((d:any) => d.status === "offline").length
         const warningDisplays = displays.filter((d:any) => d.status === "warning").length
         
-        const uptimePercentage = totalDisplays > 0 ? Math.round((onlineDisplays / totalDisplays) * 100) : 0
-        
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const tomorrow = new Date(today)
@@ -348,7 +346,6 @@ export async function getSystemAnalyticsAction() {
                     online: onlineDisplays,
                     offline: offlineDisplays,
                     warning: warningDisplays,
-                    uptimePercentage,
                 },
                 patients: {
                     daily: dailyPatients,

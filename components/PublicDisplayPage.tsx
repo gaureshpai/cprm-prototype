@@ -4,10 +4,10 @@ import { useState, useEffect, useTransition, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Users, Activity, AlertTriangle, Heart, Pill } from "lucide-react"
+import { Users, Activity, AlertTriangle, Heart, Pill, Droplets } from "lucide-react"
 import { getDisplayDataAction } from "@/lib/display-actions"
 import { getOTStatus } from "@/lib/ot-service"
-import { DisplayData, PublicDisplayProps } from "@/lib/helpers"
+import type { DisplayData, PublicDisplayProps } from "@/lib/helpers"
 
 export default function PublicDisplayPage({ displayId, displayData }: PublicDisplayProps) {
     const [data, setData] = useState<DisplayData>({
@@ -15,6 +15,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
         departments: [],
         emergencyAlerts: [],
         drugInventory: [],
+        bloodBank: [],
         contentType: "Mixed Dashboard",
     })
     const [currentTime, setCurrentTime] = useState<Date | null>(null)
@@ -33,11 +34,11 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     const getDashboardSections = (contentType: string): string[] => {
         switch (contentType) {
             case "Mixed Dashboard":
-                return ["tokenQueue", "departments", "otStatus", "drugInventory", "hospitalInfo"]
+                return ["tokenQueue", "departments", "otStatus", "drugInventory", "bloodBank", "hospitalInfo"]
             case "Patient Dashboard":
                 return ["tokenQueue", "departments", "hospitalInfo"]
             case "Staff Dashboard":
-                return ["tokenQueue", "departments", "otStatus", "drugInventory"]
+                return ["tokenQueue", "departments", "otStatus", "drugInventory", "bloodBank"]
             default:
                 return ["tokenQueue", "departments", "drugInventory", "hospitalInfo"]
         }
@@ -272,6 +273,15 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
         return false
     }
 
+    const shouldShowBloodBank = () => {
+        if (contentType === "Blood Bank") return true
+        if (contentType === "Patient Dashboard") return false
+        if (isDashboardType(contentType)) {
+            return activeSection === "bloodBank"
+        }
+        return false
+    }
+
     const shouldShowHospitalInfo = () => {
         if (contentType === "Hospital Info") return true
         if (contentType === "Staff Dashboard") return false
@@ -403,14 +413,18 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                             </div>
                                             <div className="text-right">
                                                 <Badge
-                                                    className={`text-lg px-3 py-1 ${token.status === "in_progress"
+                                                    className={`text-lg px-3 py-1 ${token.status === "in progress"
                                                             ? "bg-blue-500"
                                                             : token.status === "waiting"
                                                                 ? "bg-yellow-500"
                                                                 : "bg-gray-500"
                                                         }`}
                                                 >
-                                                    {token.status === "in_progress" ? "In Progress" : "Waiting"}
+                                                    {token.status === "in progress"
+                                                        ? "In Progress"
+                                                        : token.status === "waiting"
+                                                            ? "Waiting"
+                                                            : token.status}
                                                 </Badge>
                                                 {token.estimated_time && (
                                                     <div className="text-sm text-gray-500 mt-1">ETA: {token.estimated_time}</div>
@@ -477,7 +491,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         <CardHeader className="bg-red-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
                                 <Pill className="h-6 w-6" />
-                                <span>Critical Stock Alerts</span>
+                                <span>Critical Drug Alerts</span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
@@ -487,7 +501,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                         <Alert key={drug.drug_id} className="border-red-200 bg-red-50">
                                             <AlertTriangle className="h-4 w-4 text-red-600" />
                                             <AlertDescription className="text-red-800">
-                                                <strong>{drug.drug_name}</strong> - {drug.status=="low"?"Low Stock level":"Out Of Stock "}
+                                                <strong>{drug.drug_name}</strong> - {drug.status == "low" ? "Low Stock level" : "Out Of Stock "}
                                                 <br />
                                                 <span className="text-sm">
                                                     Current: {drug.current_stock} | Min: {drug.min_stock}
@@ -502,8 +516,50 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                 <div className="flex items-center justify-center h-64">
                                     <div className="text-center text-gray-500">
                                         <Pill className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                                        <h3 className="text-2xl font-semibold mb-2">No Critical Stock Alerts</h3>
+                                        <h3 className="text-2xl font-semibold mb-2">No Critical Drug Alerts</h3>
                                         <p className="text-lg">All medications are currently well stocked.</p>
+                                        <p className="text-sm mt-2">Critical alerts will appear here when stock is low.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+
+                {shouldShowBloodBank() && (
+                    <Card className="shadow-lg lg:col-span-2 min-h-[400px]">
+                        <CardHeader className="bg-red-800 text-white">
+                            <CardTitle className="flex items-center space-x-2 text-2xl">
+                                <Droplets className="h-6 w-6" />
+                                <span>Blood Bank Alerts</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            {data.bloodBank.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {data.bloodBank?.map((blood: any) => (
+                                        <Alert key={blood.blood_id} className="border-red-300 bg-red-100">
+                                            <Droplets className="h-4 w-4 text-red-700" />
+                                            <AlertDescription className="text-red-900">
+                                                <strong>{blood.blood_type} Blood</strong>
+                                                <br />
+                                                <span className="text-sm">Available: {blood.units_available} units</span>
+                                                <br />
+                                                <span className="text-sm">Critical Level: {blood.critical_level} units</span>
+                                                <br />
+                                                <span className="text-sm font-semibold text-red-800">{blood.status} - Contact Blood Bank</span>
+                                                <br />
+                                                <span className="text-xs text-red-700">Expires: {blood.expiry_date}</span>
+                                            </AlertDescription>
+                                        </Alert>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center h-64">
+                                    <div className="text-center text-gray-500">
+                                        <Droplets className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                                        <h3 className="text-2xl font-semibold mb-2">No Blood Bank Alerts</h3>
+                                        <p className="text-lg">All blood types are currently well stocked.</p>
                                         <p className="text-sm mt-2">Critical alerts will appear here when stock is low.</p>
                                     </div>
                                 </div>
@@ -715,7 +771,6 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 <p>© 2025 Wenlock Hospital • UDAL Fellowship Challenge</p>
                 <p className="text-sm mt-1">Real-time updates every 5 seconds • Patient privacy protected</p>
                 <p className="text-xs mt-1">
-                    Uptime: {displayData?.uptime || "N/A"} | Last Update:{" "}
                     {displayData?.lastUpdate ? new Date(displayData.lastUpdate).toLocaleString("en-US") : "N/A"}
                 </p>
             </div>
