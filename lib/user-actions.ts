@@ -27,7 +27,7 @@ export interface UserWithStats {
     username: string
     name: string
     email?: string | null
-    password?: string 
+    password?: string
     role: Role
     department?: string | null
     status: string
@@ -48,7 +48,7 @@ export async function getAllUsersAction(): Promise<UserActionResponse<UserWithSt
         })
 
         await prisma.$disconnect()
-        return { success: true, data: users }
+        return { success: true, data: users as UserWithStats[] }
     } catch (error) {
         console.error("Error finding all users:", error)
         await prisma.$disconnect()
@@ -68,7 +68,7 @@ export async function getUserByIdAction(id: string): Promise<UserActionResponse<
             return { success: false, error: "User not found" }
         }
 
-        return { success: true, data: user }
+        return { success: true, data: user as UserWithStats }
     } catch (error) {
         console.error("Error finding user by ID:", error)
         await prisma.$disconnect()
@@ -117,7 +117,7 @@ export async function createUserAction(formData: FormData): Promise<UserActionRe
             department: department || undefined,
             status: "ACTIVE",
         }
-        
+
         if (password) {
             try {
                 userData.password = password
@@ -133,7 +133,7 @@ export async function createUserAction(formData: FormData): Promise<UserActionRe
         await prisma.$disconnect()
         revalidatePath("/admin/users")
 
-        return { success: true, data: user }
+        return { success: true, data: user as UserWithStats }
     } catch (error) {
         console.error("Error creating user:", error)
         await prisma.$disconnect()
@@ -174,7 +174,7 @@ export async function updateUserAction(id: string, formData: FormData): Promise<
             department: department || undefined,
             updatedAt: new Date(),
         }
-        
+
         if (password && password.trim() !== "") {
             try {
                 updateData.password = password
@@ -191,7 +191,7 @@ export async function updateUserAction(id: string, formData: FormData): Promise<
         await prisma.$disconnect()
         revalidatePath("/admin/users")
 
-        return { success: true, data: user }
+        return { success: true, data: user as UserWithStats }
     } catch (error) {
         console.error("Error updating user:", error)
         await prisma.$disconnect()
@@ -252,7 +252,7 @@ export async function toggleUserStatusAction(id: string): Promise<UserActionResp
         await prisma.$disconnect()
         revalidatePath("/admin/users")
 
-        return { success: true, data: updatedUser }
+        return { success: true, data: updatedUser as UserWithStats }
     } catch (error) {
         console.error("Error toggling user status:", error)
         await prisma.$disconnect()
@@ -352,7 +352,7 @@ export async function getUserByUsernameAction(username: string): Promise<UserAct
             return { success: false, error: "User not found" }
         }
 
-        return { success: true, data: user }
+        return { success: true, data: user as UserWithStats }
     } catch (error) {
         console.error("Error finding user by username:", error)
         await prisma.$disconnect()
@@ -378,7 +378,7 @@ export async function validateUserCredentialsAction(
         if (user.status !== "ACTIVE") {
             return { success: false, error: "Account is inactive" }
         }
-        
+
         if ("password" in user && user.password) {
             if (user.password !== password) {
                 return { success: false, error: "Invalid password" }
@@ -387,7 +387,7 @@ export async function validateUserCredentialsAction(
             console.warn("Password field not available, allowing login for development")
         }
 
-        return { success: true, data: user }
+        return { success: true, data: user as UserWithStats }
     } catch (error) {
         console.error("Error validating user credentials:", error)
         await prisma.$disconnect()

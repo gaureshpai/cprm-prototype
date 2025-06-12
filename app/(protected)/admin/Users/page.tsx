@@ -42,7 +42,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import { useToast } from "@/hooks/use-toast"
 import { roles, type UserFormData } from "@/lib/helpers"
-import { getDepartmentOptions } from "@/lib/helpers"
+import { getDepartmentOptions } from "@/lib/department-actions"
 
 const UserCRUDPage = () => {
   const [users, setUsers] = useState<UserWithStats[]>([])
@@ -72,8 +72,8 @@ const UserCRUDPage = () => {
 
   const loadDepartments = async () => {
     try {
-      const depts = await getDepartmentOptions()
-      setDepartments(depts)
+      const result = await getDepartmentOptions()
+      setDepartments(result)
     } catch (error) {
       console.error("Error loading departments:", error)
     }
@@ -426,14 +426,15 @@ const UserCRUDPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password *</Label>
+          <Label htmlFor="password">Password {!isEdit && "*"}</Label>
           <Input
             id="password"
+            type="password"
             value={formData.password}
             onChange={handleInputChange("password")}
-            placeholder="Enter password"
-            disabled={isEdit || isPending}
-            required
+            placeholder={isEdit ? "Leave blank to keep current password" : "Enter password"}
+            disabled={isPending}
+            required={!isEdit}
           />
         </div>
       </div>
@@ -461,6 +462,7 @@ const UserCRUDPage = () => {
               <SelectValue placeholder="Select department" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="none">None</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>
                   {dept}
@@ -681,17 +683,18 @@ const UserCRUDPage = () => {
             </div>
           </div>
 
-          {(loading || filteredUsers.length === 0) ? (
+          {loading ? (
             <div className="text-center py-8 text-gray-500">
               <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              {searchTerm ? "No users found matching your search." : "loading... Users"}
-              <p className="text-gray-600">Please wait while we fetch the User data.</p>
-
+              <p>Loading users...</p>
+              <p className="text-gray-600">Please wait while we fetch the user data.</p>
             </div>
-          ) : filteredUsers.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {searchTerm ? "No users found matching your search." : "No users found."}
-            </div>
+          ) : (
+            filteredUsers.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                {searchTerm ? "No users found matching your search." : "No users found."}
+              </div>
+            )
           )}
         </CardContent>
       </Card>

@@ -385,3 +385,19 @@ export async function removeDepartmentMemberAction(
         await prisma.$disconnect()
     }
 }
+
+export async function getDepartmentOptions(): Promise<string[]> {
+    try {
+        const departments = await prisma.department.findMany({
+            select: { name: true },
+            orderBy: { name: "asc" },
+        })
+
+        return departments.map((dept) => dept.name)
+    } catch (error) {
+        console.error("Error getting department options:", error)
+        return []
+    } finally {
+        await prisma.$disconnect()
+    }
+}
