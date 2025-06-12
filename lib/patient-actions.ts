@@ -14,7 +14,7 @@ import {
     UpdatePatientData,
     updatePatient,
 } from "./patient-service"
-import prisma from "./prisma"
+import prisma from "@/lib/prisma"
 
 export interface ActionResponse<T> {
     success: boolean

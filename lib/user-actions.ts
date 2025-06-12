@@ -1,10 +1,8 @@
 "use server"
 
-import { PrismaClient } from "@prisma/client"
+import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import type { Role } from "@prisma/client"
-
-const prisma = new PrismaClient()
 
 export interface CreateUserData {
     username: string
