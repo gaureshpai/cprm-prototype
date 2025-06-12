@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Plus, Edit2, Trash2, Users, Search, Loader2, UserCheck, UserX, RefreshCw } from "lucide-react"
+import { Plus, Edit2, Trash2, Users, Search, Loader2, UserCheck, UserX, RefreshCw, User } from "lucide-react"
 import {
   getAllUsersAction,
   createUserAction,
@@ -41,10 +41,12 @@ import type { Role } from "@prisma/client"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import { useToast } from "@/hooks/use-toast"
-import { departments, roles, UserFormData } from "@/lib/helpers"
+import { roles, type UserFormData } from "@/lib/helpers"
+import { getDepartmentOptions } from "@/lib/helpers"
 
 const UserCRUDPage = () => {
   const [users, setUsers] = useState<UserWithStats[]>([])
+  const [departments, setDepartments] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -65,7 +67,17 @@ const UserCRUDPage = () => {
   useEffect(() => {
     loadUsers()
     loadStats()
+    loadDepartments()
   }, [])
+
+  const loadDepartments = async () => {
+    try {
+      const depts = await getDepartmentOptions()
+      setDepartments(depts)
+    } catch (error) {
+      console.error("Error loading departments:", error)
+    }
+  }
 
   const loadUsers = async () => {
     try {
@@ -112,7 +124,7 @@ const UserCRUDPage = () => {
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
         user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()))
+        (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase())),
     )
     .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
 
@@ -352,11 +364,11 @@ const UserCRUDPage = () => {
 
   const handleInputChange = (field: keyof UserFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSelectChange = (field: keyof UserFormData) => (value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const getRoleBadgeColor = (role: Role) => {
@@ -365,7 +377,7 @@ const UserCRUDPage = () => {
       DOCTOR: "bg-blue-100 text-blue-800",
       NURSE: "bg-green-100 text-green-800",
       TECHNICIAN: "bg-yellow-100 text-yellow-800",
-      PHARMACIST: "bg-purple-100 text-purple-800"
+      PHARMACIST: "bg-purple-100 text-purple-800",
     }
     return colors[role] || "bg-gray-100 text-gray-800"
   }
@@ -382,7 +394,7 @@ const UserCRUDPage = () => {
           <Input
             id="username"
             value={formData.username}
-            onChange={handleInputChange('username')}
+            onChange={handleInputChange("username")}
             placeholder="Enter username"
             disabled={isEdit || isPending}
             required
@@ -393,7 +405,7 @@ const UserCRUDPage = () => {
           <Input
             id="name"
             value={formData.name}
-            onChange={handleInputChange('name')}
+            onChange={handleInputChange("name")}
             placeholder="Enter full name"
             disabled={isPending}
             required
@@ -408,7 +420,7 @@ const UserCRUDPage = () => {
             id="email"
             type="email"
             value={formData.email}
-            onChange={handleInputChange('email')}
+            onChange={handleInputChange("email")}
             placeholder="Enter email address"
             disabled={isPending}
           />
@@ -418,7 +430,7 @@ const UserCRUDPage = () => {
           <Input
             id="password"
             value={formData.password}
-            onChange={handleInputChange('password')}
+            onChange={handleInputChange("password")}
             placeholder="Enter password"
             disabled={isEdit || isPending}
             required
@@ -429,11 +441,7 @@ const UserCRUDPage = () => {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="role">Role *</Label>
-          <Select
-            value={formData.role}
-            onValueChange={handleSelectChange('role')}
-            disabled={isPending}
-          >
+          <Select value={formData.role} onValueChange={handleSelectChange("role")} disabled={isPending}>
             <SelectTrigger>
               <SelectValue placeholder="Select role" />
             </SelectTrigger>
@@ -448,11 +456,7 @@ const UserCRUDPage = () => {
         </div>
         <div className="space-y-2">
           <Label htmlFor="department">Department</Label>
-          <Select
-            value={formData.department}
-            onValueChange={handleSelectChange('department')}
-            disabled={isPending}
-          >
+          <Select value={formData.department} onValueChange={handleSelectChange("department")} disabled={isPending}>
             <SelectTrigger>
               <SelectValue placeholder="Select department" />
             </SelectTrigger>
@@ -677,7 +681,14 @@ const UserCRUDPage = () => {
             </div>
           </div>
 
-          {filteredUsers.length === 0 && (
+          {(loading || filteredUsers.length === 0) ? (
+            <div className="text-center py-8 text-gray-500">
+              <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              {searchTerm ? "No users found matching your search." : "loading... Users"}
+              <p className="text-gray-600">Please wait while we fetch the User data.</p>
+
+            </div>
+          ) : filteredUsers.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               {searchTerm ? "No users found matching your search." : "No users found."}
             </div>
