@@ -2,17 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma"
-
-export interface DisplayData {
-    id: string
-    location: string
-    status: string
-    content: string
-    uptime: string
-    lastUpdate: string
-    isActive: boolean
-    config?: any
-}
+import type { DisplayData } from "@/lib/helpers"
 
 export interface DisplayCreateData {
     location: string
@@ -35,7 +25,7 @@ export interface ActionResponse<T> {
     error?: string
 }
 
-export async function getAllDisplaysAction(): Promise<ActionResponse<DisplayData[]>> {
+export async function getAllDisplaysAction(): Promise<ActionResponse<any[]>> {
     try {
         const displays = await prisma.display.findMany({
             orderBy: { lastUpdate: "desc" },
@@ -50,10 +40,12 @@ export async function getAllDisplaysAction(): Promise<ActionResponse<DisplayData
     } catch (error) {
         console.error("Error fetching displays:", error)
         return { success: false, error: "Failed to fetch displays" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
-export async function getDisplayByIdAction(id: string): Promise<ActionResponse<DisplayData>> {
+export async function getDisplayByIdAction(id: string): Promise<ActionResponse<any>> {
     try {
         const display = await prisma.display.findUnique({
             where: { id },
@@ -70,10 +62,12 @@ export async function getDisplayByIdAction(id: string): Promise<ActionResponse<D
     } catch (error) {
         console.error("Error fetching display:", error)
         return { success: false, error: "Failed to fetch display" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
-export async function createDisplayAction(formData: FormData): Promise<ActionResponse<DisplayData>> {
+export async function createDisplayAction(formData: FormData): Promise<ActionResponse<any>> {
     try {
         const location = formData.get("location") as string
         const content = (formData.get("content") as string) || "Token Queue"
@@ -88,7 +82,6 @@ export async function createDisplayAction(formData: FormData): Promise<ActionRes
                 location,
                 content,
                 status,
-                uptime: "0m",
                 lastUpdate: new Date(),
             },
         })
@@ -102,10 +95,12 @@ export async function createDisplayAction(formData: FormData): Promise<ActionRes
     } catch (error) {
         console.error("Error creating display:", error)
         return { success: false, error: "Failed to create display" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
-export async function updateDisplayAction(id: string, formData: FormData): Promise<ActionResponse<DisplayData>> {
+export async function updateDisplayAction(id: string, formData: FormData): Promise<ActionResponse<any>> {
     try {
         const location = formData.get("location") as string
         const content = formData.get("content") as string
@@ -131,6 +126,8 @@ export async function updateDisplayAction(id: string, formData: FormData): Promi
     } catch (error) {
         console.error("Error updating display:", error)
         return { success: false, error: "Failed to update display" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
@@ -149,16 +146,17 @@ export async function deleteDisplayAction(id: string): Promise<ActionResponse<bo
     } catch (error) {
         console.error("Error deleting display:", error)
         return { success: false, error: "Failed to delete display" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
-export async function restartDisplayAction(id: string): Promise<ActionResponse<DisplayData>> {
+export async function restartDisplayAction(id: string): Promise<ActionResponse<any>> {
     try {
         const display = await prisma.display.update({
             where: { id },
             data: {
                 status: "online",
-                uptime: "0m",
                 lastUpdate: new Date(),
             },
         })
@@ -173,135 +171,103 @@ export async function restartDisplayAction(id: string): Promise<ActionResponse<D
     } catch (error) {
         console.error("Error restarting display:", error)
         return { success: false, error: "Failed to restart display" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
-export async function getDisplayDataAction(displayId: string) {
+export async function getDisplayDataAction(displayId: string): Promise<DisplayData> {
     try {
-        
         const display = await prisma.display.findUnique({
             where: { id: displayId },
         })
 
         if (!display) {
             console.log("Display not found:", displayId)
-            return {
-                tokenQueue: [] as Array<{
-                    token_id: string
-                    patient_name: string
-                    display_name?: string | null
-                    status: string
-                    department: string
-                    priority: number
-                    estimated_time?: string | null
-                }>,
-                departments: [] as Array<{
-                    dept_id: string
-                    department_name: string
-                    location: string
-                    current_tokens: number
-                }>,
-                emergencyAlerts: [] as Array<{
-                    id: string
-                    codeType: string
-                    location: string
-                    message: string
-                    priority: number
-                }>,
-                drugInventory: [] as Array<{
-                    drug_id: string
-                    drug_name: string
-                    current_stock: number
-                    min_stock: number
-                    status: string
-                }>,
-                contentType: "Mixed Dashboard",
-            }
+            return getEmptyDisplayData()
         }
-        
-        const data = {
-            tokenQueue: [] as Array<{
-                token_id: string
-                patient_name: string
-                display_name?: string | null
-                status: string
-                department: string
-                priority: number
-                estimated_time?: string | null
-            }>,
-            departments: [] as Array<{
-                dept_id: string
-                department_name: string
-                location: string
-                current_tokens: number
-            }>,
-            emergencyAlerts: [] as Array<{
-                id: string
-                codeType: string
-                location: string
-                message: string
-                priority: number
-            }>,
-            drugInventory: [] as Array<{
-                drug_id: string
-                drug_name: string
-                current_stock: number
-                min_stock: number
-                status: string
-            }>,
+
+        const data: DisplayData = {
+            tokenQueue: [],
+            departments: [],
+            emergencyAlerts: [],
+            drugInventory: [],
+            bloodBank: [],
             contentType: display.content,
         }
-        
-        const shouldFetchTokenQueue = display.content === "Token Queue" || display.content === "Mixed Dashboard"
-        const shouldFetchDepartments = display.content === "Department Status" || display.content === "Mixed Dashboard"
+
+        const shouldFetchTokenQueue =
+            display.content === "Token Queue" ||
+            display.content === "Mixed Dashboard" ||
+            display.content === "Patient Dashboard" ||
+            display.content === "Staff Dashboard"
+        const shouldFetchDepartments =
+            display.content === "Department Status" ||
+            display.content === "Mixed Dashboard" ||
+            display.content === "Patient Dashboard" ||
+            display.content === "Staff Dashboard"
         const shouldFetchEmergencyAlerts = display.content === "Emergency Alerts" || display.content === "Mixed Dashboard"
-        const shouldFetchDrugInventory = display.content === "Drug Inventory" || display.content === "Mixed Dashboard"
-        
+        const shouldFetchDrugInventory =
+            display.content === "Drug Inventory" ||
+            display.content === "Mixed Dashboard" ||
+            display.content === "Staff Dashboard"
+        const shouldFetchBloodBank =
+            display.content === "Blood Bank" || display.content === "Mixed Dashboard" || display.content === "Staff Dashboard"
+
         if (shouldFetchTokenQueue) {
             try {
                 const tokenQueue = await prisma.tokenQueue.findMany({
                     where: {
-                        status: { in: ["waiting", "in_progress"] },
+                        status: { in: ["Waiting", "Called", "In Progress"] },
                     },
-                    orderBy: [
-                        { createdAt: "asc" }, 
-                    ],
+                    include: {
+                        patient: true,
+                        department: true,
+                    },
+                    orderBy: [{ createdAt: "asc" }],
                     take: 10,
                 })
 
-                data.tokenQueue = tokenQueue.map((token:any) => ({
-                    token_id: token.tokenId,
-                    patient_name: token.patientName, 
+                data.tokenQueue = tokenQueue.map((token) => ({
+                    token_id: token.tokenNumber,
+                    patient_name: token.patientName,
                     display_name: token.displayName,
-                    status: token.status,
-                    department: token.department, 
-                    priority: token.priority,
-                    estimated_time: token.estimatedTime, 
+                    status: token.status.toLowerCase(),
+                    department: token.departmentName,
+                    priority: token.priority === "Emergency" ? 3 : token.priority === "Urgent" ? 2 : 1,
+                    estimated_time: `${token.estimatedWaitTime} min`,
                 }))
             } catch (error) {
                 console.log("Token queue error:", error instanceof Error ? error.message : String(error))
             }
         }
-        
+
         if (shouldFetchDepartments) {
             try {
                 const departments = await prisma.department.findMany({
+                    include: {
+                        tokenQueue: {
+                            where: {
+                                status: { in: ["Waiting", "Called", "In Progress"] },
+                            },
+                        },
+                    },
                     orderBy: {
-                        departmentName: "asc", 
+                        name: "asc",
                     },
                 })
 
-                data.departments = departments.map((dept:any) => ({
+                data.departments = departments.map((dept) => ({
                     dept_id: dept.id,
-                    department_name: dept.departmentName, 
+                    department_name: dept.name,
                     location: dept.location,
-                    current_tokens: dept.currentTokens, 
+                    current_tokens: dept.tokenQueue.length,
                 }))
             } catch (error) {
                 console.log("Departments error:", error instanceof Error ? error.message : String(error))
             }
         }
-        
+
         if (shouldFetchEmergencyAlerts) {
             try {
                 const emergencyAlerts = await prisma.emergencyAlert.findMany({
@@ -309,43 +275,39 @@ export async function getDisplayDataAction(displayId: string) {
                         status: "active",
                     },
                     orderBy: {
-                        createdAt: "desc", 
+                        createdAt: "desc",
                     },
                 })
 
-                data.emergencyAlerts = emergencyAlerts.map((alert:any) => ({
+                data.emergencyAlerts = emergencyAlerts.map((alert) => ({
                     id: alert.id,
-                    codeType: alert.codeType, 
-                    location: alert.location, 
-                    message: alert.message || `Emergency ${alert.codeType} in ${alert.location}`, 
-                    priority: alert.priority, 
+                    codeType: alert.codeType,
+                    location: alert.location,
+                    message: alert.message || `Emergency ${alert.codeType} in ${alert.location}`,
+                    priority: alert.priority,
                 }))
             } catch (error) {
                 console.log("Emergency alerts error:", error instanceof Error ? error.message : String(error))
             }
         }
-        
+
         if (shouldFetchDrugInventory) {
             try {
                 const drugInventory = await prisma.drugInventory.findMany({
                     where: {
-                        OR: [
-                            { status: "critical" },
-                            { status: "out_of_stock" },
-                            { status: "low" },
-                        ],
+                        OR: [{ status: "critical" }, { status: "out_of_stock" }, { status: "low" }],
                     },
                     orderBy: {
-                        drugName: "asc", 
+                        drugName: "asc",
                     },
                     take: 20,
                 })
 
-                data.drugInventory = drugInventory.map((drug:any) => ({
+                data.drugInventory = drugInventory.map((drug) => ({
                     drug_id: drug.id,
-                    drug_name: drug.drugName, 
-                    current_stock: drug.currentStock, 
-                    min_stock: drug.minStock, 
+                    drug_name: drug.drugName,
+                    current_stock: drug.currentStock,
+                    min_stock: drug.minStock,
                     status: drug.status,
                 }))
             } catch (error) {
@@ -353,42 +315,47 @@ export async function getDisplayDataAction(displayId: string) {
             }
         }
 
+        if (shouldFetchBloodBank) {
+            try {
+                const bloodBank = await prisma.bloodBank.findMany({
+                    where: {
+                        OR: [{ status: "Critical" }, { status: "Low" }],
+                    },
+                    orderBy: {
+                        bloodType: "asc",
+                    },
+                })
+
+                data.bloodBank = bloodBank.map((blood) => ({
+                    blood_id: blood.id,
+                    blood_type: blood.bloodType,
+                    units_available: blood.unitsAvailable,
+                    critical_level: blood.criticalLevel,
+                    status: blood.status,
+                    expiry_date: blood.expiryDate.toISOString().split("T")[0],
+                }))
+            } catch (error) {
+                console.log("Blood bank error:", error instanceof Error ? error.message : String(error))
+            }
+        }
+
         return data
     } catch (error) {
         console.error("Error fetching display data:", error)
+        return getEmptyDisplayData()
+    } finally {
+        await prisma.$disconnect()
+    }
+}
 
-        return {
-            tokenQueue: [] as Array<{
-                token_id: string
-                patient_name: string
-                display_name?: string | null
-                status: string
-                department: string
-                priority: number
-                estimated_time?: string | null
-            }>,
-            departments: [] as Array<{
-                dept_id: string
-                department_name: string
-                location: string
-                current_tokens: number
-            }>,
-            emergencyAlerts: [] as Array<{
-                id: string
-                codeType: string
-                location: string
-                message: string
-                priority: number
-            }>,
-            drugInventory: [] as Array<{
-                drug_id: string
-                drug_name: string
-                current_stock: number
-                min_stock: number
-                status: string
-            }>,
-            contentType: "Mixed Dashboard",
-        }
+function getEmptyDisplayData(): DisplayData {
+    return {
+        tokenQueue: [],
+        departments: [],
+        emergencyAlerts: [],
+        drugInventory: [],
+        bloodBank: [],
+        contentType: "Mixed Dashboard",
     }
 }
 
@@ -424,7 +391,17 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
             "Parking Entrance",
         ]
 
-        const contentTypes = ["Token Queue", "Department Status", "Emergency Alerts", "Drug Inventory", "Mixed Dashboard", "Patient Dashboard", "Staff Dashboard"]
+        const contentTypes = [
+            "Token Queue",
+            "Department Status",
+            "Emergency Alerts",
+            "Drug Inventory",
+            "Blood Bank",
+            "Mixed Dashboard",
+            "Patient Dashboard",
+            "Staff Dashboard",
+            "Blood Bank"
+        ]
 
         const existingDisplays = await prisma.display.count()
         if (existingDisplays > 0) {
@@ -441,8 +418,7 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
             displaysToCreate.push({
                 location,
                 content: contentTypes[Math.floor(Math.random() * contentTypes.length)],
-                status:"offline",
-                uptime: `${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m`,
+                status: "offline",
                 lastUpdate: new Date(Date.now() - Math.random() * 3600000),
             })
         }
@@ -460,30 +436,19 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
     } catch (error) {
         console.error("Error seeding displays:", error)
         return { success: false, error: "Failed to seed displays" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
-function formatDisplay(display: any): DisplayData {
+function formatDisplay(display: any): any {
     return {
         id: display.id,
         location: display.location,
         status: display.status,
         content: display.content,
-        uptime: display.uptime,
         lastUpdate: display.lastUpdate.toISOString(),
         isActive: display.isActive ?? true,
         config: display.config ?? {},
     }
-}
-
-export async function calculateUptime(lastUpdate: Date): Promise<string> {
-    const now = new Date()
-    const diff = now.getTime() - lastUpdate.getTime()
-    const minutes = Math.floor(diff / 60000)
-    const hours = Math.floor(minutes / 60)
-    const days = Math.floor(hours / 24)
-
-    if (days > 0) return `${days}d ${hours % 24}h`
-    if (hours > 0) return `${hours}h ${minutes % 60}m`
-    return `${minutes}m`
 }

@@ -5,7 +5,6 @@ export interface DisplayData {
     location: string
     status: string
     content: string
-    uptime: string
     lastUpdate: string
     isActive: boolean
     config?: any
@@ -23,7 +22,6 @@ function formatDisplay(display: any): DisplayData {
         location: display.location,
         status: display.status,
         content: display.content,
-        uptime: display.uptime,
         lastUpdate: display.lastUpdate.toISOString(),
         isActive: true, 
         config: {}, 
@@ -75,7 +73,6 @@ async function createDisplay(data: {
                 location: data.location,
                 content: data.content,
                 status: data.status,
-                uptime: "0m",
                 lastUpdate: new Date(),
             },
         })
@@ -133,7 +130,6 @@ async function restartDisplay(id: string): Promise<ServiceResponse<DisplayData>>
             where: { id },
             data: {
                 status: "online",
-                uptime: "0m",
                 lastUpdate: new Date(),
             },
         })
@@ -199,7 +195,6 @@ async function seedDisplays(): Promise<ServiceResponse<boolean>> {
                 location,
                 content: contentTypes[Math.floor(Math.random() * contentTypes.length)],
                 status: Math.random() > 0.3 ? "online" : Math.random() > 0.5 ? "offline" : "warning",
-                uptime: `${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m`,
                 lastUpdate: new Date(Date.now() - Math.random() * 3600000),
             })
         }
