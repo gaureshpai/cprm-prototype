@@ -1,0 +1,12 @@
+name: issues
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  help-wanted:
+    uses: gaureshpai/cprm-prototype/.github/workflows/issues.yml@main

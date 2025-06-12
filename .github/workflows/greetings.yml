@@ -1,0 +1,29 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            👋 Hello @${{ github.actor }}!
+
+            Thank you for opening an issue in the **CPRM - Centralized Patient & Resource Management System** repository 🏥. Your input helps us improve this healthcare platform built for **Wenlock Hospital** under the **UDAL Fellowship Project**.
+
+            Please ensure you’ve checked for duplicate issues and added relevant labels such as `bug`, `enhancement`, or `documentation`. We appreciate your contribution to better patient care and resource management! 💡
+
+          pr-message: |
+            🙌 Welcome @${{ github.actor }}!
+
+            Thank you for contributing to **CPRM - Centralized Patient & Resource Management System** 💻. This project is a comprehensive hospital management platform designed for **Wenlock Hospital** under the **UDAL Fellowship** initiative.
+
+            Your pull request will be reviewed shortly. Please ensure it aligns with our contribution guidelines and includes appropriate labels such as `feature`, `fix`, or `refactor`.
+
+            Together, let’s enhance digital healthcare for everyone! 🚑📈

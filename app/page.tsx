@@ -137,12 +137,12 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-3">
+              <Link href="/" className="flex items-center space-x-3">
                 <div className="bg-black p-2 rounded-md">
                   <Image src="/logo.png" alt="InUnity Logo" width={24} height={24} className="invert" />
                 </div>
                 <p className="text-2xl font-bold">UDAL - Wenlock Hospital</p>
-              </div>
+              </Link>
             </div>
 
             <nav className="hidden md:flex space-x-6">
@@ -196,7 +196,7 @@ export default function HomePage() {
                   {patientId && !patient && searchAttempted && (
                     <p className="text-sm text-amber-600 flex items-center space-x-1">
                       <AlertCircle className="h-4 w-4" />
-                      <span>Try using one of the demo Patient IDs above</span>
+                      <span>Try using one of the demo Patient IDs below</span>
                     </p>
                   )}
                 </div>
