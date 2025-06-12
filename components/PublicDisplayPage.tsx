@@ -577,7 +577,13 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                             {data.bloodBank.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                     {data.bloodBank?.map((blood: any) => (
-                                        <Alert key={blood.blood_id} className="border-red-300 bg-red-100">
+                                        <Alert
+                                            key={blood.blood_id}
+                                            className={`${blood.status === "Low"
+                                                    ? "border-green-600 bg-green-100"
+                                                    : "border-red-600 bg-red-100"
+                                                }`}
+                                        >
                                             <Droplets className="h-4 w-4 text-red-700" />
                                             <AlertDescription className="text-red-900">
                                                 <strong>{blood.blood_type} Blood</strong>
