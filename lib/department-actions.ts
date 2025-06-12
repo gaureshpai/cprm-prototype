@@ -1,16 +1,13 @@
 "use server"
 
-import { PrismaClient } from "@prisma/client"
+import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-
-const prisma = new PrismaClient()
 
 export interface DepartmentData {
     id: string
     name: string
     description: string
     location: string
-    headOfDepartment: string
     contactNumber: string
     email: string
     operatingHours: string
@@ -19,6 +16,12 @@ export interface DepartmentData {
     currentOccupancy: number
     specializations: string[]
     equipment: string[]
+    members: Array<{
+        id: string
+        name: string
+        role: string
+        joinedAt: Date
+    }>
     createdAt: Date
     updatedAt: Date
 }
@@ -41,115 +44,49 @@ export interface DepartmentResponse<T> {
 
 export async function getAllDepartmentsAction(): Promise<DepartmentResponse<DepartmentData[]>> {
     try {
-        const departments: DepartmentData[] = [
-            {
-                id: "D001",
-                name: "Cardiology",
-                description: "Comprehensive cardiac care and treatment",
-                location: "Block A, Floor 1",
-                headOfDepartment: "Dr. Rajesh Kumar",
-                contactNumber: "+91 824 242 1001",
-                email: "cardiology@udalhospital.com",
-                operatingHours: "24/7",
-                status: "Active",
-                capacity: 50,
-                currentOccupancy: 35,
-                specializations: ["Interventional Cardiology", "Electrophysiology", "Heart Surgery"],
-                equipment: ["ECG Machines", "Echocardiogram", "Cardiac Catheterization Lab", "Defibrillators"],
-                createdAt: new Date("2020-01-01"),
-                updatedAt: new Date("2024-01-15"),
+        const departments = await prisma.department.findMany({
+            include: {
+                members: {
+                    include: {
+                        user: true,
+                    },
+                    where: {
+                        isActive: true,
+                    },
+                },
             },
-            {
-                id: "D002",
-                name: "Orthopedics",
-                description: "Bone, joint, and musculoskeletal treatment",
-                location: "Block B, Floor 2",
-                headOfDepartment: "Dr. Priya Sharma",
-                contactNumber: "+91 824 242 1002",
-                email: "orthopedics@udalhospital.com",
-                operatingHours: "6:00 AM - 10:00 PM",
-                status: "Active",
-                capacity: 40,
-                currentOccupancy: 28,
-                specializations: ["Joint Replacement", "Sports Medicine", "Spine Surgery", "Trauma Surgery"],
-                equipment: ["X-Ray Machines", "MRI Scanner", "Arthroscopy Equipment", "Bone Densitometer"],
-                createdAt: new Date("2020-01-01"),
-                updatedAt: new Date("2024-01-18"),
-            },
-            {
-                id: "D003",
-                name: "Emergency",
-                description: "24/7 emergency medical services",
-                location: "Block C, Ground Floor",
-                headOfDepartment: "Dr. Arun Menon",
-                contactNumber: "+91 824 242 1003",
-                email: "emergency@udalhospital.com",
-                operatingHours: "24/7",
-                status: "Active",
-                capacity: 30,
-                currentOccupancy: 15,
-                specializations: ["Trauma Care", "Critical Care", "Emergency Surgery", "Poison Control"],
-                equipment: ["Ventilators", "Defibrillators", "Emergency Monitors", "Crash Carts"],
-                createdAt: new Date("2020-01-01"),
-                updatedAt: new Date("2024-01-20"),
-            },
-            {
-                id: "D004",
-                name: "General Medicine",
-                description: "Primary healthcare and internal medicine",
-                location: "Block A, Floor 2",
-                headOfDepartment: "Dr. Sunita Rao",
-                contactNumber: "+91 824 242 1004",
-                email: "generalmedicine@udalhospital.com",
-                operatingHours: "8:00 AM - 8:00 PM",
-                status: "Active",
-                capacity: 60,
-                currentOccupancy: 45,
-                specializations: ["Internal Medicine", "Preventive Care", "Chronic Disease Management"],
-                equipment: ["Examination Tables", "Blood Pressure Monitors", "Stethoscopes", "Thermometers"],
-                createdAt: new Date("2020-01-01"),
-                updatedAt: new Date("2024-01-16"),
-            },
-            {
-                id: "D005",
-                name: "Pharmacy",
-                description: "Medication dispensing and pharmaceutical care",
-                location: "Block D, Ground Floor",
-                headOfDepartment: "Dr. Kavitha Nair",
-                contactNumber: "+91 824 242 1005",
-                email: "pharmacy@udalhospital.com",
-                operatingHours: "24/7",
-                status: "Active",
-                capacity: 20,
-                currentOccupancy: 12,
-                specializations: ["Clinical Pharmacy", "Drug Information", "Medication Therapy Management"],
-                equipment: ["Automated Dispensing Systems", "Refrigeration Units", "Compounding Equipment"],
-                createdAt: new Date("2020-01-01"),
-                updatedAt: new Date("2024-01-19"),
-            },
-            {
-                id: "D006",
-                name: "Radiology",
-                description: "Medical imaging and diagnostic services",
-                location: "Block B, Floor 1",
-                headOfDepartment: "Dr. Mohan Das",
-                contactNumber: "+91 824 242 1006",
-                email: "radiology@udalhospital.com",
-                operatingHours: "24/7",
-                status: "Maintenance",
-                capacity: 25,
-                currentOccupancy: 0,
-                specializations: ["CT Scan", "MRI", "Ultrasound", "X-Ray", "Nuclear Medicine"],
-                equipment: ["CT Scanner", "MRI Machine", "Ultrasound Machines", "X-Ray Equipment"],
-                createdAt: new Date("2020-01-01"),
-                updatedAt: new Date("2024-01-21"),
-            },
-        ]
+            orderBy: { name: "asc" },
+        })
 
-        return { success: true, data: departments }
+        const departmentData: DepartmentData[] = departments.map((dept) => ({
+            id: dept.id,
+            name: dept.name,
+            description: dept.description,
+            location: dept.location,
+            contactNumber: dept.contactNumber || "",
+            email: dept.email || "",
+            operatingHours: dept.operatingHours,
+            status: dept.status as "Active" | "Inactive" | "Maintenance",
+            capacity: dept.capacity,
+            currentOccupancy: dept.currentOccupancy,
+            specializations: dept.specializations,
+            equipment: dept.equipment,
+            members: dept.members.map((member) => ({
+                id: member.user.id,
+                name: member.user.name,
+                role: member.role,
+                joinedAt: member.joinedAt,
+            })),
+            createdAt: dept.createdAt,
+            updatedAt: dept.updatedAt,
+        }))
+
+        return { success: true, data: departmentData }
     } catch (error) {
         console.error("Error fetching departments:", error)
         return { success: false, error: "Failed to fetch departments" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
@@ -177,45 +114,76 @@ export async function createDepartmentAction(formData: FormData): Promise<Depart
         const name = formData.get("name") as string
         const description = formData.get("description") as string
         const location = formData.get("location") as string
-        const headOfDepartment = formData.get("headOfDepartment") as string
         const contactNumber = formData.get("contactNumber") as string
         const email = formData.get("email") as string
         const operatingHours = formData.get("operatingHours") as string
-        const capacity = Number.parseInt(formData.get("capacity") as string)
-        const specializations = (formData.get("specializations") as string).split(",").map((s) => s.trim())
-        const equipment = (formData.get("equipment") as string).split(",").map((e) => e.trim())
+        const capacity = Number.parseInt(formData.get("capacity") as string) || 50
+        const specializations = (formData.get("specializations") as string)
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0)
+        const equipment = (formData.get("equipment") as string)
+            .split(",")
+            .map((e) => e.trim())
+            .filter((e) => e.length > 0)
 
-        if (!name || !description || !location || !headOfDepartment) {
+        if (!name || !description || !location) {
             return { success: false, error: "Required fields are missing" }
         }
 
-        const newDepartment: DepartmentData = {
-            id: `D${String(Date.now()).slice(-3)}`,
-            name,
-            description,
-            location,
-            headOfDepartment,
-            contactNumber,
-            email,
-            operatingHours,
-            status: "Active",
-            capacity,
-            currentOccupancy: 0,
-            specializations,
-            equipment,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+        const department = await prisma.department.create({
+            data: {
+                name,
+                description,
+                location,
+                contactNumber,
+                email,
+                operatingHours,
+                capacity,
+                specializations,
+                equipment,
+            },
+            include: {
+                members: {
+                    include: {
+                        user: true,
+                    },
+                },
+            },
+        })
+
+        const departmentData: DepartmentData = {
+            id: department.id,
+            name: department.name,
+            description: department.description,
+            location: department.location,
+            contactNumber: department.contactNumber || "",
+            email: department.email || "",
+            operatingHours: department.operatingHours,
+            status: department.status as "Active" | "Inactive" | "Maintenance",
+            capacity: department.capacity,
+            currentOccupancy: department.currentOccupancy,
+            specializations: department.specializations,
+            equipment: department.equipment,
+            members: department.members.map((member) => ({
+                id: member.user.id,
+                name: member.user.name,
+                role: member.role,
+                joinedAt: member.joinedAt,
+            })),
+            createdAt: department.createdAt,
+            updatedAt: department.updatedAt,
         }
 
-        console.log("Created new department:", newDepartment)
-
         revalidatePath("/admin/departments")
-        revalidatePath("/technician/departments")
+        revalidatePath("/admin/users")
 
-        return { success: true, data: newDepartment }
+        return { success: true, data: departmentData }
     } catch (error) {
         console.error("Error creating department:", error)
         return { success: false, error: "Failed to create department" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
@@ -227,68 +195,103 @@ export async function updateDepartmentAction(
         const name = formData.get("name") as string
         const description = formData.get("description") as string
         const location = formData.get("location") as string
-        const headOfDepartment = formData.get("headOfDepartment") as string
         const contactNumber = formData.get("contactNumber") as string
         const email = formData.get("email") as string
         const operatingHours = formData.get("operatingHours") as string
         const status = formData.get("status") as "Active" | "Inactive" | "Maintenance"
         const capacity = Number.parseInt(formData.get("capacity") as string)
         const currentOccupancy = Number.parseInt(formData.get("currentOccupancy") as string)
-        const specializations = (formData.get("specializations") as string).split(",").map((s) => s.trim())
-        const equipment = (formData.get("equipment") as string).split(",").map((e) => e.trim())
+        const specializations = (formData.get("specializations") as string)
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0)
+        const equipment = (formData.get("equipment") as string)
+            .split(",")
+            .map((e) => e.trim())
+            .filter((e) => e.length > 0)
 
-        const updatedDepartment: DepartmentData = {
-            id,
-            name,
-            description,
-            location,
-            headOfDepartment,
-            contactNumber,
-            email,
-            operatingHours,
-            status,
-            capacity,
-            currentOccupancy,
-            specializations,
-            equipment,
-            createdAt: new Date("2020-01-01"), 
-            updatedAt: new Date(),
+        const department = await prisma.department.update({
+            where: { id },
+            data: {
+                name,
+                description,
+                location,
+                contactNumber,
+                email,
+                operatingHours,
+                status,
+                capacity,
+                currentOccupancy,
+                specializations,
+                equipment,
+            },
+            include: {
+                members: {
+                    include: {
+                        user: true,
+                    },
+                    where: {
+                        isActive: true,
+                    },
+                },
+            },
+        })
+
+        const departmentData: DepartmentData = {
+            id: department.id,
+            name: department.name,
+            description: department.description,
+            location: department.location,
+            contactNumber: department.contactNumber || "",
+            email: department.email || "",
+            operatingHours: department.operatingHours,
+            status: department.status as "Active" | "Inactive" | "Maintenance",
+            capacity: department.capacity,
+            currentOccupancy: department.currentOccupancy,
+            specializations: department.specializations,
+            equipment: department.equipment,
+            members: department.members.map((member) => ({
+                id: member.user.id,
+                name: member.user.name,
+                role: member.role,
+                joinedAt: member.joinedAt,
+            })),
+            createdAt: department.createdAt,
+            updatedAt: department.updatedAt,
         }
 
-        console.log("Updated department:", updatedDepartment)
-
         revalidatePath("/admin/departments")
-        revalidatePath("/technician/departments")
 
-        return { success: true, data: updatedDepartment }
+        return { success: true, data: departmentData }
     } catch (error) {
         console.error("Error updating department:", error)
         return { success: false, error: "Failed to update department" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
 export async function deleteDepartmentAction(id: string): Promise<DepartmentResponse<boolean>> {
     try {
-        console.log(`Deleting department ${id}`)
+        await prisma.department.delete({
+            where: { id },
+        })
 
         revalidatePath("/admin/departments")
-        revalidatePath("/technician/departments")
 
         return { success: true, data: true }
     } catch (error) {
         console.error("Error deleting department:", error)
         return { success: false, error: "Failed to delete department" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
 export async function getDepartmentStatsAction(): Promise<DepartmentResponse<DepartmentStats>> {
     try {
-        const result = await getAllDepartmentsAction()
-        if (!result.success || !result.data) {
-            return { success: false, error: "Failed to fetch departments for stats" }
-        }
+        const departments = await prisma.department.findMany()
 
-        const departments = result.data
         const totalDepartments = departments.length
         const activeDepartments = departments.filter((dept) => dept.status === "Active").length
         const totalCapacity = departments.reduce((sum, dept) => sum + dept.capacity, 0)
@@ -327,22 +330,58 @@ export async function getDepartmentStatsAction(): Promise<DepartmentResponse<Dep
     } catch (error) {
         console.error("Error calculating department stats:", error)
         return { success: false, error: "Failed to calculate department statistics" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
-export async function updateDepartmentOccupancyAction(
-    id: string,
-    occupancy: number,
+export async function addDepartmentMemberAction(
+    departmentId: string,
+    userId: string,
+    role = "Member",
 ): Promise<DepartmentResponse<boolean>> {
     try {
-        console.log(`Updating department ${id} occupancy to ${occupancy}`)
+        await prisma.departmentMember.create({
+            data: {
+                departmentId,
+                userId,
+                role,
+            },
+        })
 
         revalidatePath("/admin/departments")
-        revalidatePath("/technician/departments")
 
         return { success: true, data: true }
     } catch (error) {
-        console.error("Error updating department occupancy:", error)
-        return { success: false, error: "Failed to update department occupancy" }
+        console.error("Error adding department member:", error)
+        return { success: false, error: "Failed to add department member" }
+    } finally {
+        await prisma.$disconnect()
+    }
+}
+
+export async function removeDepartmentMemberAction(
+    departmentId: string,
+    userId: string,
+): Promise<DepartmentResponse<boolean>> {
+    try {
+        await prisma.departmentMember.updateMany({
+            where: {
+                departmentId,
+                userId,
+            },
+            data: {
+                isActive: false,
+            },
+        })
+
+        revalidatePath("/admin/departments")
+
+        return { success: true, data: true }
+    } catch (error) {
+        console.error("Error removing department member:", error)
+        return { success: false, error: "Failed to remove department member" }
+    } finally {
+        await prisma.$disconnect()
     }
 }
