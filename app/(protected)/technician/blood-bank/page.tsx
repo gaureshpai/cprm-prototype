@@ -380,20 +380,18 @@ export default function BloodBankPage() {
                 ))}
             </div>
 
-            {(loading || filteredBloodBank.length === 0) && (
+            {(loading || filteredBloodBank.length === 0) ? (
                 <div className="text-center py-12">
                     <Droplets className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Loading blood inventory...</h3>
                     <p className="text-gray-600">Please wait while we fetch the blood inventory.</p>
                 </div>
-            )}
-
-            {filteredBloodBank.length === 0 && (
-                <div className="text-center py-12">
-                    <Droplets className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No blood inventory found</h3>
-                    <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
-                </div>
+            ):filteredBloodBank.length === 0 && (
+            <div className="text-center py-12">
+                <Droplets className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No blood inventory found</h3>
+                <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+            </div>
             )}
         </AuthGuard>
     )
