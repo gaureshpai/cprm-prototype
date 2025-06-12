@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, X, LogOut, User, Settings, Home, Heart } from "lucide-react"
+import { Menu, X, LogOut, User, Settings, Home, Heart, Building } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -30,6 +30,7 @@ export function Navbar() {
       admin: [
         { name: "Displays", href: "/admin/displays", icon: <Settings className="h-4 w-4 mr-2" /> },
         { name: "Users", href: "/admin/Users", icon: <User className="h-4 w-4 mr-2" /> },
+        { name:"Departments", href: "/admin/departments", icon: <Building className="h-4 w-4 mr-2" /> },
       ],
       doctor: [
         { name: "Patients", href: "/doctor/patients", icon: <User className="h-4 w-4 mr-2" /> },
@@ -41,7 +42,11 @@ export function Navbar() {
       ],
       technician: [
         { name: "Displays", href: "/technician/displays", icon: <Settings className="h-4 w-4 mr-2" /> },
+        { name: "Blood Bank", href: "/technician/blood-bank", icon: <Heart className="h-4 w-4 mr-2" /> },
       ],
+      nurse: [
+        { name: "Token Queues", href: "/nurse/token-queues", icon: <Heart className="h-4 w-4 mr-2" /> },
+      ]
     }
 
     if (user?.role && roleSpecificLinks[user.role.toLowerCase()]) {

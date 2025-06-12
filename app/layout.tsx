@@ -70,10 +70,7 @@ export const metadata: Metadata = {
       "Hospital management system for Wenlock Hospital - UDAL Fellowship Project",
     images: ["https://cprm-prototype.vercel.app/logo.png"],
     creator: "@hseruag",
-  },
-  themeColor: "#0f172a",
-  colorScheme: "dark",
-  viewport: "width=device-width, initial-scale=1.0",
+  }
 }
 
 export default function RootLayout({
