@@ -16,12 +16,6 @@ export interface DepartmentData {
     currentOccupancy: number
     specializations: string[]
     equipment: string[]
-    members: Array<{
-        id: string
-        name: string
-        role: string
-        joinedAt: Date
-    }>
     createdAt: Date
     updatedAt: Date
 }
@@ -45,16 +39,6 @@ export interface DepartmentResponse<T> {
 export async function getAllDepartmentsAction(): Promise<DepartmentResponse<DepartmentData[]>> {
     try {
         const departments = await prisma.department.findMany({
-            include: {
-                members: {
-                    include: {
-                        user: true,
-                    },
-                    where: {
-                        isActive: true,
-                    },
-                },
-            },
             orderBy: { name: "asc" },
         })
 
@@ -71,12 +55,6 @@ export async function getAllDepartmentsAction(): Promise<DepartmentResponse<Depa
             currentOccupancy: dept.currentOccupancy,
             specializations: dept.specializations,
             equipment: dept.equipment,
-            members: dept.members.map((member) => ({
-                id: member.user.id,
-                name: member.user.name,
-                role: member.role,
-                joinedAt: member.joinedAt,
-            })),
             createdAt: dept.createdAt,
             updatedAt: dept.updatedAt,
         }))
@@ -143,13 +121,6 @@ export async function createDepartmentAction(formData: FormData): Promise<Depart
                 specializations,
                 equipment,
             },
-            include: {
-                members: {
-                    include: {
-                        user: true,
-                    },
-                },
-            },
         })
 
         const departmentData: DepartmentData = {
@@ -165,12 +136,6 @@ export async function createDepartmentAction(formData: FormData): Promise<Depart
             currentOccupancy: department.currentOccupancy,
             specializations: department.specializations,
             equipment: department.equipment,
-            members: department.members.map((member) => ({
-                id: member.user.id,
-                name: member.user.name,
-                role: member.role,
-                joinedAt: member.joinedAt,
-            })),
             createdAt: department.createdAt,
             updatedAt: department.updatedAt,
         }
@@ -225,16 +190,6 @@ export async function updateDepartmentAction(
                 specializations,
                 equipment,
             },
-            include: {
-                members: {
-                    include: {
-                        user: true,
-                    },
-                    where: {
-                        isActive: true,
-                    },
-                },
-            },
         })
 
         const departmentData: DepartmentData = {
@@ -250,12 +205,6 @@ export async function updateDepartmentAction(
             currentOccupancy: department.currentOccupancy,
             specializations: department.specializations,
             equipment: department.equipment,
-            members: department.members.map((member) => ({
-                id: member.user.id,
-                name: member.user.name,
-                role: member.role,
-                joinedAt: member.joinedAt,
-            })),
             createdAt: department.createdAt,
             updatedAt: department.updatedAt,
         }
@@ -330,57 +279,6 @@ export async function getDepartmentStatsAction(): Promise<DepartmentResponse<Dep
     } catch (error) {
         console.error("Error calculating department stats:", error)
         return { success: false, error: "Failed to calculate department statistics" }
-    } finally {
-        await prisma.$disconnect()
-    }
-}
-
-export async function addDepartmentMemberAction(
-    departmentId: string,
-    userId: string,
-    role = "Member",
-): Promise<DepartmentResponse<boolean>> {
-    try {
-        await prisma.departmentMember.create({
-            data: {
-                departmentId,
-                userId,
-                role,
-            },
-        })
-
-        revalidatePath("/admin/departments")
-
-        return { success: true, data: true }
-    } catch (error) {
-        console.error("Error adding department member:", error)
-        return { success: false, error: "Failed to add department member" }
-    } finally {
-        await prisma.$disconnect()
-    }
-}
-
-export async function removeDepartmentMemberAction(
-    departmentId: string,
-    userId: string,
-): Promise<DepartmentResponse<boolean>> {
-    try {
-        await prisma.departmentMember.updateMany({
-            where: {
-                departmentId,
-                userId,
-            },
-            data: {
-                isActive: false,
-            },
-        })
-
-        revalidatePath("/admin/departments")
-
-        return { success: true, data: true }
-    } catch (error) {
-        console.error("Error removing department member:", error)
-        return { success: false, error: "Failed to remove department member" }
     } finally {
         await prisma.$disconnect()
     }

@@ -15,12 +15,12 @@ import {
     createDisplayAction,
     updateDisplayAction,
     seedDisplaysAction,
-    type DisplayData,
 } from "@/lib/display-actions"
 import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import Link from "next/link"
 import { getStatusColor, getStatusText } from "@/lib/functions"
+import { DisplayData } from "@/lib/display-service"
 
 const CONTENT_TYPES = [
     { value: "Token Queue", label: "Token Queue", icon: Users, description: "Patient queue and waiting times" },
