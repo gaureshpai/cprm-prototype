@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useTransition } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -329,16 +328,22 @@ export default function TokenQueuePage() {
         <AuthGuard allowedRoles={["nurse", "admin"]} className="container mx-auto p-6 space-y-6">
             <Navbar />
 
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold">Token Queue Management</h1>
-                    <p className="text-gray-600">Manage patient queues and appointments</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold">Token Queue Management</h1>
+                    <p className="text-gray-600 text-sm">Manage patient queues and appointments</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <Button variant="outline" onClick={loadTokenQueueData} disabled={isPending}>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={loadTokenQueueData}
+                        disabled={isPending}
+                    >
                         <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
                         Refresh
                     </Button>
+
                     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                         <DialogTrigger asChild>
                             <Button>
@@ -346,69 +351,62 @@ export default function TokenQueuePage() {
                                 New Token
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
+
+                        <DialogContent className="max-w-xs md:max-w-2xl">
                             <DialogHeader>
                                 <DialogTitle>Create New Token</DialogTitle>
-                                <DialogDescription>Generate a new token for patient queue management</DialogDescription>
+                                <DialogDescription>
+                                    Generate a new token for patient queue management
+                                </DialogDescription>
                             </DialogHeader>
+
                             <form onSubmit={handleCreateToken} className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="patientSelect">Select Patient</Label>
                                     <Select value={selectedPatient} onValueChange={setSelectedPatient} required>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Choose a patient from search results" />
+                                            <SelectValue placeholder="Search & select patient" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {filteredPatients.length > 0 ? (
                                                 filteredPatients.map((patient) => (
                                                     <SelectItem key={patient.id} value={patient.id}>
-                                                        {patient.name} (ID: {patient.id}){patient.age && ` - Age: ${patient.age}`}
+                                                        {patient.name} (ID: {patient.id}) {patient.age && `- Age: ${patient.age}`}
                                                     </SelectItem>
                                                 ))
                                             ) : (
                                                 <div className="px-2 py-1.5 text-sm text-gray-500">
-                                                    {patientSearch ? "No patients found matching your search" : "Start typing to search patients"}
+                                                    {patientSearch
+                                                        ? "No patients found matching your search"
+                                                        : "Start typing to search patients"}
                                                 </div>
                                             )}
                                         </SelectContent>
                                     </Select>
                                     <p className="text-xs text-gray-500">
-                                        Showing {filteredPatients.length} patient(s)
-                                        {patients.length > 0 && ` out of ${patients.length} total`}
+                                        Showing {filteredPatients.length} of {patients.length} patient(s)
                                     </p>
                                 </div>
 
                                 {selectedPatientData && (
-                                    <div className="p-3 bg-blue-50 rounded-lg border">
-                                        <h4 className="font-medium text-blue-900">Selected Patient Details</h4>
-                                        <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                                            <div>
-                                                <span className="text-blue-700">Name:</span> {selectedPatientData.name}
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-700">ID:</span> {selectedPatientData.id}
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-700">Age:</span> {selectedPatientData.age || "N/A"}
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-700">Gender:</span> {selectedPatientData.gender || "N/A"}
-                                            </div>
+                                    <div className="p-3 bg-blue-50 rounded-lg border text-sm">
+                                        <h4 className="font-medium text-blue-900 mb-2">Patient Details</h4>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div><span className="text-blue-700">Name:</span> {selectedPatientData.name}</div>
+                                            <div><span className="text-blue-700">ID:</span> {selectedPatientData.id}</div>
+                                            <div><span className="text-blue-700">Age:</span> {selectedPatientData.age || "N/A"}</div>
+                                            <div><span className="text-blue-700">Gender:</span> {selectedPatientData.gender || "N/A"}</div>
                                             {selectedPatientData.phone && (
-                                                <div>
-                                                    <span className="text-blue-700">Phone:</span> {selectedPatientData.phone}
-                                                </div>
+                                                <div><span className="text-blue-700">Phone:</span> {selectedPatientData.phone}</div>
                                             )}
                                             {selectedPatientData.condition && (
-                                                <div>
-                                                    <span className="text-blue-700">Condition:</span> {selectedPatientData.condition}
-                                                </div>
+                                                <div><span className="text-blue-700">Condition:</span> {selectedPatientData.condition}</div>
                                             )}
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="departmentId">Department</Label>
                                         <Select
@@ -421,13 +419,12 @@ export default function TokenQueuePage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {departments.map((dept) => (
-                                                    <SelectItem key={dept.id} value={dept.id}>
-                                                        {dept.name}
-                                                    </SelectItem>
+                                                    <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
+
                                     <div className="space-y-2">
                                         <Label htmlFor="priority">Priority</Label>
                                         <Select name="priority" defaultValue="Normal">
@@ -443,7 +440,7 @@ export default function TokenQueuePage() {
                                     </div>
                                 </div>
 
-                                <div className="flex justify-end space-x-2">
+                                <div className="flex justify-end gap-2">
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -545,37 +542,40 @@ export default function TokenQueuePage() {
                                 .sort((a, b) => {
                                     const priorityOrder = { Emergency: 3, Urgent: 2, Normal: 1 }
                                     const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority]
-                                    if (priorityDiff !== 0) return priorityDiff
-
-                                    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                                    return priorityDiff !== 0
+                                        ? priorityDiff
+                                        : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
                                 })
                                 .map((token) => (
                                     <div
                                         key={token.id}
-                                        className="flex items-center justify-between p-4 border rounded-lg bg-white hover:bg-gray-50"
+                                        className="flex flex-col sm:flex-row justify-between gap-4 p-4 border rounded-lg bg-white hover:bg-gray-50 transition"
                                     >
-                                        <div className="flex items-center space-x-4">
-                                            <div className="text-center">
+                                        <div className="flex items-start gap-4 sm:flex-1">
+                                            <div className="text-center min-w-[60px]">
                                                 <div className="text-2xl font-bold text-blue-600">{token.tokenNumber}</div>
                                                 <Badge className={getPriorityColor(token.priority)}>{token.priority}</Badge>
                                             </div>
-                                            <div>
-                                                <p className="font-medium">{token.patientName}</p>
+                                            <div className="md:block hidden">
+                                                <p className="font-medium text-lg">{token.patientName}</p>
                                                 <p className="text-sm text-gray-600">Patient ID: {token.patientId}</p>
                                                 <p className="text-sm text-gray-600">{token.departmentName}</p>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center space-x-4">
-                                            <div className="text-right">
+                                        <div className="flex flex-col sm:items-end sm:text-right gap-2 sm:gap-0">
+                                            <div>
+                                                <div className="block md:hidden">
+                                                    <p className="font-medium text-lg">{token.patientName}</p>
+                                                    <p className="text-sm text-gray-600">Patient ID: {token.patientId}</p>
+                                                    <p className="text-sm text-gray-600">{token.departmentName}</p>
+                                                </div>
                                                 <Badge className={getStatusColor(token.status)}>{token.status}</Badge>
                                                 <p className="text-sm text-gray-600 mt-1">Wait: {token.estimatedWaitTime} min</p>
-                                                <p className="text-xs text-gray-500">
-                                                    Created: {new Date(token.createdAt).toLocaleTimeString()}
-                                                </p>
+                                                <p className="text-xs text-gray-500">Created: {new Date(token.createdAt).toLocaleTimeString()}</p>
                                             </div>
 
-                                            <div className="flex space-x-2">
+                                            <div className="flex flex-wrap sm:justify-end gap-2 mt-2">
                                                 {token.status === "Waiting" && (
                                                     <Button
                                                         size="sm"
@@ -586,7 +586,6 @@ export default function TokenQueuePage() {
                                                         Call
                                                     </Button>
                                                 )}
-
                                                 {token.status === "Called" && (
                                                     <Button
                                                         size="sm"
@@ -597,7 +596,6 @@ export default function TokenQueuePage() {
                                                         Start
                                                     </Button>
                                                 )}
-
                                                 {token.status === "In Progress" && (
                                                     <Button
                                                         size="sm"
@@ -626,8 +624,7 @@ export default function TokenQueuePage() {
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>Cancel Token</AlertDialogTitle>
                                                             <AlertDialogDescription>
-                                                                Are you sure you want to cancel token {token.tokenNumber} for {token.patientName}? This
-                                                                action cannot be undone.
+                                                                Are you sure you want to cancel token {token.tokenNumber} for {token.patientName}? This action cannot be undone.
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
@@ -645,13 +642,13 @@ export default function TokenQueuePage() {
                                         </div>
                                     </div>
                                 ))
-                        ) : (loading || !tokens.length) ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">Loading tokens</h3>
-                                    <p className="text-gray-600">Please wait, tokens are being fetched...</p>
-                                </div>
-                        ): (
+                        ) : loading ? (
+                            <div className="text-center py-8 text-gray-500">
+                                <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Loading tokens</h3>
+                                <p className="text-gray-600">Please wait, tokens are being fetched...</p>
+                            </div>
+                        ) : (
                             <div className="text-center py-8 text-gray-500">
                                 <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No active tokens</h3>

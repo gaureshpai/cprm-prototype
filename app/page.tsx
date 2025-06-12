@@ -41,9 +41,15 @@ const DEMO_PATIENT_IDS = [
   {
     id: "cmbseeoyn0000m2jc0wcbehbe",
     name: "Hrithik",
-    condition: "Headache",
+    condition: "Pneumonia",
     status: "Active",
-  }
+  },
+  {
+    id: "pat_001",
+    name: "Rajesh Kumar",
+    condition: "Diabetes Type 2",
+    status: "Active",
+  },
 ]
 
 export default function HomePage() {
@@ -134,21 +140,21 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
               <Link href="/" className="flex items-center space-x-3">
                 <div className="bg-black p-2 rounded-md">
                   <Image src="/logo.png" alt="InUnity Logo" width={24} height={24} className="invert" />
                 </div>
-                <p className="text-2xl font-bold">UDAL - Wenlock Hospital</p>
+                <p className="text-md md:text-2xl font-bold">UDAL - Wenlock Hospital</p>
               </Link>
             </div>
 
-            <nav className="hidden md:flex space-x-6">
+            <nav className="flex space-x-6">
               <Link
                 href="/login"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="bg-blue-600 text-sm text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Staff Login
               </Link>
@@ -157,7 +163,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
         <section className="text-center mb-12">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Welcome to our Patient Portal</h2>
@@ -216,7 +222,7 @@ export default function HomePage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <Avatar className="h-16 w-16">
+                    <Avatar className="h-16 w-16 hidden md:flex">
                       <AvatarFallback className="bg-blue-100 text-blue-600 text-lg">
                         {patient.name
                           .split(" ")
@@ -236,7 +242,7 @@ export default function HomePage() {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full md:grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-1 mb-6 md:grid-cols-3">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="medications">Medications</TabsTrigger>
                     <TabsTrigger value="contact">Contact Info</TabsTrigger>
@@ -432,7 +438,7 @@ export default function HomePage() {
                     <div>
                       <p className="font-medium text-gray-900">{demoPatient.name}</p>
                       <p className="text-sm text-gray-600">{demoPatient.condition}</p>
-                      <div className="flex items-center justify-between mt-2">
+                      <div className="items-center justify-between mt-2 flex">
                         <Badge className={`text-xs ${getStatusColor(demoPatient.status)}`}>{demoPatient.status}</Badge>
                         <span className="text-xs text-blue-600 group-hover:text-blue-800">Click to view →</span>
                       </div>

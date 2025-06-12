@@ -349,7 +349,7 @@ export default function DoctorDashboard() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Doctor Dashboard</h1>
@@ -806,270 +806,270 @@ export default function DoctorDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {(loading || patients.length === 0) ? (
-                        <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                          <div className="text-center space-y-1">
-                            <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                            <p className="text-lg font-medium text-gray-700">Loading patient records</p>
-                            <p className="text-sm text-gray-500">
-                              This may take a moment...
-                            </p>
-                          </div>
+                      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                        <div className="text-center space-y-1">
+                          <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                          <p className="text-lg font-medium text-gray-700">Loading patient records</p>
+                          <p className="text-sm text-gray-500">
+                            This may take a moment...
+                          </p>
                         </div>
-                      ) : patients.length > 0 ? (
-                        patients.map((patient) => (
-                          <div
-                            key={patient.id}
-                            className="flex items-center justify-between p-4 border rounded-lg bg-white hover:bg-gray-50"
-                          >
-                            <div className="flex items-center space-x-4">
-                              <Avatar>
-                                <AvatarFallback className="bg-blue-100 text-blue-600">
-                                  {patient.name
-                                    .split(" ")
-                                    .map((n) => n[0])
-                                    .join("")}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">{patient.name}</p>
-                                <p className="text-sm text-gray-600">
-                                  {patient.age} yrs, {patient.gender} • {patient.condition}
-                                </p>
-                                {patient.allergies.length > 0 && (
-                                  <p className="text-sm text-red-600">Allergies: {patient.allergies.join(", ")}</p>
-                                )}
-                              </div>
+                      </div>
+                    ) : patients.length > 0 ? (
+                      patients.map((patient) => (
+                        <div
+                          key={patient.id}
+                          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border rounded-lg bg-white hover:bg-gray-50"
+                        >
+                          <div className="flex items-center space-x-4">
+                            <Avatar>
+                              <AvatarFallback className="bg-blue-100 text-blue-600">
+                                {patient.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{patient.name}</p>
+                              <p className="text-sm text-gray-600">
+                                {patient.age} yrs, {patient.gender} • {patient.condition}
+                              </p>
+                              {patient.allergies.length > 0 && (
+                                <p className="text-sm text-red-600">Allergies: {patient.allergies.join(", ")}</p>
+                              )}
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm text-gray-500">
-                                Last visit: {patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString() : "N/A"}
-                              </span>
-                              <div className="flex space-x-2 pt-2">
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="flex-1"
-                                      onClick={() => setSelectedPatient(patient)}
-                                    >
-                                      <FileText className="h-3 w-3 mr-1" />
-                                      View Records
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                                    <DialogHeader>
-                                      <DialogTitle className="flex items-center space-x-2">
-                                        <Avatar className="h-8 w-8">
-                                          <AvatarFallback className="bg-blue-100 text-blue-600">
-                                            {patient.name
-                                              .split(" ")
-                                              .map((n) => n[0])
-                                              .join("")}
-                                          </AvatarFallback>
-                                        </Avatar>
-                                        <span>{patient.name} - Medical Records</span>
-                                      </DialogTitle>
-                                      <DialogDescription>Complete medical history and current status</DialogDescription>
-                                    </DialogHeader>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-500">
+                              Last visit: {patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString() : "N/A"}
+                            </span>
+                            <div className="flex space-x-2 pt-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={() => setSelectedPatient(patient)}
+                                  >
+                                    <FileText className="h-3 w-3 mr-1" />
+                                    View Records
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="w-full max-w-[400px] md:max-w-4xl max-h-[90vh] overflow-y-auto px-4 md:px-6">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center space-x-2">
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarFallback className="bg-blue-100 text-blue-600">
+                                          {patient.name
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <span>{patient.name} - Medical Records</span>
+                                    </DialogTitle>
+                                    <DialogDescription>Complete medical history and current status</DialogDescription>
+                                  </DialogHeader>
 
-                                    <Tabs defaultValue="overview" className="w-full">
-                                      <TabsList className="grid w-full grid-cols-2">
-                                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                                        <TabsTrigger value="medications">Medications</TabsTrigger>
-                                      </TabsList>
+                                  <Tabs defaultValue="overview" className="w-full">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                      <TabsTrigger value="overview">Overview</TabsTrigger>
+                                      <TabsTrigger value="medications">Medications</TabsTrigger>
+                                    </TabsList>
 
-                                      <TabsContent value="overview" className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                          <Card>
-                                            <CardHeader className="pb-2">
-                                              <CardTitle className="text-sm">Patient Information</CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="space-y-2">
-                                              <div className="flex items-center">
-                                                <User className="h-4 w-4 mr-2 text-gray-500" />
-                                                <span className="text-sm">
-                                                  {patient.age} years, {patient.gender}
-                                                </span>
-                                              </div>
-                                              <div className="flex items-center">
-                                                <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                                                <span className="text-sm">{patient.phone || "N/A"}</span>
-                                              </div>
-                                              <div className="flex items-center">
-                                                <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                                                <span className="text-sm">{patient.address || "N/A"}</span>
-                                              </div>
-                                            </CardContent>
-                                          </Card>
-
-                                          <Card>
-                                            <CardHeader className="pb-2">
-                                              <CardTitle className="text-sm">Current Status</CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="space-y-2">
-                                              <div>
-                                                <span className="text-sm text-gray-500">Condition:</span>
-                                                <p className="font-medium">{patient.condition || "N/A"}</p>
-                                              </div>
-                                              <div>
-                                                <span className="text-sm text-gray-500">Status:</span>
-                                                <Badge className={`ml-2 ${getStatusColor(patient.status)}`}>
-                                                  {patient.status}
-                                                </Badge>
-                                              </div>
-                                              <div className="flex items-center">
-                                                <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                                                <span className="text-sm">
-                                                  Next:{" "}
-                                                  {patient.nextAppointment
-                                                    ? new Date(patient.nextAppointment).toLocaleDateString()
-                                                    : "N/A"}
-                                                </span>
-                                              </div>
-                                            </CardContent>
-                                          </Card>
-                                        </div>
+                                    <TabsContent value="overview" className="space-y-4">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <Card>
+                                          <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm">Patient Information</CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="space-y-2">
+                                            <div className="flex items-center">
+                                              <User className="h-4 w-4 mr-2 text-gray-500" />
+                                              <span className="text-sm">
+                                                {patient.age} years, {patient.gender}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                              <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                                              <span className="text-sm">{patient.phone || "N/A"}</span>
+                                            </div>
+                                            <div className="flex items-center">
+                                              <MapPin className="h-4 w-4 mr-2 text-gray-500" />
+                                              <span className="text-sm">{patient.address || "N/A"}</span>
+                                            </div>
+                                          </CardContent>
+                                        </Card>
 
                                         <Card>
                                           <CardHeader className="pb-2">
-                                            <CardTitle className="text-sm">Allergies</CardTitle>
+                                            <CardTitle className="text-sm">Current Status</CardTitle>
                                           </CardHeader>
-                                          <CardContent>
-                                            <div className="flex flex-wrap gap-2">
-                                              {patient.allergies.length > 0 ? (
-                                                patient.allergies.map((allergy, index) => (
-                                                  <Badge
-                                                    key={index}
-                                                    variant="outline"
-                                                    className="bg-red-50 text-red-700 border-red-200"
-                                                  >
-                                                    {allergy}
-                                                  </Badge>
-                                                ))
-                                              ) : (
-                                                <span className="text-gray-500">No known allergies</span>
-                                              )}
+                                          <CardContent className="space-y-2">
+                                            <div>
+                                              <span className="text-sm text-gray-500">Condition:</span>
+                                              <p className="font-medium">{patient.condition || "N/A"}</p>
+                                            </div>
+                                            <div>
+                                              <span className="text-sm text-gray-500">Status:</span>
+                                              <Badge className={`ml-2 ${getStatusColor(patient.status)}`}>
+                                                {patient.status}
+                                              </Badge>
+                                            </div>
+                                            <div className="flex items-center">
+                                              <Clock className="h-4 w-4 mr-2 text-gray-500" />
+                                              <span className="text-sm">
+                                                Next:{" "}
+                                                {patient.nextAppointment
+                                                  ? new Date(patient.nextAppointment).toLocaleDateString()
+                                                  : "N/A"}
+                                              </span>
                                             </div>
                                           </CardContent>
                                         </Card>
-                                      </TabsContent>
+                                      </div>
 
-                                      <TabsContent value="medications" className="space-y-4">
-                                        <Card>
-                                          <CardHeader>
-                                            <CardTitle className="text-sm">Current Medications</CardTitle>
-                                          </CardHeader>
-                                          <CardContent>
-                                            <div className="space-y-2">
-                                              {(patient.medications || []).map(
-                                                (
-                                                  medication: {
+                                      <Card>
+                                        <CardHeader className="pb-2">
+                                          <CardTitle className="text-sm">Allergies</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="flex flex-wrap gap-2">
+                                            {patient.allergies.length > 0 ? (
+                                              patient.allergies.map((allergy, index) => (
+                                                <Badge
+                                                  key={index}
+                                                  variant="outline"
+                                                  className="bg-red-50 text-red-700 border-red-200"
+                                                >
+                                                  {allergy}
+                                                </Badge>
+                                              ))
+                                            ) : (
+                                              <span className="text-gray-500">No known allergies</span>
+                                            )}
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    </TabsContent>
+
+                                    <TabsContent value="medications" className="space-y-4">
+                                      <Card>
+                                        <CardHeader>
+                                          <CardTitle className="text-sm">Current Medications</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="space-y-2">
+                                            {(patient.medications || []).map(
+                                              (
+                                                medication: {
+                                                  id: string
+                                                  name: string
+                                                  dosage: string
+                                                  frequency: string
+                                                  duration: string
+                                                  instructions?: string | null
+                                                  drugInfo: {
                                                     id: string
-                                                    name: string
-                                                    dosage: string
-                                                    frequency: string
-                                                    duration: string
-                                                    instructions?: string | null
-                                                    drugInfo: {
-                                                      id: string
-                                                      currentStock: number
-                                                      minStock: number
-                                                      status: string
-                                                      category?: string | null
-                                                      batchNumber?: string | null
-                                                      expiryDate?: Date | null
-                                                      location: string
-                                                    }
-                                                    prescriptionDate: Date
-                                                  },
-                                                  index: number,
-                                                ) => (
-                                                  <div
-                                                    key={medication.id || index}
-                                                    className="flex items-center justify-between p-3 bg-gray-50 rounded border"
-                                                  >
-                                                    <div className="flex-1">
-                                                      <div className="flex items-center justify-between">
-                                                        <span className="font-medium text-gray-900">
-                                                          {medication.name}
-                                                        </span>
-                                                        <div className="flex gap-2">
-                                                          <Badge variant="outline">Active</Badge>
-                                                          {medication.drugInfo && (
-                                                            <Badge
-                                                              variant={
-                                                                medication.drugInfo.currentStock <=
-                                                                  medication.drugInfo.minStock
-                                                                  ? "destructive"
-                                                                  : "secondary"
-                                                              }
-                                                            >
-                                                              Stock: {medication.drugInfo.currentStock}
-                                                            </Badge>
-                                                          )}
-                                                        </div>
+                                                    currentStock: number
+                                                    minStock: number
+                                                    status: string
+                                                    category?: string | null
+                                                    batchNumber?: string | null
+                                                    expiryDate?: Date | null
+                                                    location: string
+                                                  }
+                                                  prescriptionDate: Date
+                                                },
+                                                index: number,
+                                              ) => (
+                                                <div
+                                                  key={medication.id || index}
+                                                  className="flex items-center justify-between p-3 bg-gray-50 rounded border"
+                                                >
+                                                  <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                      <span className="font-medium text-gray-900">
+                                                        {medication.name}
+                                                      </span>
+                                                      <div className="flex gap-2">
+                                                        <Badge variant="outline">Active</Badge>
+                                                        {medication.drugInfo && (
+                                                          <Badge
+                                                            variant={
+                                                              medication.drugInfo.currentStock <=
+                                                                medication.drugInfo.minStock
+                                                                ? "destructive"
+                                                                : "secondary"
+                                                            }
+                                                          >
+                                                            Stock: {medication.drugInfo.currentStock}
+                                                          </Badge>
+                                                        )}
                                                       </div>
-                                                      <div className="mt-1 text-sm text-gray-600">
-                                                        <span className="mr-4">Dosage: {medication.dosage}</span>
-                                                        <span className="mr-4">Frequency: {medication.frequency}</span>
-                                                        <span>Duration: {medication.duration}</span>
-                                                      </div>
-                                                      {medication.drugInfo && (
-                                                        <div className="mt-1 text-xs text-gray-500">
-                                                          <span className="mr-4">
-                                                            Category: {medication.drugInfo.category || "N/A"}
-                                                          </span>
-                                                          <span className="mr-4">
-                                                            Location: {medication.drugInfo.location}
-                                                          </span>
-                                                          {medication.drugInfo.expiryDate && (
-                                                            <span>
-                                                              Expires:{" "}
-                                                              {new Date(
-                                                                medication.drugInfo.expiryDate,
-                                                              ).toLocaleDateString()}
-                                                            </span>
-                                                          )}
-                                                        </div>
-                                                      )}
-                                                      {medication.instructions && (
-                                                        <p className="mt-1 text-sm text-gray-500 italic">
-                                                          {medication.instructions}
-                                                        </p>
-                                                      )}
-                                                      {medication.prescriptionDate && (
-                                                        <p className="mt-1 text-xs text-gray-400">
-                                                          Prescribed:{" "}
-                                                          {new Date(medication.prescriptionDate).toLocaleDateString()}
-                                                        </p>
-                                                      )}
                                                     </div>
+                                                    <div className="mt-1 text-sm text-gray-600">
+                                                      <span className="mr-4">Dosage: {medication.dosage}</span>
+                                                      <span className="mr-4">Frequency: {medication.frequency}</span>
+                                                      <span>Duration: {medication.duration}</span>
+                                                    </div>
+                                                    {medication.drugInfo && (
+                                                      <div className="mt-1 text-xs text-gray-500">
+                                                        <span className="mr-4">
+                                                          Category: {medication.drugInfo.category || "N/A"}
+                                                        </span>
+                                                        <span className="mr-4">
+                                                          Location: {medication.drugInfo.location}
+                                                        </span>
+                                                        {medication.drugInfo.expiryDate && (
+                                                          <span>
+                                                            Expires:{" "}
+                                                            {new Date(
+                                                              medication.drugInfo.expiryDate,
+                                                            ).toLocaleDateString()}
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                    )}
+                                                    {medication.instructions && (
+                                                      <p className="mt-1 text-sm text-gray-500 italic">
+                                                        {medication.instructions}
+                                                      </p>
+                                                    )}
+                                                    {medication.prescriptionDate && (
+                                                      <p className="mt-1 text-xs text-gray-400">
+                                                        Prescribed:{" "}
+                                                        {new Date(medication.prescriptionDate).toLocaleDateString()}
+                                                      </p>
+                                                    )}
                                                   </div>
-                                                ),
-                                              )}
-                                              {(!patient.medications || patient.medications.length === 0) && (
-                                                <div className="text-center py-4 text-gray-500">
-                                                  No current medications
                                                 </div>
-                                              )}
-                                            </div>
-                                          </CardContent>
-                                        </Card>
-                                      </TabsContent>
-                                    </Tabs>
-                                  </DialogContent>
-                                </Dialog>
-                              </div>
+                                              ),
+                                            )}
+                                            {(!patient.medications || patient.medications.length === 0) && (
+                                              <div className="text-center py-4 text-gray-500">
+                                                No current medications
+                                              </div>
+                                            )}
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    </TabsContent>
+                                  </Tabs>
+                                </DialogContent>
+                              </Dialog>
                             </div>
                           </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                          <p>No recent patients</p>
                         </div>
-                      )}
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                        <p>No recent patients</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

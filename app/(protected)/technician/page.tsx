@@ -57,7 +57,7 @@ export default async function TechnicianDashboard() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">System Technician Dashboard</h1>
@@ -122,7 +122,7 @@ export default async function TechnicianDashboard() {
           )}
 
           <Tabs defaultValue="maintenance" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-white">
+            <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 mb-6 bg-white">
               <TabsTrigger value="maintenance">OT Maintenance</TabsTrigger>
               <TabsTrigger value="alerts">Emergency Alerts</TabsTrigger>
               <TabsTrigger value="performance">System Performance</TabsTrigger>

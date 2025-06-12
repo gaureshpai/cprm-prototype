@@ -205,7 +205,7 @@ export default function InventoryClient({ inventory }: InventoryClientProps) {
             </Card>
 
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="md:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Add New Drug</DialogTitle>
                         <DialogDescription>Enter the details of the new drug to add to inventory.</DialogDescription>
@@ -300,7 +300,7 @@ export default function InventoryClient({ inventory }: InventoryClientProps) {
             </Dialog>
 
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="md:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Edit Drug</DialogTitle>
                         <DialogDescription>Update the details of {editDrug?.drugName}.</DialogDescription>

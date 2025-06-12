@@ -43,6 +43,29 @@ export const getStatusColor = (status: string) => {
   }
 }
 
+export const getBadgeTypeColor = (type: string) => {
+  switch (type) {
+    case "Core":
+      return "bg-blue-600 text-white";
+    case "Staff":
+      return "bg-green-600 text-white";
+    case "User":
+      return "bg-gray-600 text-white";
+    case "Public":
+      return "bg-teal-600 text-white";
+    case "Doctor":
+      return "bg-purple-600 text-white";
+    case "Pharmacist":
+      return "bg-blue-600 text-white";
+    case "Technician":
+      return "bg-green-600 text-black";
+    case "Nurse":
+      return "bg-red-600 text-white";
+    default:
+      return "bg-gray-600 text-white";
+  }
+};
+
 export const getStatusText = (status: string) => {
   switch (status) {
     case "online":

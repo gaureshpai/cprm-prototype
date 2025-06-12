@@ -104,19 +104,20 @@ export default function DoctorPatientsPage() {
   }
 
   return (
-    <AuthGuard allowedRoles={["doctor", "admin"]} className="container mx-auto p-6 space-y-6">
+    <AuthGuard allowedRoles={["doctor", "admin"]} className="container mx-auto p-2 md:p-6 space-y-6">
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center mb-6">
+        <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Patient Management</h1>
               <p className="text-gray-500">Manage and view patient records</p>
             </div>
+
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
                   <Plus className="mr-2 h-4 w-4" />
                   Add New Patient
                 </Button>
@@ -175,7 +176,7 @@ export default function DoctorPatientsPage() {
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <Avatar className="h-12 w-12">
+                          <Avatar className="hidden md:block h-12 w-12">
                             <AvatarFallback className="bg-blue-100 text-blue-600">
                               {patient.name
                                 .split(" ")
@@ -185,7 +186,7 @@ export default function DoctorPatientsPage() {
                           </Avatar>
                           <div>
                             <CardTitle className="text-lg">{patient.name}</CardTitle>
-                            <p className="text-sm text-gray-600">ID: {patient.id}</p>
+                            <p className="text-xs md:text-sm text-gray-600">ID: {patient.id}</p>
                           </div>
                         </div>
                         <Badge className={getStatusColor(patient.status)}>{patient.status}</Badge>
@@ -215,7 +216,7 @@ export default function DoctorPatientsPage() {
                         </span>
                       </div>
 
-                      <div className="flex space-x-2 pt-2">
+                      <div className="flex space-x-1 md:space-x-2 pt-2">
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button

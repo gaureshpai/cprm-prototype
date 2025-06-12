@@ -224,7 +224,7 @@ export default function BloodBankPage() {
                 </Card>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
                     <Input
                         placeholder="Search by blood type or location..."
@@ -234,7 +234,7 @@ export default function BloodBankPage() {
                     />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-48">
+                    <SelectTrigger className="w-full md:w-48">
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>

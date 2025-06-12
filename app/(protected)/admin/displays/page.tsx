@@ -252,7 +252,7 @@ export default function DisplayManagement() {
   return (
     <AuthGuard allowedRoles={["admin"]} className="p-6 space-y-6">
       <Navbar />
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Display Management</h1>
           <p className="text-gray-600">
@@ -263,17 +263,20 @@ export default function DisplayManagement() {
             Last updated: {lastUpdate.toLocaleTimeString()} • Auto-refresh every 5 seconds
           </p>
         </div>
-        <div className="flex space-x-2">
+
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-2 space-y-2 md:space-y-0">
           <Button variant="outline" onClick={() => fetchDisplays()} disabled={isPending}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
             Refresh
           </Button>
+
           {displays.length === 0 && (
             <Button variant="outline" onClick={handleSeedDisplays} disabled={isPending}>
               <Plus className="h-4 w-4 mr-2" />
               Seed Data
             </Button>
           )}
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -281,10 +284,11 @@ export default function DisplayManagement() {
                 Add Display
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-xs md:max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Create New Display</DialogTitle>
               </DialogHeader>
+
               <form action={handleCreateDisplay} className="space-y-4">
                 <div>
                   <Label htmlFor="create-location">Location</Label>
@@ -297,6 +301,7 @@ export default function DisplayManagement() {
                     required
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="create-content">Content Type</Label>
                   <Select
@@ -316,6 +321,7 @@ export default function DisplayManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+
                 {isDepartmentSpecific(createForm.content) && (
                   <div>
                     <Label htmlFor="create-department">Department</Label>
@@ -337,6 +343,7 @@ export default function DisplayManagement() {
                     </Select>
                   </div>
                 )}
+
                 <div>
                   <Label htmlFor="create-status">Status</Label>
                   <Select
@@ -356,6 +363,7 @@ export default function DisplayManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancel
@@ -369,6 +377,7 @@ export default function DisplayManagement() {
           </Dialog>
         </div>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
@@ -470,7 +479,7 @@ export default function DisplayManagement() {
         ))}
       </div>
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-xs md:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Display: {selectedDisplay?.location}</DialogTitle>
           </DialogHeader>

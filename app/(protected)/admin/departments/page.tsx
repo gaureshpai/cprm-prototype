@@ -218,16 +218,18 @@ export default function DepartmentsPage() {
         <AuthGuard allowedRoles={["admin", "technician"]} className="container mx-auto p-6 space-y-6">
             <Navbar />
 
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold">Department Management</h1>
                     <p className="text-gray-600">Manage hospital departments and their operations</p>
                 </div>
-                <div className="flex items-center space-x-2">
+
+                <div className="flex flex-col md:flex-row md:items-center md:space-x-2 space-y-2 md:space-y-0">
                     <Button variant="outline" onClick={loadDepartmentsData} disabled={isPending}>
                         <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
                         Refresh
                     </Button>
+
                     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                         <DialogTrigger asChild>
                             <Button>
@@ -235,13 +237,15 @@ export default function DepartmentsPage() {
                                 Add Department
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+
+                        <DialogContent className="max-w-xs md:max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Create New Department</DialogTitle>
                                 <DialogDescription>Add a new department to the hospital system</DialogDescription>
                             </DialogHeader>
+
                             <form onSubmit={handleCreateDepartment} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="name">Department Name *</Label>
                                         <Input id="name" name="name" placeholder="Enter department name" required />
@@ -253,7 +257,7 @@ export default function DepartmentsPage() {
                                     <Textarea id="description" name="description" placeholder="Enter department description" required />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="location">Location *</Label>
                                         <Input id="location" name="location" placeholder="Enter location" required />
@@ -264,7 +268,7 @@ export default function DepartmentsPage() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="contactNumber">Contact Number</Label>
                                         <Input id="contactNumber" name="contactNumber" placeholder="Enter contact number" />
@@ -359,7 +363,7 @@ export default function DepartmentsPage() {
                 </Card>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
                     <Input
                         placeholder="Search departments by name, location..."
@@ -369,7 +373,7 @@ export default function DepartmentsPage() {
                     />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-48">
+                    <SelectTrigger className="w-full md:w-48">
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -466,7 +470,7 @@ export default function DepartmentsPage() {
                                             Edit
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                                    <DialogContent className="max-w-xs md:max-w-2xl max-h-[90vh] overflow-y-auto">
                                         <DialogHeader>
                                             <DialogTitle>Edit Department</DialogTitle>
                                             <DialogDescription>Update department information and settings</DialogDescription>

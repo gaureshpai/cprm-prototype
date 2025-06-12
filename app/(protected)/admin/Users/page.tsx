@@ -508,16 +508,18 @@ const UserCRUDPage = () => {
     <AuthGuard allowedRoles={["admin"]} className="container mx-auto p-6 space-y-6">
       <Navbar />
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center space-x-2">
           <Users className="h-6 w-6" />
           <h1 className="text-3xl font-bold">User Management</h1>
         </div>
-        <div className="flex space-x-2">
+
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-2 space-y-2 md:space-y-0">
           <Button variant="outline" onClick={loadUsers} disabled={isPending}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
             Refresh
           </Button>
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
@@ -525,10 +527,12 @@ const UserCRUDPage = () => {
                 Add User
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-xs md:max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Create New User</DialogTitle>
-                <DialogDescription>Add a new user to the hospital management system.</DialogDescription>
+                <DialogDescription>
+                  Add a new user to the hospital management system.
+                </DialogDescription>
               </DialogHeader>
               <UserForm onSubmit={handleCreateUser} />
             </DialogContent>
@@ -700,7 +704,7 @@ const UserCRUDPage = () => {
       </Card>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-xs md:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>Update user information and permissions.</DialogDescription>

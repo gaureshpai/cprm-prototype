@@ -155,7 +155,7 @@ export default function OrdersClient({ prescriptions }: OrdersClientProps) {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-1 mb-16 md:grid-cols-4">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="Pending">Pending</TabsTrigger>
               <TabsTrigger value="processing">Processing</TabsTrigger>
@@ -223,7 +223,7 @@ export default function OrdersClient({ prescriptions }: OrdersClientProps) {
       </Card>
 
       <Dialog open={isProcessingDialogOpen} onOpenChange={setIsProcessingDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="md:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Process Prescription</DialogTitle>
             <DialogDescription>
@@ -258,6 +258,7 @@ export default function OrdersClient({ prescriptions }: OrdersClientProps) {
                         id={`quantity-${item.itemId}`}
                         type="number"
                         value={item.quantityDispensed}
+                        minLength={1}
                         onChange={(e) => updateDispensedQuantity(item.itemId, Number.parseInt(e.target.value))}
                         className="w-20"
                         min="0"

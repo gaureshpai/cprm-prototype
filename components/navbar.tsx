@@ -46,7 +46,7 @@ export function Navbar() {
         { name: "Blood Bank", href: "/technician/blood-bank", icon: <Heart className="h-4 w-4 mr-2" /> },
       ],
       nurse: [
-        { name: "Token Queues", href: "/nurse/token-queues", icon: <Heart className="h-4 w-4 mr-2" /> },
+        { name: "Token Queues", href: "/nurse/token-queue", icon: <Heart className="h-4 w-4 mr-2" /> },
       ]
     }
 
@@ -61,7 +61,7 @@ export function Navbar() {
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
             <Link href={`/${user?.role.toLowerCase()}`} className="flex items-center space-x-2">
@@ -102,7 +102,7 @@ export function Navbar() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm" className="items-center space-x-2 hidden md:flex">
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-medium">{user?.name}</span>
                     <span className="text-xs text-gray-500 capitalize">{user?.role}</span>
@@ -142,7 +142,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${pathname === link.href ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                className={`px-3 py-2 rounded-md text-base font-medium flex items-center ${pathname === link.href ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -152,14 +152,14 @@ export function Navbar() {
             ))}
             <Link
               href="/profile-settings"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 flex items-center"
+              className="px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 flex items-center"
               onClick={() => setMobileMenuOpen(false)}
             >
               <Settings className="h-4 w-4 mr-2" />
               Profile & Settings
             </Link>
             <button
-              className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 flex items-center"
+              className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 flex items-center"
               onClick={() => {
                 logout()
                 setMobileMenuOpen(false)

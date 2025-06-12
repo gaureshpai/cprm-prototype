@@ -73,7 +73,7 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
                     title: "Success",
                     description: "Dashboard refreshed successfully",
                 })
-                
+
                 window.location.reload()
             }
         } catch (error) {
@@ -99,7 +99,7 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
                     title: "Success",
                     description: "Patient details updated successfully",
                 })
-                
+
                 setPatients(
                     patients.map((p) =>
                         p.id === selectedPatient.id
@@ -146,7 +146,7 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
                     title: "Success",
                     description: "Patient vitals updated successfully",
                 })
-                
+
                 setPatients(
                     patients.map((p) =>
                         p.id === selectedPatient.id
@@ -213,10 +213,10 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
 
     return (
         <>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Nurse Dashboard</h1>
-                    <p className="text-gray-600">
+                    <h1 className="text-2xl sm:text-3xl font-bold">Nurse Dashboard</h1>
+                    <p className="text-gray-600 text-sm sm:text-base">
                         {currentDate.toLocaleDateString("en-IN", {
                             weekday: "long",
                             year: "numeric",
@@ -225,16 +225,23 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
                         })}
                     </p>
                 </div>
-                <div className="flex space-x-2">
-                    <Button variant="outline" onClick={handleRefreshDashboard} disabled={isRefreshing}>
+
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 w-full sm:w-auto">
+                    <Button
+                        variant="outline"
+                        onClick={handleRefreshDashboard}
+                        disabled={isRefreshing}
+                        className="w-full sm:w-auto"
+                    >
                         <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
                         Refresh
                     </Button>
+
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setIsEmergencyAlertsModalOpen(true)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 w-full sm:w-auto"
                     >
                         <AlertTriangle className="h-4 w-4 mr-1" />
                         Emergency Alerts
@@ -295,7 +302,7 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
                             <CardDescription>Monitor and update patient information from database</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {patients.map((patient) => (
                                     <Card key={patient.id} className="hover:shadow-lg transition-shadow">
                                         <CardHeader className="pb-3">
@@ -316,9 +323,12 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
                                                         </CardDescription>
                                                     </div>
                                                 </div>
-                                                <Badge className={getConditionColor(patient.condition)}>{patient.condition}</Badge>
+                                                <Badge className={getConditionColor(patient.condition)}>
+                                                    {patient.condition}
+                                                </Badge>
                                             </div>
                                         </CardHeader>
+
                                         <CardContent className="space-y-4">
                                             <div className="grid grid-cols-2 gap-3 text-sm">
                                                 <div>
@@ -362,8 +372,12 @@ export default function NurseDashboardContent({ initialData }: { initialData: Nu
                                                 </div>
                                             </div>
 
-                                            <div className="flex space-x-2">
-                                                <Button size="sm" onClick={() => openPatientDialog(patient)} className="flex-1">
+                                            <div className="flex flex-col sm:flex-row gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => openPatientDialog(patient)}
+                                                    className="flex-1"
+                                                >
                                                     <Edit className="h-4 w-4 mr-1" />
                                                     Update Details
                                                 </Button>

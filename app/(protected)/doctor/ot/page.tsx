@@ -76,7 +76,7 @@ export default function DoctorOTPage() {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="min-h-screen bg-gray-50">
-          <div className="h-16 bg-white border-b flex items-center px-4 sm:px-6 lg:px-8">
+          <div className="h-16 bg-white border-b flex items-center px-4 md:px-6 lg:px-8">
             <Skeleton className="h-8 w-32" />
             <div className="ml-auto flex space-x-4">
               <Skeleton className="h-10 w-10 rounded-full" />
@@ -84,7 +84,7 @@ export default function DoctorOTPage() {
             </div>
           </div>
 
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
             <div className="flex justify-between items-center mb-6">
               <div className="space-y-2">
                 <Skeleton className="h-8 w-48" />
@@ -217,8 +217,8 @@ export default function DoctorOTPage() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center mb-6">
+        <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Operating Theater Status</h1>
               <p className="text-gray-500">
@@ -230,10 +230,11 @@ export default function DoctorOTPage() {
                 })}
               </p>
             </div>
-            <div className="flex space-x-2">
+
+            <div className="flex flex-col sm:flex-row sm:space-x-2 gap-2 sm:gap-0 w-full sm:w-auto">
               <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
                     <Calendar className="mr-2 h-4 w-4" />
                     Schedule Surgery
                   </Button>
@@ -252,7 +253,11 @@ export default function DoctorOTPage() {
                   />
                 </DialogContent>
               </Dialog>
-              <TheaterManagementModal theaters={otData.theaters} onRefresh={loadOTData} />
+
+              <TheaterManagementModal
+                theaters={otData.theaters}
+                onRefresh={loadOTData}
+              />
             </div>
           </div>
 
@@ -303,7 +308,7 @@ export default function DoctorOTPage() {
           </div>
 
           <Tabs defaultValue="theaters" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-white">
+            <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 mb-6 bg-white">
               <TabsTrigger value="theaters">Theater Status</TabsTrigger>
               <TabsTrigger value="schedule">Today's Schedule</TabsTrigger>
               <TabsTrigger value="emergency">Emergency Queue</TabsTrigger>
@@ -435,11 +440,13 @@ export default function DoctorOTPage() {
                     {otData.todaySchedule.map((surgery) => (
                       <div
                         key={surgery.id}
-                        className={`flex items-center justify-between p-4 border rounded-lg ${surgery.status === "in-progress" ? "bg-blue-50 border-blue-200" : "bg-white"
+                        className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg space-y-3 sm:space-y-0 ${surgery.status === "in-progress"
+                            ? "bg-blue-50 border-blue-200"
+                            : "bg-white"
                           }`}
                       >
-                        <div className="flex items-center space-x-4">
-                          <div className="text-center w-20">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
+                          <div className="text-center sm:w-20">
                             <p className="font-medium text-gray-900">{surgery.time}</p>
                             <p className="text-xs text-gray-500">{surgery.duration}</p>
                           </div>
@@ -451,9 +458,12 @@ export default function DoctorOTPage() {
                             </p>
                           </div>
                         </div>
-                        <Badge className={`text-white ${getScheduleStatusColor(surgery.status)}`}>
-                          {surgery.status === "in-progress" ? "In Progress" : "Scheduled"}
-                        </Badge>
+
+                        <div className="sm:ml-auto">
+                          <Badge className={`text-white ${getScheduleStatusColor(surgery.status)}`}>
+                            {surgery.status === "in-progress" ? "In Progress" : "Scheduled"}
+                          </Badge>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -478,8 +488,8 @@ export default function DoctorOTPage() {
                         key={emergency.id}
                         className="flex items-center justify-between p-4 border rounded-lg bg-red-50 border-red-200"
                       >
-                        <div className="flex items-center space-x-4">
-                          <div className="text-center w-20">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
+                          <div className="text-center sm:w-20">
                             <p className="font-medium text-xs text-red-700">EMERGENCY</p>
                             <p className="text-xs text-red-600">Wait: {emergency.waitTime}</p>
                           </div>

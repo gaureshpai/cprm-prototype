@@ -307,12 +307,12 @@ export default function AdminPanel() {
   )
 
   return (
-    <AuthGuard allowedRoles={["admin"]} className="container mx-auto p-6 space-y-6">
+    <AuthGuard allowedRoles={["admin"]} className="container mx-auto p-2 md:p-6 space-y-6">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
         <Tabs defaultValue="content" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white">
+          <TabsList className="w-full flex flex-col md:flex-row bg-white">
             <TabsTrigger value="content">Content Management</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="emergency">Emergency Alerts</TabsTrigger>
@@ -332,7 +332,7 @@ export default function AdminPanel() {
                       Create New Announcement
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-w-xs md:max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Create New Announcement</DialogTitle>
                     </DialogHeader>
@@ -401,7 +401,7 @@ export default function AdminPanel() {
                       announcements.map((announcement) => (
                         <div
                           key={announcement.id}
-                          className={`flex justify-between items-start p-4 rounded-lg border transition-colors hover:bg-gray-50`}
+                          className="flex flex-col md:flex-row justify-between md:items-start p-4 rounded-lg border transition-colors hover:bg-gray-50 gap-3"
                         >
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center justify-between">
@@ -412,7 +412,8 @@ export default function AdminPanel() {
                               {new Date(announcement.createdAt).toLocaleDateString()}
                             </p>
                           </div>
-                          <div className="flex space-x-2">
+
+                          <div className="flex md:flex-row flex-col md:space-x-2 space-y-2 md:space-y-0">
                             {!announcement.resolved ? (
                               <>
                                 <Button
@@ -421,7 +422,7 @@ export default function AdminPanel() {
                                   onClick={() => handleResolveAnnouncement(announcement.id)}
                                   className="border-green-600 text-green-600 hover:bg-green-50"
                                 >
-                                Resolve <CheckCircle className="h-2 w-2" />
+                                  Resolve <CheckCircle className="h-3 w-3 ml-1" />
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -655,21 +656,23 @@ export default function AdminPanel() {
                       emergencyAlerts.map((alert) => (
                         <div
                           key={alert.id}
-                          className={`flex justify-between items-center p-3 rounded-lg ${alert.active ? "bg-red-50 border border-red-200" : "bg-gray-50"
+                          className={`flex flex-col md:flex-row justify-between md:items-center gap-2 p-3 rounded-lg ${alert.active
+                            ? "bg-red-50 border border-red-200"
+                            : "bg-gray-50"
                             }`}
                         >
-                          <div>
-                            <div className="flex items-center">
+                          <div className="flex-1">
+                            <div className="flex items-center flex-wrap gap-2">
                               <Badge
                                 className={`mr-2 ${alert.codeType === "Code Blue"
-                                    ? "bg-blue-600"
-                                    : alert.codeType === "Code Red"
-                                      ? "bg-red-600"
-                                      : alert.codeType === "Code Black"
-                                        ? "bg-black"
-                                        : alert.codeType === "Code Orange"
-                                          ? "bg-orange-600"
-                                          : "bg-gray-600"
+                                  ? "bg-blue-600"
+                                  : alert.codeType === "Code Red"
+                                    ? "bg-red-600"
+                                    : alert.codeType === "Code Black"
+                                      ? "bg-black"
+                                      : alert.codeType === "Code Orange"
+                                        ? "bg-orange-600"
+                                        : "bg-gray-600"
                                   }`}
                               >
                                 {alert.codeType}
@@ -679,7 +682,8 @@ export default function AdminPanel() {
                             <p className="text-sm text-gray-600">{alert.message}</p>
                             <p className="text-xs text-gray-500">{new Date(alert.createdAt).toLocaleString()}</p>
                           </div>
-                          <div className="flex items-center space-x-2">
+
+                          <div className="flex md:items-center justify-end md:justify-center">
                             {alert.active ? (
                               <Button
                                 variant="outline"
