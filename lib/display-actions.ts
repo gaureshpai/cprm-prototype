@@ -19,6 +19,11 @@ export interface DisplayUpdateData {
     isActive?: boolean
 }
 
+interface DisplayConfig {
+    departmentId?: string
+    [key: string]: any
+}
+
 export interface ActionResponse<T> {
     success: boolean
     data?: T
@@ -72,9 +77,19 @@ export async function createDisplayAction(formData: FormData): Promise<ActionRes
         const location = formData.get("location") as string
         const content = (formData.get("content") as string) || "Token Queue"
         const status = (formData.get("status") as string) || "offline"
+        const configStr = formData.get("config") as string
 
         if (!location) {
             return { success: false, error: "Location is required" }
+        }
+
+        let config = {}
+        if (configStr) {
+            try {
+                config = JSON.parse(configStr)
+            } catch (e) {
+                console.warn("Invalid config JSON:", configStr)
+            }
         }
 
         const display = await prisma.display.create({
@@ -82,6 +97,7 @@ export async function createDisplayAction(formData: FormData): Promise<ActionRes
                 location,
                 content,
                 status,
+                config,
                 lastUpdate: new Date(),
             },
         })
@@ -105,6 +121,16 @@ export async function updateDisplayAction(id: string, formData: FormData): Promi
         const location = formData.get("location") as string
         const content = formData.get("content") as string
         const status = formData.get("status") as string
+        const configStr = formData.get("config") as string
+
+        let config = {}
+        if (configStr) {
+            try {
+                config = JSON.parse(configStr)
+            } catch (e) {
+                console.warn("Invalid config JSON:", configStr)
+            }
+        }
 
         const display = await prisma.display.update({
             where: { id },
@@ -112,6 +138,7 @@ export async function updateDisplayAction(id: string, formData: FormData): Promi
                 location,
                 content,
                 status,
+                config,
                 lastUpdate: new Date(),
             },
         })
@@ -198,6 +225,7 @@ export async function getDisplayDataAction(displayId: string): Promise<DisplayDa
 
         const shouldFetchTokenQueue =
             display.content === "Token Queue" ||
+            display.content === "Department Token Queue" ||
             display.content === "Mixed Dashboard" ||
             display.content === "Patient Dashboard" ||
             display.content === "Staff Dashboard"
@@ -216,16 +244,28 @@ export async function getDisplayDataAction(displayId: string): Promise<DisplayDa
 
         if (shouldFetchTokenQueue) {
             try {
+                const whereClause: any = {
+                    status: { in: ["Waiting", "Called", "In Progress"] },
+                }
+
+                if (
+                    display.content === "Department Token Queue" &&
+                    display.config &&
+                    typeof display.config === "object" &&
+                    "departmentId" in display.config
+                ) {
+                    const config = display.config as { departmentId: string }
+                    whereClause.departmentId = config.departmentId
+                }
+
                 const tokenQueue = await prisma.tokenQueue.findMany({
-                    where: {
-                        status: { in: ["Waiting", "Called", "In Progress"] },
-                    },
+                    where: whereClause,
                     include: {
                         patient: true,
                         department: true,
                     },
-                    orderBy: [{ createdAt: "asc" }],
-                    take: 10,
+                    orderBy: [{ priority: "desc" }, { createdAt: "asc" }],
+                    take: display.content === "Department Token Queue" ? 4 : 10,
                 })
 
                 data.tokenQueue = tokenQueue.map((token) => ({
@@ -400,7 +440,7 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
             "Mixed Dashboard",
             "Patient Dashboard",
             "Staff Dashboard",
-            "Blood Bank"
+            "Department Token Queue",
         ]
 
         const existingDisplays = await prisma.display.count()
@@ -415,10 +455,21 @@ export async function seedDisplaysAction(): Promise<ActionResponse<boolean>> {
                     ? locations[i]
                     : `Ward ${Math.ceil((i - locations.length + 1) / 4)} - Room ${((i - locations.length) % 4) + 1}`
 
+            const contentType = contentTypes[Math.floor(Math.random() * contentTypes.length)]
+            let config = {}
+
+            if (contentType === "Department Token Queue") {
+                const departments = await prisma.department.findMany({ take: 5 })
+                if (departments.length > 0) {
+                    config = { departmentId: departments[Math.floor(Math.random() * departments.length)].id }
+                }
+            }
+
             displaysToCreate.push({
                 location,
-                content: contentTypes[Math.floor(Math.random() * contentTypes.length)],
+                content: contentType,
                 status: "offline",
+                config,
                 lastUpdate: new Date(Date.now() - Math.random() * 3600000),
             })
         }

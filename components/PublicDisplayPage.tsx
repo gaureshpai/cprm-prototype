@@ -249,7 +249,7 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
     const contentType = data.contentType || displayData?.content || "Mixed Dashboard"
 
     const shouldShowTokenQueue = () => {
-        if (contentType === "Token Queue") return true
+        if (contentType === "Token Queue" || contentType === "Department Token Queue") return true
         if (isDashboardType(contentType)) {
             return activeSection === "tokenQueue"
         }
@@ -310,10 +310,21 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                 return "Patient Dashboard"
             case "Staff Dashboard":
                 return "Staff Dashboard"
+            case "Department Token Queue":
+                return "Department Token Queue"
             default:
                 return type
         }
     }
+
+    const getDisplayTokens = () => {
+        if (contentType === "Department Token Queue") {
+            return data.tokenQueue.slice(0, 4)
+        }
+        return data.tokenQueue
+    }
+
+    const displayTokens = getDisplayTokens()
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6 relative">
@@ -377,6 +388,9 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                 • Auto-rotating every 15 seconds
                             </p>
                         )}
+                        {contentType === "Department Token Queue" && (
+                            <p className="text-xs text-purple-600">Department-specific display • Showing top 4 tokens only</p>
+                        )}
                     </div>
                     <div className="text-right">
                         <div className="text-3xl font-bold text-blue-600">{currentTime?.toLocaleTimeString("en-US")}</div>
@@ -394,13 +408,13 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                         <CardHeader className="bg-blue-600 text-white">
                             <CardTitle className="flex items-center space-x-2 text-2xl">
                                 <Users className="h-6 w-6" />
-                                <span>Current Queue</span>
+                                <span>{contentType === "Department Token Queue" ? "Department Queue (Top 4)" : "Current Queue"}</span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
-                            {data.tokenQueue.length > 0 ? (
+                            {displayTokens.length > 0 ? (
                                 <div className="space-y-4">
-                                    {data.tokenQueue.map((token, index) => (
+                                    {displayTokens.map((token, index) => (
                                         <div
                                             key={token.token_id}
                                             className={`flex justify-between items-center p-4 rounded-lg ${index === 0 ? "bg-green-100 border-2 border-green-500" : "bg-gray-50"
@@ -430,6 +444,9 @@ export default function PublicDisplayPage({ displayId, displayData }: PublicDisp
                                                     <div className="text-sm text-gray-500 mt-1">ETA: {token.estimated_time}</div>
                                                 )}
                                                 {index === 0 && <div className="text-green-600 font-semibold mt-1">NOW SERVING</div>}
+                                                {contentType === "Department Token Queue" && index < 3 && (
+                                                    <div className="text-blue-600 text-xs mt-1">Position: {index + 1}</div>
+                                                )}
                                             </div>
                                         </div>
                                     ))}

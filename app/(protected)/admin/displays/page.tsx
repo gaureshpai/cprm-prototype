@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Monitor, Edit, Plus, Users, Activity, Pill, Trash2, RefreshCw } from 'lucide-react'
+import { Monitor, Edit, Plus, Users, Activity, Pill, Trash2, RefreshCw } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import {
   getAllDisplaysAction,
@@ -22,24 +22,45 @@ import { AuthGuard } from "@/components/auth-guard"
 import { Navbar } from "@/components/navbar"
 import Link from "next/link"
 import { getStatusColor, getStatusText } from "@/lib/functions"
+import { getAllDepartmentsAction, type DepartmentData } from "@/lib/department-actions"
 
 const CONTENT_TYPES = [
   { value: "Token Queue", label: "Token Queue", icon: Users, description: "Patient queue and waiting times" },
-  { value: "Department Status", label: "Department Status", icon: Activity, description: "Department occupancy and status" },
+  {
+    value: "Department Status",
+    label: "Department Status",
+    icon: Activity,
+    description: "Department occupancy and status",
+  },
   { value: "Drug Inventory", label: "Drug Inventory", icon: Pill, description: "Medication stock levels" },
   { value: "Mixed Dashboard", label: "Mixed Dashboard", icon: Monitor, description: "Combined information display" },
-  { value: "Patient Dashboard", label: "Patient Dashboard", icon: Monitor, description: "Combined information display for patients" },
-  { value: "Staff Dashboard", label: "Staff Dashboard", icon: Monitor, description: "Combined information display for Staffs" },
+  {
+    value: "Patient Dashboard",
+    label: "Patient Dashboard",
+    icon: Monitor,
+    description: "Combined information display for patients",
+  },
+  {
+    value: "Staff Dashboard",
+    label: "Staff Dashboard",
+    icon: Monitor,
+    description: "Combined information display for Staffs",
+  },
   { value: "OT Status", label: "OT Status", icon: Monitor, description: "OT status and scheduling" },
   { value: "Blood Bank", label: "Blood Bank", icon: Monitor, description: "Blood bank inventory" },
+  {
+    value: "Department Token Queue",
+    label: "Department Token Queue",
+    icon: Users,
+    description: "Department-specific token queue (top 4 only)",
+  },
 ]
 
-const STATUS_OPTIONS = [
-  { value: "offline", label: "Offline" }
-]
+const STATUS_OPTIONS = [{ value: "offline", label: "Offline" }]
 
 export default function DisplayManagement() {
   const [displays, setDisplays] = useState<DisplayData[]>([])
+  const [departments, setDepartments] = useState<DepartmentData[]>([])
   const [selectedDisplay, setSelectedDisplay] = useState<DisplayData | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -52,22 +73,36 @@ export default function DisplayManagement() {
     location: "",
     content: "",
     status: "offline",
+    departmentId: "",
   })
 
   const [createForm, setCreateForm] = useState({
     location: "",
     content: "Token Queue",
     status: "offline",
+    departmentId: "",
   })
 
   useEffect(() => {
     fetchDisplays()
+    loadDepartments()
     const interval = setInterval(() => {
       fetchDisplays(false)
     }, 5000)
 
     return () => clearInterval(interval)
   }, [])
+
+  const loadDepartments = async () => {
+    try {
+      const result = await getAllDepartmentsAction()
+      if (result.success && result.data) {
+        setDepartments(result.data.filter((dept) => dept.status === "Active"))
+      }
+    } catch (error) {
+      console.error("Error loading departments:", error)
+    }
+  }
 
   const fetchDisplays = async (showLoading = true) => {
     try {
@@ -105,12 +140,17 @@ export default function DisplayManagement() {
       location: display.location,
       content: display.content,
       status: display.status,
+      departmentId: display.config?.departmentId || "",
     })
     setIsEditDialogOpen(true)
   }
 
   const handleUpdateDisplay = async (formData: FormData) => {
     if (!selectedDisplay) return
+    
+    if (editForm.content === "Department Token Queue" && editForm.departmentId) {
+      formData.set("config", JSON.stringify({ departmentId: editForm.departmentId }))
+    }
 
     startTransition(async () => {
       const result = await updateDisplayAction(selectedDisplay.id, formData)
@@ -134,13 +174,17 @@ export default function DisplayManagement() {
   }
 
   const handleCreateDisplay = async (formData: FormData) => {
+    if (createForm.content === "Department Token Queue" && createForm.departmentId) {
+      formData.set("config", JSON.stringify({ departmentId: createForm.departmentId }))
+    }
+
     startTransition(async () => {
       const result = await createDisplayAction(formData)
 
       if (result.success && result.data) {
         setDisplays([...displays, result.data])
         setIsCreateDialogOpen(false)
-        setCreateForm({ location: "", content: "Token Queue", status: "offline" })
+        setCreateForm({ location: "", content: "Token Queue", status: "offline", departmentId: "" })
         toast({
           title: "Success",
           description: "Display created successfully",
@@ -203,6 +247,8 @@ export default function DisplayManagement() {
   const offlineDisplays = displays.filter((d) => d.status === "offline").length
   const warningDisplays = displays.filter((d) => d.status === "warning").length
 
+  const isDepartmentSpecific = (contentType: string) => contentType === "Department Token Queue"
+
   return (
     <AuthGuard allowedRoles={["admin"]} className="p-6 space-y-6">
       <Navbar />
@@ -219,7 +265,7 @@ export default function DisplayManagement() {
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={() => fetchDisplays()} disabled={isPending}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
             Refresh
           </Button>
           {displays.length === 0 && (
@@ -235,7 +281,7 @@ export default function DisplayManagement() {
                 Add Display
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Create New Display</DialogTitle>
               </DialogHeader>
@@ -270,6 +316,27 @@ export default function DisplayManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+                {isDepartmentSpecific(createForm.content) && (
+                  <div>
+                    <Label htmlFor="create-department">Department</Label>
+                    <Select
+                      value={createForm.departmentId}
+                      onValueChange={(value) => setCreateForm({ ...createForm, departmentId: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="create-status">Status</Label>
                   <Select
@@ -359,7 +426,12 @@ export default function DisplayManagement() {
                 </Badge>
               </div>
               <p className="text-sm text-gray-600">ID: {display.id}</p>
-              <Link href={`/display/${display.id}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
+              <Link
+                href={`/display/${display.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline text-sm"
+              >
                 View display
               </Link>
             </CardHeader>
@@ -367,6 +439,12 @@ export default function DisplayManagement() {
               <div>
                 <p className="text-sm font-medium">Content Type</p>
                 <p className="text-sm text-gray-600">{display.content}</p>
+                {display.config?.departmentId && (
+                  <p className="text-xs text-blue-600">
+                    Department:{" "}
+                    {departments.find((d) => d.id === display.config.departmentId)?.name || display.config.departmentId}
+                  </p>
+                )}
               </div>
               <div>
                 <p className="text-sm font-medium">Last Update</p>
@@ -409,7 +487,11 @@ export default function DisplayManagement() {
             </div>
             <div>
               <Label htmlFor="edit-content">Content Type</Label>
-              <Select name="content" value={editForm.content} onValueChange={(value) => setEditForm({ ...editForm, content: value })}>
+              <Select
+                name="content"
+                value={editForm.content}
+                onValueChange={(value) => setEditForm({ ...editForm, content: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -428,9 +510,34 @@ export default function DisplayManagement() {
                 </SelectContent>
               </Select>
             </div>
+            {isDepartmentSpecific(editForm.content) && (
+              <div>
+                <Label htmlFor="edit-department">Department</Label>
+                <Select
+                  value={editForm.departmentId}
+                  onValueChange={(value) => setEditForm({ ...editForm, departmentId: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label htmlFor="edit-status">Status</Label>
-              <Select name="status" value={editForm.status} onValueChange={(value) => setEditForm({ ...editForm, status: value })}>
+              <Select
+                name="status"
+                value={editForm.status}
+                onValueChange={(value) => setEditForm({ ...editForm, status: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
