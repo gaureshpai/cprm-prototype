@@ -4,6 +4,8 @@ import { Navbar } from "@/components/navbar"
 import NurseDashboardContent from "@/components/nurse-dashboard-content"
 import { getNurseDashboardData } from "@/lib/nurse-service"
 
+export const dynamic = "force-dynamic"
+
 export default async function NurseDashboard() {
   const dashboardData = await getNurseDashboardData()
 

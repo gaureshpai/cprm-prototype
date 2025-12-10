@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { AuthContextType, User } from "@/lib/helpers"
+import Cookies from "js-cookie"
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -12,13 +13,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("udal_user")
+    const storedUser = Cookies.get("udal_user")
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser)
         setUser(userData)
       } catch (error) {
-        localStorage.removeItem("udal_user")
+        Cookies.remove("udal_user")
       }
     }
     setIsLoading(false)
@@ -26,12 +27,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (userData: User) => {
     setUser(userData)
-    localStorage.setItem("udal_user", JSON.stringify(userData))
+    Cookies.set("udal_user", JSON.stringify(userData))
   }
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("udal_user")
+    Cookies.remove("udal_user")
     router.push("/login")
   }
 
